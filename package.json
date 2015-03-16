@@ -1,0 +1,72 @@
+{
+  "name": "thriftrw",
+  "version": "1.0.0",
+  "description": "thrift encoding/decoding using bufrw",
+  "keywords": [],
+  "author": "Lei Zhao <leizha@uber.com>",
+  "repository": "git://github.com/uber/thriftrw.git",
+  "main": "index.js",
+  "homepage": "https://github.com/uber/thriftrw",
+  "bugs": {
+    "url": "https://github.com/uber/thriftrw/issues",
+    "email": "leizha@uber.com"
+  },
+  "contributors": [
+    {
+      "name": "Lei Zhao"
+    }
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+    "coveralls": "^2.10.0",
+    "istanbul": "^0.3.5",
+    "itape": "^1.5.0",
+    "lint-trap": "^1.0.0",
+    "opn": "^1.0.1",
+    "pre-commit": "0.0.9",
+    "tape": "^3.4.0",
+    "uber-licence": "^1.2.0"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://github.com/uber/thriftrw/raw/master/LICENSE"
+    }
+  ],
+  "scripts": {
+    "add-licence": "uber-licence",
+    "check-cover": "istanbul check-coverage --branches=100 --lines=100 --functions=100",
+    "check-licence": "uber-licence --dry",
+    "check-ls": "npm ls 1>/dev/null",
+    "cover": "npm run test-cover -s && npm run check-cover -s",
+    "lint": "lint-trap .",
+    "test": "npm run check-ls -s && npm run lint -s && npm run cover -s",
+    "test-cover": "istanbul cover --report html --print detail -- test/index.js",
+    "trace": "itape test/index.js --trace",
+    "travis": "npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
+    "view-cover": "opn ./coverage/index.html"
+  },
+  "engines": {
+    "node": ">= 0.10.x"
+  },
+  "pre-commit": [
+    "check-licence",
+    "test"
+  ],
+  "pre-commit.silent": true,
+  "itape": {
+    "trace": {
+      "debuglog": [
+        "thriftrw"
+      ],
+      "leakedHandles": {
+        "timeout": 5001,
+        "debugSockets": true
+      },
+      "formatStack": true
+    }
+  },
+  "private": true,
+  "uber-ngen-version": "5.2.0"
+}
