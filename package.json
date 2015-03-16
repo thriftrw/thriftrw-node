@@ -17,6 +17,8 @@
     }
   ],
   "dependencies": {
+    "bufrw": "git+ssh://git@github.com:uber/bufrw",
+    "error": "^5.1.1"
   },
   "devDependencies": {
     "coveralls": "^2.10.0",
@@ -26,7 +28,10 @@
     "opn": "^1.0.1",
     "pre-commit": "0.0.9",
     "tape": "^3.4.0",
-    "uber-licence": "^1.2.0"
+    "uber-licence": "^1.2.0",
+    "debug": "^2.1.2",
+    "lodash": "^3.5.0",
+    "cached-tape": "^2.0.0"
   },
   "licenses": [
     {
