@@ -21,6 +21,7 @@
 /* eslint max-statements:[0, 99] */
 'use strict';
 
+var assert = require('assert');
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
@@ -29,49 +30,50 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function TMap(ktypeid, vtypeid) {
-    this.ktypeid = ktypeid;
-    this.ktype = null;
-    this.vtypeid = vtypeid;
-    this.vtype = null;
-    this.pairs = [];
+function TMap(ktypeid, vtypeid, pairs) {
+    if (!(this instanceof TMap)) {
+        return new TMap(ktypeid, vtypeid, pairs);
+    }
+    assert(this.ktypeid = ktypeid);
+    assert(this.vtypeid = vtypeid);
+    this.pairs = pairs || [];
 }
 
-TMap.prototype.setTypes = function setTypes(ttypes) {
-    this.ktype = ttypes[this.ktypeid];
-    if (!this.ktype) {
-        return InvalidTypeidError({typeid: this.ktypeid, name: 'map::ktype'});
-    }
-    this.vtype = ttypes[this.vtypeid];
-    if (!this.vtype) {
-        return InvalidTypeidError({typeid: this.vtypeid, name: 'map::vtype'});
-    }
-};
+TMap.RW = TMapRW;
 
 function TMapRW(opts) {
+    if (!(this instanceof TMapRW)) {
+        return new TMapRW(opts);
+    }
     this.ttypes = opts.ttypes;
     this.headerRW = bufrw.Series([bufrw.UInt8, bufrw.UInt8, bufrw.UInt32BE]);
 }
 inherits(TMapRW, bufrw.Base);
 
 TMapRW.prototype.byteLength = function byteLength(map) {
-    var typeErr = map.setTypes(this.ttypes);
-    if (typeErr) {
-        return LengthResult.error(typeErr);
+    var ktype = this.ttypes[map.ktypeid];
+    if (!ktype) {
+        return LengthResult.error(
+            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+    }
+    var vtype = this.ttypes[map.vtypeid];
+    if (!vtype) {
+        return LengthResult.error(
+            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
     }
 
     var length = 6; // header length
     var t;
     for (var i = 0; i < map.pairs.length; i++) {
-        t = map.ktype.byteLength(map.pairs[i][0]);
+        t = ktype.byteLength(map.pairs[i][0]);
         if (t.err) {
-            return LengthResult.error(t.err);
+            return t;
         }
         length += t.length;
 
-        t = map.vtype.byteLength(map.pairs[i][1]);
+        t = vtype.byteLength(map.pairs[i][1]);
         if (t.err) {
-            return LengthResult.error(t.err);
+            return t;
         }
         length += t.length;
     }
@@ -79,28 +81,34 @@ TMapRW.prototype.byteLength = function byteLength(map) {
 };
 
 TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
-    var typeErr = map.setTypes(this.ttypes);
-    if (typeErr) {
-        return WriteResult.error(typeErr);
+    var ktype = this.ttypes[map.ktypeid];
+    if (!ktype) {
+        return WriteResult.error(
+            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+    }
+    var vtype = this.ttypes[map.vtypeid];
+    if (!vtype) {
+        return WriteResult.error(
+            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
     }
 
     var t = this.headerRW.writeInto(
         [map.ktypeid, map.vtypeid, map.pairs.length], buffer, offset);
     if (t.err) {
-        return WriteResult.error(t.err);
+        return t;
     }
     offset = t.offset;
 
     for (var i = 0; i < map.pairs.length; i++) {
-        t = map.ktype.writeInto(map.pairs[i][0], buffer, offset);
+        t = ktype.writeInto(map.pairs[i][0], buffer, offset);
         if (t.err) {
-            return WriteResult.error(t.err);
+            return t;
         }
         offset = t.offset;
 
-        t = map.vtype.writeInto(map.pairs[i][1], buffer, offset);
+        t = vtype.writeInto(map.pairs[i][1], buffer, offset);
         if (t.err) {
-            return WriteResult.error(t.err);
+            return t;
         }
         offset = t.offset;
     }
@@ -110,7 +118,7 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
 TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var t = this.headerRW.readFrom(buffer, offset);
     if (t.err) {
-        return ReadResult.error(t.err);
+        return t;
     }
     offset = t.offset;
     var ktypeid = t.value[0];
@@ -118,22 +126,28 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var size = t.value[2];
 
     var map = new TMap(ktypeid, vtypeid);
-    var typeErr = map.setTypes(this.ttypes);
-    if (typeErr) {
-        return ReadResult.error(typeErr);
+    var ktype = this.ttypes[map.ktypeid];
+    if (!ktype) {
+        return ReadResult.error(
+            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+    }
+    var vtype = this.ttypes[map.vtypeid];
+    if (!vtype) {
+        return ReadResult.error(
+            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
     }
 
     for (var i = 0; i < size; i++) {
-        t = map.ktype.readFrom(buffer, offset);
+        t = ktype.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
         var key = t.value;
 
-        t = map.vtype.readFrom(buffer, offset);
+        t = vtype.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
         var val = t.value;

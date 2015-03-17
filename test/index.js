@@ -23,61 +23,32 @@
 'use strict';
 
 var thrift = require('../');
-var _ = require('lodash');
+var TStructRW = thrift.TStructRW;
+var TStruct = thrift.TStruct;
+var TMap = thrift.TMap;
+var TList = thrift.TList;
+var testRW = require('bufrw/test_rw');
 var test = require('cached-tape');
-var debug = require('debug')('test');
-var bufrw = require('bufrw');
 var Buffer = require('buffer').Buffer;
 
-function repr(data) {
-    switch (data.constructor.name) {
-        case 'TMap':
-            return _.reduce(data.pairs, function hmm(r, i) {
-                r[repr(i[0])] = repr(i[1]);
-                return r;
-            }, {});
-        case 'TList':
-            return _.reduce(data.elements, function hmm(r, i) {
-                r.push(repr(i));
-                return r;
-            }, []);
-        case 'TStruct':
-            return _.reduce(data.fields, function hmm(r, i) {
-                r[i.id] = repr(i.val);
-                return r;
-            }, {});
-        default:
-            return data;
-    }
-}
-
-test('serialization and deserialization', function sxs(assert) {
-    run('CAABAAAAewA=', {1: 123});
-    run('CwABAAAABWhlbGxvAA==', {1: 'hello'});
-    run('AwAJFAYACgAKAA==', {9: 20, 10: 10});
-    run('DAABCAABAAAACgAMAAILAAEAAAAFaGVsbG8AAA==', {1: {1: 10}, 2: {1: 'hello'}});
-    run('DQABCwwAAAACAAAABGtleTAMAAEIAAEAAAAUAAwAAgsAAQAAAARzdHIyAAAAAAAEa2V5MQwAAQgAAQAAAAoADAACCwABAAAABHN0cjEAAA8AAgwAAAADCAABAAAAHgAIAAEAAABkAAgAAQAAAMgAAA==',
-        {
-            1: {
-                key0: {1: {1: 20}, 2: {1: 'str2'}},
-                key1: {1: {1: 10}, 2: {1: 'str1'}}
-            },
-            2: [
-                {1: 30},
-                {1: 100},
-                {1: 200}
-            ]
-        });
-    assert.end();
-
-    function run(raw, expected) {
-        var input = new Buffer(raw, 'base64');
-        var struct = bufrw.fromBuffer(thrift.TStructRW, input);
-
-        debug('repr', repr(struct));
-        assert.deepEqual(repr(struct), expected);
-
-        var output = bufrw.toBuffer(thrift.TStructRW, struct).toString('base64');
-        assert.equal(output, raw);
-    }
-});
+test('StructRW', testRW.cases(TStructRW, [
+    [TStruct([[8, 1, 123]]), new Buffer('CAABAAAAewA=', 'base64')],
+    [TStruct([[11, 1, 'hello']]), new Buffer('CwABAAAABWhlbGxvAA==', 'base64')],
+    [TStruct([[3, 9, 20], [6, 10, 10]]), new Buffer('AwAJFAYACgAKAA==', 'base64')],
+    [TStruct([
+        [12, 1, TStruct([[8, 1, 10]])],
+        [12, 2, TStruct([[11, 1, 'hello']])]
+    ]), new Buffer('DAABCAABAAAACgAMAAILAAEAAAAFaGVsbG8AAA==', 'base64')],
+    [TStruct([
+        [13, 1, TMap(11, 12, [
+            ['key0', TStruct([
+                [12, 1, TStruct([[8, 1, 20]])],
+                [12, 2, TStruct([[11, 1, 'str2']])]])],
+            ['key1', TStruct([
+                [12, 1, TStruct([[8, 1, 10]])],
+                [12, 2, TStruct([[11, 1, 'str1']])]])]])],
+        [15, 2, TList(12, [
+            TStruct([[8, 1, 30]]),
+            TStruct([[8, 1, 100]]),
+            TStruct([[8, 1, 200]])])]
+    ]), new Buffer('DQABCwwAAAACAAAABGtleTAMAAEIAAEAAAAUAAwAAgsAAQAAAARzdHIyAAAAAAAEa2V5MQwAAQgAAQAAAAoADAACCwABAAAABHN0cjEAAA8AAgwAAAADCAABAAAAHgAIAAEAAABkAAgAAQAAAMgAAA==', 'base64')]]));

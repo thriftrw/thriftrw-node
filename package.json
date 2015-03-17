@@ -17,7 +17,7 @@
     }
   ],
   "dependencies": {
-    "bufrw": "git+ssh://git@github.com:uber/bufrw",
+    "bufrw": "git+ssh://git@github.com:uber/bufrw#v0.9.4",
     "error": "^5.1.1"
   },
   "devDependencies": {

@@ -21,6 +21,7 @@
 /* eslint max-statements:[0, 99] */
 'use strict';
 
+var assert = require('assert');
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
@@ -29,37 +30,38 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function TList(etypeid) {
-    this.etypeid = etypeid;
-    this.etype = null;
-    this.elements = [];
+function TList(etypeid, elements) {
+    if (!(this instanceof TList)) {
+        return new TList(etypeid, elements);
+    }
+    assert(this.etypeid = etypeid);
+    this.elements = elements || [];
 }
 
-TList.prototype.setType = function setType(ttypes) {
-    this.etype = ttypes[this.etypeid];
-    if (!this.etype) {
-        return InvalidTypeidError({typeid: this.etypeid, name: 'list::etype'});
-    }
-};
+TList.RW = TListRW;
 
 function TListRW(opts) {
+    if (!(this instanceof TListRW)) {
+        return new TListRW(opts);
+    }
     this.ttypes = opts.ttypes;
     this.headerRW = bufrw.Series([bufrw.UInt8, bufrw.UInt32BE]);
 }
 inherits(TListRW, bufrw.Base);
 
 TListRW.prototype.byteLength = function byteLength(list) {
-    var typeErr = list.setType(this.ttypes);
-    if (typeErr) {
-        return LengthResult.error(typeErr);
+    var etype = this.ttypes[list.etypeid];
+    if (!etype) {
+        return LengthResult.error(
+            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
     }
 
     var length = 5; // header length
     var t;
     for (var i = 0; i < list.elements.length; i++) {
-        t = list.etype.byteLength(list.elements[i]);
+        t = etype.byteLength(list.elements[i]);
         if (t.err) {
-            return LengthResult.error(t.err);
+            return t;
         }
         length += t.length;
     }
@@ -67,22 +69,23 @@ TListRW.prototype.byteLength = function byteLength(list) {
 };
 
 TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
-    var typeErr = list.setType(this.ttypes);
-    if (typeErr) {
-        return WriteResult.error(typeErr);
+    var etype = this.ttypes[list.etypeid];
+    if (!etype) {
+        return WriteResult.error(
+            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
     }
 
     var t = this.headerRW.writeInto([list.etypeid, list.elements.length],
         buffer, offset);
     if (t.err) {
-        return WriteResult.error(t.err);
+        return t;
     }
     offset = t.offset;
 
     for (var i = 0; i < list.elements.length; i++) {
-        t = list.etype.writeInto(list.elements[i], buffer, offset);
+        t = etype.writeInto(list.elements[i], buffer, offset);
         if (t.err) {
-            return WriteResult.error(t.err);
+            return t;
         }
         offset = t.offset;
     }
@@ -92,22 +95,23 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
 TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var t = this.headerRW.readFrom(buffer, offset);
     if (t.err) {
-        return ReadResult.error(t.err);
+        return t;
     }
     offset = t.offset;
     var etypeid = t.value[0];
     var size = t.value[1];
 
     var list = new TList(etypeid);
-    var typeErr = list.setType(this.ttypes);
-    if (typeErr) {
-        return ReadResult.error(typeErr);
+    var etype = this.ttypes[list.etypeid];
+    if (!etype) {
+        return ReadResult.error(
+            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
     }
 
     for (var i = 0; i < size; i++) {
-        t = list.etype.readFrom(buffer, offset);
+        t = etype.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
         list.elements.push(t.value);

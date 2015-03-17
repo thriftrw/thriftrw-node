@@ -31,25 +31,20 @@ var ReadResult = bufrw.ReadResult;
 
 var STOP = 0;
 
-function TStruct() {
-    this.fields = [];
-}
-
-function TField(typeid, id) {
-    this.typeid = typeid;
-    this.type = null;
-    this.id = id;
-    this.val = null;
-}
-
-TField.prototype.setType = function setTypes(ttypes) {
-    this.type = ttypes[this.typeid];
-    if (!this.type) {
-        return InvalidTypeidError({typeid: this.ktypeid, name: 'field::type'});
+function TStruct(fields) {
+    if (!(this instanceof TStruct)) {
+        return new TStruct(fields);
     }
-};
+    this.fields = fields || [];
+    // each field is a list of [typeid, fieldid, val]
+}
+
+TStruct.RW = TStructRW;
 
 function TStructRW(opts) {
+    if (!(this instanceof TStructRW)) {
+        return new TStructRW(opts);
+    }
     this.ttypes = opts.ttypes;
 }
 inherits(TStructRW, bufrw.Base);
@@ -59,16 +54,17 @@ TStructRW.prototype.byteLength = function byteLength(struct) {
     var t;
     for (var i = 0; i < struct.fields.length; i++) {
         var field = struct.fields[i];
-        var typeErr = field.setType(this.ttypes);
-        if (typeErr) {
-            return LengthResult.error(typeErr);
+        var type = this.ttypes[field[0]];
+        if (!type) {
+            return LengthResult.error(InvalidTypeidError({
+                typeid: field[0], name: 'field::type'}));
         }
 
         length += 3; // field header length
 
-        t = field.type.byteLength(field.val);
+        t = type.byteLength(field[2]);
         if (t.err) {
-            return LengthResult.error(t.err);
+            return t;
         }
         length += t.length;
     }
@@ -79,32 +75,33 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
     var t;
     for (var i = 0; i < struct.fields.length; i++) {
         var field = struct.fields[i];
-        var typeErr = field.setType(this.ttypes);
-        if (typeErr) {
-            return WriteResult.error(typeErr);
+        var type = this.ttypes[field[0]];
+        if (!type) {
+            return LengthResult.error(InvalidTypeidError({
+                typeid: field[0], name: 'field::type'}));
         }
 
-        t = bufrw.UInt8.writeInto(field.typeid, buffer, offset);
+        t = bufrw.UInt8.writeInto(field[0], buffer, offset);
         if (t.err) {
-            return WriteResult.error(t.err);
-        }
-        offset = t.offset;
-
-        t = bufrw.UInt16BE.writeInto(field.id, buffer, offset);
-        if (t.err) {
-            return WriteResult.error(t.err);
+            return t;
         }
         offset = t.offset;
 
-        t = field.type.writeInto(field.val, buffer, offset);
+        t = bufrw.UInt16BE.writeInto(field[1], buffer, offset);
         if (t.err) {
-            return WriteResult.error(t.err);
+            return t;
+        }
+        offset = t.offset;
+
+        t = type.writeInto(field[2], buffer, offset);
+        if (t.err) {
+            return t;
         }
         offset = t.offset;
     }
     t = bufrw.UInt8.writeInto(STOP, buffer, offset);
     if (t.err) {
-        return WriteResult.error(t.err);
+        return t;
     }
     offset = t.offset;
     return WriteResult.just(offset);
@@ -117,7 +114,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
     while (true) {
         t = bufrw.UInt8.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
         var typeid = t.value;
@@ -127,28 +124,27 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         t = bufrw.UInt16BE.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
         var id = t.value;
 
-        var field = new TField(typeid, id);
-        var typeErr = field.setType(this.ttypes);
-        if (typeErr) {
-            return ReadResult.error(typeErr);
+        var type = this.ttypes[typeid];
+        if (!type) {
+            return LengthResult.error(InvalidTypeidError({
+                typeid: typeid, name: 'field::type'}));
         }
 
-        t = field.type.readFrom(buffer, offset);
+        t = type.readFrom(buffer, offset);
         if (t.err) {
-            return ReadResult.error(t.err);
+            return t;
         }
         offset = t.offset;
-        field.val = t.value;
-        struct.fields.push(field);
+        var val = t.value;
+        struct.fields.push([typeid, id, val]);
     }
     return ReadResult.just(offset, struct);
 };
 
-module.exports.TField = TField;
 module.exports.TStruct = TStruct;
 module.exports.TStructRW = TStructRW;
