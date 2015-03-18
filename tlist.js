@@ -34,7 +34,7 @@ function TList(etypeid, elements) {
     if (!(this instanceof TList)) {
         return new TList(etypeid, elements);
     }
-    assert(this.etypeid = etypeid);
+    this.etypeid = etypeid;
     this.elements = elements || [];
 }
 

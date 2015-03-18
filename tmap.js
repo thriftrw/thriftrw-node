@@ -34,8 +34,8 @@ function TMap(ktypeid, vtypeid, pairs) {
     if (!(this instanceof TMap)) {
         return new TMap(ktypeid, vtypeid, pairs);
     }
-    assert(this.ktypeid = ktypeid);
-    assert(this.vtypeid = vtypeid);
+    this.ktypeid = ktypeid;
+    this.vtypeid = vtypeid;
     this.pairs = pairs || [];
 }
 
