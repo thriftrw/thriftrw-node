@@ -65,13 +65,15 @@ TMapRW.prototype.byteLength = function byteLength(map) {
     var length = 6; // header length
     var t;
     for (var i = 0; i < map.pairs.length; i++) {
-        t = ktype.byteLength(map.pairs[i][0]);
+        var pair = map.pairs[i];
+
+        t = ktype.byteLength(pair[0]);
         if (t.err) {
             return t;
         }
         length += t.length;
 
-        t = vtype.byteLength(map.pairs[i][1]);
+        t = vtype.byteLength(pair[1]);
         if (t.err) {
             return t;
         }
@@ -100,13 +102,15 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
     offset = t.offset;
 
     for (var i = 0; i < map.pairs.length; i++) {
-        t = ktype.writeInto(map.pairs[i][0], buffer, offset);
+        var pair = map.pairs[i];
+
+        t = ktype.writeInto(pair[0], buffer, offset);
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = vtype.writeInto(map.pairs[i][1], buffer, offset);
+        t = vtype.writeInto(pair[1], buffer, offset);
         if (t.err) {
             return t;
         }
