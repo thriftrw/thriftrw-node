@@ -21,7 +21,6 @@
 /* eslint max-statements:[0, 99] */
 'use strict';
 
-var assert = require('assert');
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
