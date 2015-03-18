@@ -22,11 +22,11 @@
 /* jscs:disable maximumLineLength */
 'use strict';
 
-var thrift = require('../');
-var TStructRW = thrift.TStructRW;
-var TStruct = thrift.TStruct;
-var TMap = thrift.TMap;
-var TList = thrift.TList;
+var thriftrw = require('../');
+var TStruct = thriftrw.TStruct;
+var TStructRW = thriftrw.TStructRW;
+var TMap = thriftrw.TMap;
+var TList = thriftrw.TList;
 var testRW = require('bufrw/test_rw');
 var test = require('tape');
 var Buffer = require('buffer').Buffer;

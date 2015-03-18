@@ -120,6 +120,11 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         if (typeid === TYPE.STOP) {
             break;
         }
+        var type = this.ttypes[typeid];
+        if (!type) {
+            return LengthResult.error(InvalidTypeidError({
+                typeid: typeid, name: 'field::type'}));
+        }
 
         t = bufrw.Int16BE.readFrom(buffer, offset);
         if (t.err) {
@@ -127,12 +132,6 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = t.offset;
         var id = t.value;
-
-        var type = this.ttypes[typeid];
-        if (!type) {
-            return LengthResult.error(InvalidTypeidError({
-                typeid: typeid, name: 'field::type'}));
-        }
 
         t = type.readFrom(buffer, offset);
         if (t.err) {
@@ -145,5 +144,4 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
     return ReadResult.just(offset, struct);
 };
 
-module.exports.TStruct = TStruct;
-module.exports.TStructRW = TStructRW;
+module.exports = TStruct;

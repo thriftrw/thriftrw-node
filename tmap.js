@@ -157,5 +157,4 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     return ReadResult.just(offset, map);
 };
 
-module.exports.TMap = TMap;
-module.exports.TMapRW = TMapRW;
+module.exports = TMap;

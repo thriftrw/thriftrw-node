@@ -119,5 +119,4 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     return ReadResult.just(offset, list);
 };
 
-module.exports.TList = TList;
-module.exports.TListRW = TListRW;
+module.exports = TList;
