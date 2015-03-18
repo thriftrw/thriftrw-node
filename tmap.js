@@ -46,7 +46,7 @@ function TMapRW(opts) {
         return new TMapRW(opts);
     }
     this.ttypes = opts.ttypes;
-    this.headerRW = bufrw.Series([bufrw.UInt8, bufrw.UInt8, bufrw.UInt32BE]);
+    this.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int8, bufrw.Int32BE]);
 }
 inherits(TMapRW, bufrw.Base);
 

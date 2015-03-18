@@ -45,7 +45,7 @@ function TListRW(opts) {
         return new TListRW(opts);
     }
     this.ttypes = opts.ttypes;
-    this.headerRW = bufrw.Series([bufrw.UInt8, bufrw.UInt32BE]);
+    this.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 }
 inherits(TListRW, bufrw.Base);
 

@@ -28,7 +28,7 @@ var TStruct = thrift.TStruct;
 var TMap = thrift.TMap;
 var TList = thrift.TList;
 var testRW = require('bufrw/test_rw');
-var test = require('cached-tape');
+var test = require('tape');
 var Buffer = require('buffer').Buffer;
 
 test('StructRW', testRW.cases(TStructRW, [

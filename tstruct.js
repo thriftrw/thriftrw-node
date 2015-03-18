@@ -22,14 +22,13 @@
 'use strict';
 
 var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
-
-var STOP = 0;
 
 function TStruct(fields) {
     if (!(this instanceof TStruct)) {
@@ -81,13 +80,13 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
                 typeid: field[0], name: 'field::type'}));
         }
 
-        t = bufrw.UInt8.writeInto(field[0], buffer, offset);
+        t = bufrw.Int8.writeInto(field[0], buffer, offset);
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = bufrw.UInt16BE.writeInto(field[1], buffer, offset);
+        t = bufrw.Int16BE.writeInto(field[1], buffer, offset);
         if (t.err) {
             return t;
         }
@@ -99,7 +98,7 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         }
         offset = t.offset;
     }
-    t = bufrw.UInt8.writeInto(STOP, buffer, offset);
+    t = bufrw.Int8.writeInto(TYPE.STOP, buffer, offset);
     if (t.err) {
         return t;
     }
@@ -112,17 +111,17 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var struct = new TStruct();
     var t;
     while (true) {
-        t = bufrw.UInt8.readFrom(buffer, offset);
+        t = bufrw.Int8.readFrom(buffer, offset);
         if (t.err) {
             return t;
         }
         offset = t.offset;
         var typeid = t.value;
-        if (typeid === STOP) {
+        if (typeid === TYPE.STOP) {
             break;
         }
 
-        t = bufrw.UInt16BE.readFrom(buffer, offset);
+        t = bufrw.Int16BE.readFrom(buffer, offset);
         if (t.err) {
             return t;
         }
