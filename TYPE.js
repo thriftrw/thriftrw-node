@@ -20,32 +20,20 @@
 
 'use strict';
 
-var TYPE = require('./TYPE');
-var bufrw = require('bufrw');
-var TMap = require('./tmap');
-var TList = require('./tlist');
-var TStruct = require('./tstruct');
+var TYPE = Object.create(null);
+TYPE.STOP = 0;
+TYPE.VOID = 1;
+TYPE.BOOL = 2;
+TYPE.BYTE = 3;
+TYPE.I8 = 3;
+TYPE.DOUBLE = 4;
+TYPE.I16 = 6;
+TYPE.I32 = 8;
+TYPE.I64 = 10;
+TYPE.STRING = 11;
+TYPE.STRUCT = 12;
+TYPE.MAP = 13;
+TYPE.SET = 14;
+TYPE.LIST = 15;
 
-module.exports.TYPE = TYPE;
-
-var ttypes = Object.create(null);
-ttypes[TYPE.BOOL] = bufrw.Int8;
-ttypes[TYPE.BYTE] = bufrw.Int8;
-ttypes[TYPE.DOUBLE] = bufrw.DoubleBE;
-ttypes[TYPE.I16] = bufrw.Int16BE;
-ttypes[TYPE.I32] = bufrw.Int32BE;
-ttypes[TYPE.I64] = bufrw.FixedWidth(8);
-ttypes[TYPE.STRING] = bufrw.String(bufrw.Int32BE);
-ttypes[TYPE.MAP] = TMap.RW({ttypes: ttypes});
-ttypes[TYPE.LIST] = TList.RW({ttypes: ttypes});
-ttypes[TYPE.SET] = TList.RW({ttypes: ttypes});
-ttypes[TYPE.STRUCT] = TStruct.RW({ttypes: ttypes});
-
-module.exports.TMap = TMap;
-module.exports.TMapRW = ttypes[TYPE.MAP];
-
-module.exports.TList = TList;
-module.exports.TListRW = ttypes[TYPE.LIST];
-
-module.exports.TStruct = TStruct;
-module.exports.TStructRW = ttypes[TYPE.STRUCT];
+module.exports = TYPE;

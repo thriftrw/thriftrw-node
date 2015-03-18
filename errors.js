@@ -20,32 +20,13 @@
 
 'use strict';
 
-var TYPE = require('./TYPE');
-var bufrw = require('bufrw');
-var TMap = require('./tmap');
-var TList = require('./tlist');
-var TStruct = require('./tstruct');
+var TypedError = require('error/typed');
 
-module.exports.TYPE = TYPE;
-
-var ttypes = Object.create(null);
-ttypes[TYPE.BOOL] = bufrw.Int8;
-ttypes[TYPE.BYTE] = bufrw.Int8;
-ttypes[TYPE.DOUBLE] = bufrw.DoubleBE;
-ttypes[TYPE.I16] = bufrw.Int16BE;
-ttypes[TYPE.I32] = bufrw.Int32BE;
-ttypes[TYPE.I64] = bufrw.FixedWidth(8);
-ttypes[TYPE.STRING] = bufrw.String(bufrw.Int32BE);
-ttypes[TYPE.MAP] = TMap.RW({ttypes: ttypes});
-ttypes[TYPE.LIST] = TList.RW({ttypes: ttypes});
-ttypes[TYPE.SET] = TList.RW({ttypes: ttypes});
-ttypes[TYPE.STRUCT] = TStruct.RW({ttypes: ttypes});
-
-module.exports.TMap = TMap;
-module.exports.TMapRW = ttypes[TYPE.MAP];
-
-module.exports.TList = TList;
-module.exports.TListRW = ttypes[TYPE.LIST];
-
-module.exports.TStruct = TStruct;
-module.exports.TStructRW = ttypes[TYPE.STRUCT];
+module.exports.InvalidTypeidError = TypedError({
+    type: 'thrift-invalid-typeid',
+    message:
+        'invalid typeid {typeid} as {name}, ' +
+        'expected one of the values in TYPE',
+    typeid: null,
+    name: null
+});
