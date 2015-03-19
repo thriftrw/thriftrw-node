@@ -1,6 +1,6 @@
 {
   "name": "thriftrw",
-  "version": "1.0.0",
+  "version": "1.0.0-alpha1",
   "description": "thrift encoding/decoding using bufrw",
   "keywords": [],
   "author": "Lei Zhao <leizha@uber.com>",
@@ -27,11 +27,10 @@
     "lint-trap": "^1.0.0",
     "opn": "^1.0.1",
     "pre-commit": "0.0.9",
-    "tape": "^3.4.0",
+    "tape": "^2.0.0",
     "uber-licence": "^1.2.0",
     "debug": "^2.1.2",
-    "lodash": "^3.5.0",
-    "tape": "^2.0.0"
+    "lodash": "^3.5.0"
   },
   "licenses": [
     {
