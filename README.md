@@ -14,27 +14,19 @@ thrift encoding/decoding using bufrw
 
 ```js
 var thriftrw = require("thriftrw");
+var bufrw = require('bufrw');
 
-// TODO. Show example
+var struct = new thriftrw.TStruct();
+struct.fields.push(
+    new thriftrw.TField(thriftrw.TYPE.STRING, 1, new Buffer('hello')
+);
+
+var buf = bufrw.toBuffer(thriftrw.TStructRW, struct);
+console.log('created a binary buffer of thrift encoded struct', buf);
+
+var struct2 = bufrw.fromBuffer(thriftrw.TStructRW, buf);
+console.log('created a TStruct from a binary buffer', struct2);
 ```
-
-## Concept and Motivation
-
-// TODO. Explain what your module achieves and why.
-
-## API Documentation
-
-### `var someValue = thriftrw(/*arguments*/)`
-
-<!--
-  This is a jsig notation of your interface.
-  https://github.com/jsigbiz/spec
--->
-```ocaml
-thriftrw : (arg: Any) => void
-```
-
-// TODO. State what the module does.
 
 ## Installation
 
