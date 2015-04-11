@@ -24,10 +24,19 @@
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
+var InvalidSizeError = require('./errors').InvalidSizeError;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
+
+function TPair(key, val) {
+    if (!(this instanceof TPair)) {
+        return new TPair(key, val);
+    }
+    this.key = key;
+    this.val = val;
+}
 
 function TMap(ktypeid, vtypeid, pairs) {
     if (!(this instanceof TMap)) {
@@ -37,8 +46,6 @@ function TMap(ktypeid, vtypeid, pairs) {
     this.vtypeid = vtypeid;
     this.pairs = pairs || [];
 }
-
-TMap.RW = TMapRW;
 
 function TMapRW(opts) {
     if (!(this instanceof TMapRW)) {
@@ -53,12 +60,12 @@ TMapRW.prototype.byteLength = function byteLength(map) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
         return LengthResult.error(
-            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+            InvalidTypeidError({typeid: map.ktypeid, what: 'map::ktype'}));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
         return LengthResult.error(
-            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
+            InvalidTypeidError({typeid: map.vtypeid, what: 'map::vtype'}));
     }
 
     var length = 6; // header length
@@ -66,13 +73,13 @@ TMapRW.prototype.byteLength = function byteLength(map) {
     for (var i = 0; i < map.pairs.length; i++) {
         var pair = map.pairs[i];
 
-        t = ktype.byteLength(pair[0]);
+        t = ktype.byteLength(pair.key);
         if (t.err) {
             return t;
         }
         length += t.length;
 
-        t = vtype.byteLength(pair[1]);
+        t = vtype.byteLength(pair.val);
         if (t.err) {
             return t;
         }
@@ -85,12 +92,12 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
         return WriteResult.error(
-            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+            InvalidTypeidError({typeid: map.ktypeid, what: 'map::ktype'}));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
         return WriteResult.error(
-            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
+            InvalidTypeidError({typeid: map.vtypeid, what: 'map::vtype'}));
     }
 
     var t = this.headerRW.writeInto(
@@ -103,13 +110,13 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
     for (var i = 0; i < map.pairs.length; i++) {
         var pair = map.pairs[i];
 
-        t = ktype.writeInto(pair[0], buffer, offset);
+        t = ktype.writeInto(pair.key, buffer, offset);
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = vtype.writeInto(pair[1], buffer, offset);
+        t = vtype.writeInto(pair.val, buffer, offset);
         if (t.err) {
             return t;
         }
@@ -127,17 +134,20 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var ktypeid = t.value[0];
     var vtypeid = t.value[1];
     var size = t.value[2];
+    if (size < 0) {
+        return ReadResult.error(InvalidSizeError({size: size, what: 'map::size'}));
+    }
 
     var map = new TMap(ktypeid, vtypeid);
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
         return ReadResult.error(
-            InvalidTypeidError({typeid: map.ktypeid, name: 'map::ktype'}));
+            InvalidTypeidError({typeid: map.ktypeid, what: 'map::ktype'}));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
         return ReadResult.error(
-            InvalidTypeidError({typeid: map.vtypeid, name: 'map::vtype'}));
+            InvalidTypeidError({typeid: map.vtypeid, what: 'map::vtype'}));
     }
 
     for (var i = 0; i < size; i++) {
@@ -155,9 +165,11 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         var val = t.value;
 
-        map.pairs.push([key, val]);
+        map.pairs.push(TPair(key, val));
     }
     return ReadResult.just(offset, map);
 };
 
-module.exports = TMap;
+module.exports.TPair = TPair;
+module.exports.TMap = TMap;
+module.exports.TMapRW = TMapRW;

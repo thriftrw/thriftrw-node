@@ -24,9 +24,14 @@ var TypedError = require('error/typed');
 
 module.exports.InvalidTypeidError = TypedError({
     type: 'thrift-invalid-typeid',
-    message:
-        'invalid typeid {typeid} as {name}, ' +
-        'expected one of the values in TYPE',
+    message: 'invalid typeid {typeid} of {what}; expects one of the values in TYPE',
     typeid: null,
-    name: null
+    what: null
+});
+
+module.exports.InvalidSizeError = TypedError({
+    type: 'thrift-invalid-size',
+    message: 'invalid size {size} of {what}; expects non-negative number',
+    size: null,
+    what: null
 });

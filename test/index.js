@@ -27,28 +27,30 @@ var TStruct = thriftrw.TStruct;
 var TStructRW = thriftrw.TStructRW;
 var TMap = thriftrw.TMap;
 var TList = thriftrw.TList;
+var TField = thriftrw.TField;
+var TPair = thriftrw.TPair;
 var testRW = require('bufrw/test_rw');
 var test = require('tape');
 var Buffer = require('buffer').Buffer;
 
 test('StructRW', testRW.cases(TStructRW, [
-    [TStruct([[8, 1, 123]]), new Buffer('CAABAAAAewA=', 'base64')],
-    [TStruct([[11, 1, 'hello']]), new Buffer('CwABAAAABWhlbGxvAA==', 'base64')],
-    [TStruct([[3, 9, 20], [6, 10, 10]]), new Buffer('AwAJFAYACgAKAA==', 'base64')],
+    [TStruct([TField(8, 1, 123)]), new Buffer('CAABAAAAewA=', 'base64')],
+    [TStruct([TField(11, 1, 'hello')]), new Buffer('CwABAAAABWhlbGxvAA==', 'base64')],
+    [TStruct([TField(3, 9, 20), TField(6, 10, 10)]), new Buffer('AwAJFAYACgAKAA==', 'base64')],
     [TStruct([
-        [12, 1, TStruct([[8, 1, 10]])],
-        [12, 2, TStruct([[11, 1, 'hello']])]
+        TField(12, 1, TStruct([TField(8, 1, 10)])),
+        TField(12, 2, TStruct([TField(11, 1, 'hello')]))
     ]), new Buffer('DAABCAABAAAACgAMAAILAAEAAAAFaGVsbG8AAA==', 'base64')],
     [TStruct([
-        [13, 1, TMap(11, 12, [
-            ['key0', TStruct([
-                [12, 1, TStruct([[8, 1, 20]])],
-                [12, 2, TStruct([[11, 1, 'str2']])]])],
-            ['key1', TStruct([
-                [12, 1, TStruct([[8, 1, 10]])],
-                [12, 2, TStruct([[11, 1, 'str1']])]])]])],
-        [15, 2, TList(12, [
-            TStruct([[8, 1, 30]]),
-            TStruct([[8, 1, 100]]),
-            TStruct([[8, 1, 200]])])]
+        TField(13, 1, TMap(11, 12, [
+            TPair('key0', TStruct([
+                TField(12, 1, TStruct([TField(8, 1, 20)])),
+                TField(12, 2, TStruct([TField(11, 1, 'str2')]))])),
+            TPair('key1', TStruct([
+                TField(12, 1, TStruct([TField(8, 1, 10)])),
+                TField(12, 2, TStruct([TField(11, 1, 'str1')]))]))])),
+        TField(15, 2, TList(12, [
+            TStruct([TField(8, 1, 30)]),
+            TStruct([TField(8, 1, 100)]),
+            TStruct([TField(8, 1, 200)])]))
     ]), new Buffer('DQABCwwAAAACAAAABGtleTAMAAEIAAEAAAAUAAwAAgsAAQAAAARzdHIyAAAAAAAEa2V5MQwAAQgAAQAAAAoADAACCwABAAAABHN0cjEAAA8AAgwAAAADCAABAAAAHgAIAAEAAABkAAgAAQAAAMgAAA==', 'base64')]]));

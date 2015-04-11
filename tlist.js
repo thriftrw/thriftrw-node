@@ -24,6 +24,7 @@
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var InvalidTypeidError = require('./errors').InvalidTypeidError;
+var InvalidSizeError = require('./errors').InvalidSizeError;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
@@ -36,8 +37,6 @@ function TList(etypeid, elements) {
     this.etypeid = etypeid;
     this.elements = elements || [];
 }
-
-TList.RW = TListRW;
 
 function TListRW(opts) {
     if (!(this instanceof TListRW)) {
@@ -52,7 +51,7 @@ TListRW.prototype.byteLength = function byteLength(list) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
         return LengthResult.error(
-            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
+            InvalidTypeidError({typeid: list.etypeid, what: 'list::etype'}));
     }
 
     var length = 5; // header length
@@ -71,7 +70,7 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
         return WriteResult.error(
-            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
+            InvalidTypeidError({typeid: list.etypeid, what: 'list::etype'}));
     }
 
     var t = this.headerRW.writeInto([list.etypeid, list.elements.length],
@@ -99,12 +98,14 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     offset = t.offset;
     var etypeid = t.value[0];
     var size = t.value[1];
+    if (size < 0) {
+        return ReadResult.error(InvalidSizeError({size: size, what: 'list::size'}));
+    }
 
     var list = new TList(etypeid);
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return ReadResult.error(
-            InvalidTypeidError({typeid: list.etypeid, name: 'list::etype'}));
+        return ReadResult.error(InvalidTypeidError({typeid: list.etypeid, what: 'list::etype'}));
     }
 
     for (var i = 0; i < size; i++) {
@@ -118,4 +119,5 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     return ReadResult.just(offset, list);
 };
 
-module.exports = TList;
+module.exports.TList = TList;
+module.exports.TListRW = TListRW;
