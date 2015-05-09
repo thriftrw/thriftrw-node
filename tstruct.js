@@ -83,7 +83,7 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         var field = struct.fields[i];
         var type = this.ttypes[field.typeid];
         if (!type) {
-            return LengthResult.error(InvalidTypeidError({
+            return WriteResult.error(InvalidTypeidError({
                 typeid: field.typeid, what: 'field::type'
             }));
         }
@@ -130,8 +130,9 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         var type = this.ttypes[typeid];
         if (!type) {
-            return LengthResult.error(InvalidTypeidError({
-                typeid: typeid, what: 'field::type'
+            return ReadResult.error(InvalidTypeidError({
+                typeid: typeid,
+                what: 'field::type'
             }));
         }
 
