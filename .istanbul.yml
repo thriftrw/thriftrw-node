@@ -1,0 +1,13 @@
+instrumentation:
+    include-all-sources: true
+check:
+    global:
+        statements: 0
+        lines: 0
+        branches: 0
+        functions: 0
+    each:
+        statements: 0
+        lines: 0
+        branches: 0
+        functions: 0
