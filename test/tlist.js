@@ -29,7 +29,7 @@ var TListRW = thriftrw.TListRW;
 var TList = thriftrw.TList;
 var TField = thriftrw.TField;
 
-test('StructRW', testRW.cases(TListRW, [
+test('TListRW', testRW.cases(TListRW, [
 
     [TList(12, [
         TStruct([TField(8, 1, 30)]),

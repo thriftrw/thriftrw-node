@@ -29,7 +29,7 @@ var TStruct = thriftrw.TStruct;
 var TStructRW = thriftrw.TStructRW;
 var TField = thriftrw.TField;
 
-test('StructRW', testRW.cases(TStructRW, [
+test('TStructRW', testRW.cases(TStructRW, [
 
     [TStruct([TField(8, 1, 123)]), [
         0x08,                   // type:1  -- i32
