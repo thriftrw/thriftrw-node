@@ -59,3 +59,4 @@ module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
 
 module.exports.SpecFieldsRWBase = require('./specfields').SpecFieldsRWBase;
 module.exports.SpecStructRW = require('./specstruct').SpecStructRW;
+module.exports.SpecUnionRW = require('./specunion').SpecUnionRW;
