@@ -24,12 +24,17 @@ var bufrw = require('bufrw');
 var expected = require('bufrw/errors').expected;
 
 var BooleanRW = bufrw.Base(
-    bufrw.UInt8.byteLength,
+    booleanByteLength,
     readTBooleanFrom,
     writeTBooleanInto);
 
+function booleanByteLength() {
+    return new bufrw.LengthResult(null, bufrw.UInt8.width);
+}
+
 function readTBooleanFrom(buffer, offset) {
     var res = bufrw.UInt8.readFrom(buffer, offset);
+    // istanbul ignore else
     if (!res.err) {
         res.value = Boolean(res.value);
     }

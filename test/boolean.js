@@ -20,7 +20,26 @@
 
 'use strict';
 
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./boolean');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+
+var thriftrw = require('../index');
+var BooleanRW = thriftrw.BooleanRW;
+
+test('BooleanRW', testRW.cases(BooleanRW, [
+
+    [false, [0x00]],
+    [true, [0x01]],
+
+    {
+        writeTest: {
+            value: null,
+            error: {
+                type: 'bufrw.invalid-argument',
+                name: 'BufrwInvalidArgumentError',
+                message: 'invalid argument, expected a boolean'
+            }
+        }
+    }
+
+]));
