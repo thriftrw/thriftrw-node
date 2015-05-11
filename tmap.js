@@ -135,7 +135,10 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var vtypeid = t.value[1];
     var size = t.value[2];
     if (size < 0) {
-        return ReadResult.error(InvalidSizeError({size: size, what: 'map::size'}));
+        return ReadResult.error(InvalidSizeError({
+            size: size,
+            what: 'map::size'
+        }));
     }
 
     var map = new TMap(ktypeid, vtypeid);
