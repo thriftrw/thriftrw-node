@@ -20,36 +20,28 @@
 
 'use strict';
 
-var TYPE = require('./TYPE');
 var bufrw = require('bufrw');
-var tmap = require('./tmap');
-var tlist = require('./tlist');
-var tstruct = require('./tstruct');
+var expected = require('bufrw/errors').expected;
 
-module.exports.TYPE = TYPE;
+var BooleanRW = bufrw.Base(
+    bufrw.UInt8.byteLength,
+    readTBooleanFrom,
+    writeTBooleanInto);
 
-var ttypes = Object.create(null);
-ttypes[TYPE.BOOL] = bufrw.Int8;
-ttypes[TYPE.BYTE] = bufrw.Int8;
-ttypes[TYPE.DOUBLE] = bufrw.DoubleBE;
-ttypes[TYPE.I16] = bufrw.Int16BE;
-ttypes[TYPE.I32] = bufrw.Int32BE;
-ttypes[TYPE.I64] = bufrw.FixedWidth(8);
-ttypes[TYPE.STRING] = bufrw.VariableBuffer(bufrw.Int32BE);
-ttypes[TYPE.MAP] = tmap.TMapRW({ttypes: ttypes});
-ttypes[TYPE.LIST] = tlist.TListRW({ttypes: ttypes});
-ttypes[TYPE.SET] = tlist.TListRW({ttypes: ttypes});
-ttypes[TYPE.STRUCT] = tstruct.TStructRW({ttypes: ttypes});
+function readTBooleanFrom(buffer, offset) {
+    var res = bufrw.UInt8.readFrom(buffer, offset);
+    if (!res.err) {
+        res.value = Boolean(res.value);
+    }
+    return res;
+}
 
-module.exports.TPair = tmap.TPair;
-module.exports.TMap = tmap.TMap;
-module.exports.TMapRW = ttypes[TYPE.MAP];
+function writeTBooleanInto(bool, buffer, offset) {
+    if (typeof bool !== 'boolean') {
+        return bufrw.WriteResult.error(expected(bool, 'a boolean'), offset);
+    }
+    var n = bool ? 1 : 0;
+    return bufrw.UInt8.writeInto(n, buffer, offset);
+}
 
-module.exports.TList = tlist.TList;
-module.exports.TListRW = ttypes[TYPE.LIST];
-
-module.exports.TField = tstruct.TField;
-module.exports.TStruct = tstruct.TStruct;
-module.exports.TStructRW = ttypes[TYPE.STRUCT];
-
-module.exports.BooleanRW = require('./boolean').BooleanRW;
+module.exports.BooleanRW = BooleanRW;
