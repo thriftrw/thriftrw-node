@@ -20,4 +20,6 @@
 
 'use strict';
 
+require('./tlist');
+require('./tmap');
 require('./tstruct');
