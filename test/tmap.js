@@ -81,6 +81,95 @@ test('TMapRW', testRW.cases(TMapRW, [
         0x73, 0x74, 0x72, 0x31, // val[1] > chars     -- "str1"
         0x00,                   // val[1] > type:1    -- stop
         0x00                    // val[1] > type:1    -- stop
-    ]]
+    ]],
+
+    // invalid size
+    {
+        readTest: {
+            bytes: [
+                0x08,                  // key_type:1 -- i32
+                0x08,                  // val_type:1 -- i32
+                0x80, 0x00, 0x00, 0x00 // length:4   -- 0
+            ],
+            error: {
+                type: 'thrift-invalid-size',
+                name: 'ThriftInvalidSizeError',
+                message: 'invalid size -2147483648 of map::size; ' +
+                         'expects non-negative number',
+                size: -2147483648,
+                what: 'map::size'
+            }
+        }
+    },
+
+    // invalid key type
+    {
+        lengthTest: {
+            value: TMap(-1, 8, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::ktype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        writeTest: {
+            value: TMap(-1, 8, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::ktype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        readTest: {
+            bytes: [
+                0xff,                  // key_type:1 -- invalid (-1)
+                0x08,                  // val_type:1 -- invalid (-1)
+                0x00, 0x00, 0x00, 0x00 // length:4   -- 0
+            ],
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::ktype; ' +
+                         'expects one of the values in TYPE'
+            }
+        }
+    },
+
+    // invalid val type
+    {
+        lengthTest: {
+            value: TMap(8, -1, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::vtype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        writeTest: {
+            value: TMap(8, -1, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::vtype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        readTest: {
+            bytes: [
+                0x08,                  // key_type:1 -- invalid (-1)
+                0xff,                  // val_type:1 -- invalid (-1)
+                0x00, 0x00, 0x00, 0x00 // length:4   -- 0
+            ],
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of map::vtype; ' +
+                         'expects one of the values in TYPE'
+            }
+        }
+    }
 
 ]));
