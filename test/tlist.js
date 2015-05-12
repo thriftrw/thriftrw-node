@@ -50,6 +50,56 @@ test('TListRW', testRW.cases(TListRW, [
         0x00, 0x01,             // el[2] id:2         -- 2
         0x00, 0x00, 0x00, 0xc8, // el[2] Int32BE      -- 200
         0x00                    // el[2] type:1       -- stop
-    ]]
+    ]],
+
+    {
+        readTest: {
+            bytes: [
+                0x08,                  // el_type:1 -- i32
+                0x80, 0x00, 0x00, 0x00 // length:4  -- 0
+            ],
+            error: {
+                type: 'thrift-invalid-size',
+                name: 'ThriftInvalidSizeError',
+                message: 'invalid size -2147483648 of list::size; ' +
+                         'expects non-negative number',
+                size: -2147483648,
+                what: 'list::size'
+            }
+        }
+    },
+
+    {
+        lengthTest: {
+            value: TList(-1, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of list::etype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        writeTest: {
+            value: TList(-1, []),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of list::etype; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        readTest: {
+            bytes: [
+                0xff,                  // el_type:1 -- invalid (-1)
+                0x00, 0x00, 0x00, 0x00 // length:4  -- 0
+            ],
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of list::etype; ' +
+                         'expects one of the values in TYPE'
+            }
+        }
+    }
 
 ]));
