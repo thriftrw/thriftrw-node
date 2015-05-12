@@ -60,6 +60,7 @@ TListRW.prototype.byteLength = function byteLength(list) {
     var t;
     for (var i = 0; i < list.elements.length; i++) {
         t = etype.byteLength(list.elements[i]);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
@@ -79,6 +80,7 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
 
     var t = this.headerRW.writeInto([list.etypeid, list.elements.length],
         buffer, offset);
+    // istanbul ignore if
     if (t.err) {
         return t;
     }
@@ -86,6 +88,7 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
 
     for (var i = 0; i < list.elements.length; i++) {
         t = etype.writeInto(list.elements[i], buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
@@ -96,6 +99,7 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
 
 TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var t = this.headerRW.readFrom(buffer, offset);
+    // istanbul ignore if
     if (t.err) {
         return t;
     }
@@ -120,6 +124,7 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
 
     for (var i = 0; i < size; i++) {
         t = etype.readFrom(buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
