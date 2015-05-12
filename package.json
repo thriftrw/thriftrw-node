@@ -26,11 +26,11 @@
     "faucet": "0.0.1",
     "istanbul": "^0.3.5",
     "itape": "^1.5.0",
-    "lint-trap": "^1.0.0",
     "opn": "^1.0.1",
     "pre-commit": "0.0.9",
     "tape": "^2.0.0",
-    "uber-licence": "^1.2.0"
+    "uber-licence": "^1.2.0",
+    "uber-standard": "^3.6.4"
   },
   "licenses": [
     {
@@ -42,7 +42,7 @@
     "add-licence": "uber-licence",
     "check-licence": "uber-licence --dry",
     "check-ls": "npm ls 1>/dev/null",
-    "lint": "lint-trap .",
+    "lint": "standard --reporter stylish -v",
     "test": "npm run check-ls -s && npm run lint -s && npm run cover -s",
     "cover": "istanbul cover --report html --print none -- test/index.js | faucet && istanbul report text && npm run check-cover -s",
     "check-cover": "istanbul check-coverage",
