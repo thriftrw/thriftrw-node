@@ -79,6 +79,40 @@ test('TStructRW', testRW.cases(TStructRW, [
         0x6f,                   // chars   -- "o"
         0x00,                   // type:1  -- stop
         0x00                    // type:1  -- stop
-    ]]
+    ]],
+
+    {
+        lengthTest: {
+            value: TStruct([TField(-1, 1, null)]),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of field::type; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        writeTest: {
+            value: TStruct([TField(-1, 1, null)]),
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of field::type; ' +
+                         'expects one of the values in TYPE'
+            }
+        },
+        readTest: {
+            bytes: [
+                0xff,       // type:1 -- invalid (-1)
+                0x00, 0x01, // id:2   -- 1
+                0x00        // type:1 -- stop
+            ],
+            error: {
+                type: 'thrift-invalid-typeid',
+                name: 'ThriftInvalidTypeidError',
+                message: 'invalid typeid -1 of field::type; ' +
+                         'expects one of the values in TYPE'
+            }
+        }
+    }
 
 ]));

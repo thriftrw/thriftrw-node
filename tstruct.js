@@ -69,6 +69,7 @@ TStructRW.prototype.byteLength = function byteLength(struct) {
         length += 3; // field header length
 
         t = type.byteLength(field.val);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
@@ -89,24 +90,28 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         }
 
         t = bufrw.Int8.writeInto(field.typeid, buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
         t = bufrw.Int16BE.writeInto(field.id, buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
         t = type.writeInto(field.val, buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
     }
     t = bufrw.Int8.writeInto(TYPE.STOP, buffer, offset);
+    // istanbul ignore if
     if (t.err) {
         return t;
     }
@@ -120,6 +125,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var t;
     while (true) {
         t = bufrw.Int8.readFrom(buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
@@ -137,6 +143,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
 
         t = bufrw.Int16BE.readFrom(buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
@@ -144,6 +151,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         var id = t.value;
 
         t = type.readFrom(buffer, offset);
+        // istanbul ignore if
         if (t.err) {
             return t;
         }
