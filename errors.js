@@ -22,17 +22,26 @@
 
 var TypedError = require('error/typed');
 
-module.exports.InvalidTypeidError = TypedError({
-    type: 'thrift-invalid-typeid',
-    message: 'invalid typeid {typeid} of {what}' +
-        '; expects one of the values in TYPE',
-    typeid: null,
-    what: null
+module.exports.ListTypeIdMismatch = TypedError({
+    type: 'thrift-list-typeid-mismatch',
+    message: 'encoded typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: expectedId)',
+    encoded: null,
+    expected: null,
+    expectedId: null
 });
 
 module.exports.InvalidSizeError = TypedError({
     type: 'thrift-invalid-size',
     message: 'invalid size {size} of {what}; expects non-negative number',
     size: null,
+    what: null
+});
+
+module.exports.InvalidTypeidError = TypedError({
+    type: 'thrift-invalid-typeid',
+    message: 'invalid typeid {typeid} of {what}' +
+        '; expects one of the values in TYPE',
+    typeid: null,
     what: null
 });

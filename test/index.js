@@ -24,3 +24,4 @@ require('./tlist');
 require('./tmap');
 require('./tstruct');
 require('./boolean');
+require('./speclist');
