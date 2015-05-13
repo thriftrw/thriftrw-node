@@ -31,6 +31,24 @@ module.exports.ListTypeIdMismatch = TypedError({
     expectedId: null
 });
 
+module.exports.MapKeyTypeIdMismatch = TypedError({
+    type: 'thrift-map-key-typeid-mismatch',
+    message: 'encoded map key typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
+    encoded: null,
+    expected: null,
+    expectedId: null
+});
+
+module.exports.MapValTypeIdMismatch = TypedError({
+    type: 'thrift-map-val-typeid-mismatch',
+    message: 'encoded map value typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
+    encoded: null,
+    expected: null,
+    expectedId: null
+});
+
 module.exports.InvalidSizeError = TypedError({
     type: 'thrift-invalid-size',
     message: 'invalid size {size} of {what}; expects non-negative number',
