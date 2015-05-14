@@ -55,3 +55,4 @@ module.exports.TStructRW = ttypes[TYPE.STRUCT];
 module.exports.BooleanRW = require('./boolean').BooleanRW;
 module.exports.SpecListRW = require('./speclist').SpecListRW;
 module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
+module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
