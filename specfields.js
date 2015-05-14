@@ -55,9 +55,8 @@ function fieldByteLength(field, value) {
         return LengthResult.just(3 + field.type.rw.width);
     } else {
         var res = field.type.rw.byteLength(value);
-        if (!res.err) {
-            res.length += 3; // type:1 id:2 ...
-        }
+        // istanbul ignore else
+        if (!res.err) res.length += 3; // type:1 id:2 ...
         return res;
     }
 };
@@ -66,23 +65,20 @@ SpecFieldsRWBase.prototype.writeFieldInto =
 function writeFieldInto(field, value, buffer, offset) {
     // type:1
     var res = bufrw.Int8.writeInto(field.type.typeid, buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
 
     // id:2
     res = bufrw.Int16BE.writeInto(field.id, buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
 
     // ...
     res = field.type.rw.writeInto(value, buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
 
     return res;
@@ -95,9 +91,8 @@ function readAnyFieldFrom(buffer, offset) {
 
     // type:1
     var res = bufrw.Int8.readFrom(buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
     var typeid = res.value;
 
@@ -108,16 +103,19 @@ function readAnyFieldFrom(buffer, offset) {
 
     // id:2
     res = bufrw.Int16BE.readFrom(buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
     var id = res.value;
 
     var field = self.fieldById[id];
     if (!field) {
-        res.value = new UnknownResult();
-        return res;
+        return ReadResult.error(new Error(util.format(
+            'unknown field id %s (typeid %s)', id, typeid)));
+        // TODO: skipping unknown fields requires access to the type system so
+        // that we can read (to ignore) arbitrary encoded values
+        // res.value = new UnknownResult();
+        // return res;
     }
 
     if (typeid !== field.type.typeid) {
@@ -129,9 +127,8 @@ function readAnyFieldFrom(buffer, offset) {
 
     // ...
     res = field.type.rw.readFrom(buffer, offset);
-    if (res.err) {
-        return res;
-    }
+    // istanbul ignore if
+    if (res.err) return res;
     offset = res.offset;
 
     res.value = new FieldValueResult(field, res.value);
@@ -148,12 +145,13 @@ function StopResult() {
     this.unknown = false;
 }
 
-function UnknownResult() {
-    this.field = null;
-    this.value = null;
-    this.stop = false;
-    this.unknown = true;
-}
+// TODO
+// function UnknownResult() {
+//     this.field = null;
+//     this.value = null;
+//     this.stop = false;
+//     this.unknown = true;
+// }
 
 function FieldValueResult(field, value) {
     this.field = field;
