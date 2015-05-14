@@ -24,8 +24,8 @@ var TypedError = require('error/typed');
 
 module.exports.ListTypeIdMismatch = TypedError({
     type: 'thrift-list-typeid-mismatch',
-    message: 'encoded typeid {encoded} doesn\'t match ' +
-        'expected type "{expected}" (id: expectedId)',
+    message: 'encoded list typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
     encoded: null,
     expected: null,
     expectedId: null
