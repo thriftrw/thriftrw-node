@@ -24,8 +24,26 @@ var TypedError = require('error/typed');
 
 module.exports.ListTypeIdMismatch = TypedError({
     type: 'thrift-list-typeid-mismatch',
-    message: 'encoded typeid {encoded} doesn\'t match ' +
-        'expected type "{expected}" (id: expectedId)',
+    message: 'encoded list typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
+    encoded: null,
+    expected: null,
+    expectedId: null
+});
+
+module.exports.MapKeyTypeIdMismatch = TypedError({
+    type: 'thrift-map-key-typeid-mismatch',
+    message: 'encoded map key typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
+    encoded: null,
+    expected: null,
+    expectedId: null
+});
+
+module.exports.MapValTypeIdMismatch = TypedError({
+    type: 'thrift-map-val-typeid-mismatch',
+    message: 'encoded map value typeid {encoded} doesn\'t match ' +
+        'expected type "{expected}" (id: {expectedId})',
     encoded: null,
     expected: null,
     expectedId: null
