@@ -52,6 +52,13 @@ inherits(SpecStructRW, SpecFieldsRWBase);
 
 SpecStructRW.prototype.byteLength = function byteLength(struct) {
     var self = this;
+    if (!(struct instanceof self.cons)) {
+        // TODO: typed error
+        return LengthResult.error(new Error(util.format(
+            'invalid struct value, expected instance of %s',
+            self.cons.name)));
+    }
+
     var length = 1; // STOP byte
     for (var i = 0; i < self.fields.length; i++) {
         var field = self.fields[i];
@@ -66,18 +73,32 @@ SpecStructRW.prototype.byteLength = function byteLength(struct) {
 
 SpecStructRW.prototype.fixedByteLength = function fixedByteLength(struct) {
     var self = this;
+    if (!(struct instanceof self.cons)) {
+        // TODO: typed error
+        return LengthResult.error(new Error(util.format(
+            'invalid struct value, expected instance of %s',
+            self.cons.name)));
+    }
+
     return LengthResult.just(self.fixedWidth);
 };
 
 SpecStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
     var self = this;
     var res = null;
+    if (!(struct instanceof self.cons)) {
+        // TODO: typed error
+        return WriteResult.error(new Error(util.format(
+            'invalid struct value, expected instance of %s',
+            self.cons.name)));
+    }
 
     // TODO: support optional fields
     for (var i = 0; i < self.fields.length; i++) {
         var field = self.fields[i];
         var value = struct[field.name];
-        // TODO: error if value is undefined?
+        // TODO
+        // if (value === undefined) { }
         res = self.writeFieldInto(field, value, buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
@@ -111,6 +132,7 @@ SpecStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         // if (fieldValue.unknown) continue;
         struct[fieldValue.field.name] = fieldValue.value;
     }
+
     return ReadResult.just(offset, struct);
 };
 

@@ -67,6 +67,26 @@ test('SpecStructRW: emptyRW', testRW.cases(emptyRW, [
         ]
     ],
 
+    // length/write only expected object
+    {
+        lengthTest: {
+            value: {},
+            error: {
+                message: 'invalid struct value, ' +
+                         'expected instance of Thriftify_Empty'
+            }
+        },
+        writeTest: {
+            bytes: [0x00],
+            value: {},
+            error: {
+                message: 'invalid struct value, ' +
+                         'expected instance of Thriftify_Empty',
+                offset: 0
+            }
+        }
+    },
+
     // unknown field
     {
         readTest: {
@@ -105,6 +125,17 @@ test('SpecStructRW: personRW', testRW.cases(personRW, [
             0x00              // type:1    -- STOP
         ]
     ],
+
+    // length only expected object (needed for coverage vs the empty case)
+    {
+        lengthTest: {
+            value: {},
+            error: {
+                message: 'invalid struct value, ' +
+                         'expected instance of Thriftify_Person'
+            }
+        }
+    },
 
     // mismatched typeid
     {
