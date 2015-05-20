@@ -27,3 +27,5 @@ require('./boolean');
 require('./speclist');
 require('./specmap-obj');
 require('./specmap-entries');
+require('./specstruct');
+require('./specunion');

@@ -1,0 +1,9 @@
+- [ ] borg semantic type system from thriftify
+- [ ] borg grammar from thriftify
+- [ ] drop all type-mockes in tests to use actual type system (be more
+  "integrate"-y)
+- [ ] use type system to skip unknown fields
+- [ ] extend to support stream<T>
+  - [ ] grammar support
+  - [ ] struct or struct-like support
+  - [ ] type system support

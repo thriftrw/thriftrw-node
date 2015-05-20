@@ -56,3 +56,7 @@ module.exports.BooleanRW = require('./boolean').BooleanRW;
 module.exports.SpecListRW = require('./speclist').SpecListRW;
 module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
 module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+
+module.exports.SpecFieldsRWBase = require('./specfields').SpecFieldsRWBase;
+module.exports.SpecStructRW = require('./specstruct').SpecStructRW;
+module.exports.SpecUnionRW = require('./specunion').SpecUnionRW;
