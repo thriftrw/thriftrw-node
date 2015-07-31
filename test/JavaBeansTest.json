@@ -1,0 +1,179 @@
+{
+  "type": "Program",
+  "headers": [
+    {
+      "id": {
+        "name": "thrift.test"
+      },
+      "scope": "java"
+    }
+  ],
+  "definitions": [
+    {
+      "id": {
+        "name": "OneOfEachBeans"
+      },
+      "fields": [
+        {
+          "id": {
+            "name": "boolean_field"
+          },
+          "fieldType": {
+            "primitiveType": "bool",
+            "annotations": null
+          },
+          "fid": 1,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "a_bite"
+          },
+          "fieldType": {
+            "primitiveType": "byte",
+            "annotations": null
+          },
+          "fid": 2,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "integer16"
+          },
+          "fieldType": {
+            "primitiveType": "i16",
+            "annotations": null
+          },
+          "fid": 3,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "integer32"
+          },
+          "fieldType": {
+            "primitiveType": "i32",
+            "annotations": null
+          },
+          "fid": 4,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "integer64"
+          },
+          "fieldType": {
+            "primitiveType": "i64",
+            "annotations": null
+          },
+          "fid": 5,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "double_precision"
+          },
+          "fieldType": {
+            "primitiveType": "double",
+            "annotations": null
+          },
+          "fid": 6,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "some_characters"
+          },
+          "fieldType": {
+            "primitiveType": "string",
+            "annotations": null
+          },
+          "fid": 7,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "base64"
+          },
+          "fieldType": {
+            "primitiveType": "binary",
+            "annotations": null
+          },
+          "fid": 8,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "byte_list"
+          },
+          "fieldType": {
+            "fieldType": {
+              "primitiveType": "byte",
+              "annotations": null
+            }
+          },
+          "fid": 9,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "i16_list"
+          },
+          "fieldType": {
+            "fieldType": {
+              "primitiveType": "i16",
+              "annotations": null
+            }
+          },
+          "fid": 10,
+          "req": null
+        },
+        {
+          "id": {
+            "name": "i64_list"
+          },
+          "fieldType": {
+            "fieldType": {
+              "primitiveType": "i64",
+              "annotations": null
+            }
+          },
+          "fid": 11,
+          "req": null
+        }
+      ]
+    },
+    {
+      "id": {
+        "name": "Service"
+      },
+      "functions": [
+        {
+          "id": {
+            "name": "mymethod"
+          },
+          "ft": {
+            "primitiveType": "i64",
+            "annotations": null
+          },
+          "fields": [
+            {
+              "id": {
+                "name": "blah"
+              },
+              "fieldType": {
+                "primitiveType": "i64",
+                "annotations": null
+              },
+              "fid": null,
+              "req": null
+            }
+          ],
+          "throws": null,
+          "annotations": null
+        }
+      ],
+      "annotations": null
+    }
+  ]
+}

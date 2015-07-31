@@ -20,11 +20,15 @@
 
 'use strict';
 
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./boolean');
-require('./speclist');
-require('./specmap-obj');
-require('./specmap-entries');
-require('./thrift-idl');
+var PEG = require('pegjs');
+var fs = require('fs');
+var path = require('path');
+
+var grammarPath = path.join(__dirname, 'thrift-idl.pegjs');
+var grammar = PEG.buildParser(fs.readFileSync(grammarPath).toString('ascii'));
+
+function parse(source) {
+    return grammar.parse(source);
+}
+
+module.exports.parse = parse;
