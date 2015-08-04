@@ -18,13 +18,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* eslint max-len:[0, 120] */
 'use strict';
 
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./boolean');
-require('./speclist');
-require('./specmap-obj');
-require('./specmap-entries');
-require('./thrift-idl');
+var idl = require('../thrift-idl');
+var fs = require('fs');
+var path = require('path');
+var test = require('tape');
+
+test('thrift IDL parser can parse thrift test files', function t(assert) {
+    var extension = '.thrift';
+    var dirname = path.join(__dirname, 'thrift');
+    var filenames = fs.readdirSync(dirname);
+    for (var index = 0; index < filenames.length; index++) {
+        var filename = filenames[index];
+        var fullFilename = path.join(dirname, filename);
+        if (filename.indexOf(extension, filename.length - extension.length) > 0) {
+            var source = fs.readFileSync(fullFilename, 'ascii');
+            try {
+                idl.parse(source);
+                assert.pass(filename);
+            } catch (err) {
+                assert.fail(filename);
+            }
+        }
+    }
+    assert.end();
+});
