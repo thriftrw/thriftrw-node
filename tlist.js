@@ -43,9 +43,10 @@ function TListRW(opts) {
         return new TListRW(opts);
     }
     this.ttypes = opts.ttypes;
-    this.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 }
 inherits(TListRW, bufrw.Base);
+
+TListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 
 TListRW.prototype.byteLength = function byteLength(list) {
     var etype = this.ttypes[list.etypeid];
