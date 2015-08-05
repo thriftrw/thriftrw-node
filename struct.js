@@ -162,7 +162,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
     var result;
     for (var index = 0; index < self.spec.fields.length; index++) {
         var field = self.spec.fields[index];
-        var value = struct[field.name];
+        var value = struct && struct[field.name];
 
         var available = value !== null && value !== undefined;
 
@@ -199,7 +199,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
     var result;
     for (var index = 0; index < self.spec.fields.length; index++) {
         var field = self.spec.fields[index];
-        var value = struct[field.name];
+        var value = struct && struct[field.name];
         var available = value !== null && value !== undefined;
 
         if (!available && field.required) {

@@ -389,3 +389,35 @@ test('skips optional elided arguments', function t(assert) {
 
     assert.end();
 });
+
+test('skips optional elided struct (all fields optional)', function t(assert) {
+    var spec = new StructSpec();
+    spec.compile({
+        name: 'Health',
+        fields: [
+            {
+                id: 0,
+                name: 'ok',
+                valueType: {
+                    type: 'BaseType',
+                    baseType: 'boolean'
+                },
+                optional: true,
+                required: false
+            }
+        ]
+    });
+    spec.link(mockSpec);
+
+    var byteLengthRes = spec.rw.byteLength(null);
+    if (byteLengthRes.err) return assert.end(byteLengthRes.err);
+    assert.equal(byteLengthRes.length, 1, 'only needs one byte');
+
+    var buffer = new Buffer(byteLengthRes.length);
+    var writeRes = spec.rw.writeInto(null, buffer, 0);
+    if (writeRes.err) return assert.end(writeRes.err);
+    assert.equal(writeRes.offset, 1, 'writes to end of buffer');
+    assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
+
+    assert.end();
+});
