@@ -20,19 +20,22 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var specTest = require('./spec-test');
+
+var thriftrw = require('../index');
+var VoidRW = thriftrw.VoidRW;
+var VoidSpec = thriftrw.VoidSpec;
+var TYPE = require('../TYPE');
+
+var validTestCases = [
+    [null, []]
+];
+
+var testCases = [].concat(
+    validTestCases
+);
+
+test('VoidRW', testRW.cases(VoidRW, testCases));
+test('VoidSpec', specTest(VoidSpec, VoidRW, TYPE.VOID));

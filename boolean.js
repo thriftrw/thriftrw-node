@@ -22,6 +22,7 @@
 
 var bufrw = require('bufrw');
 var expected = require('bufrw/errors').expected;
+var TYPE = require('./TYPE');
 
 var BooleanRW = bufrw.Base(
     booleanByteLength,
@@ -45,8 +46,12 @@ function writeTBooleanInto(bool, buffer, offset) {
     if (typeof bool !== 'boolean') {
         return bufrw.WriteResult.error(expected(bool, 'a boolean'), offset);
     }
-    var n = bool ? 1 : 0;
-    return bufrw.UInt8.writeInto(n, buffer, offset);
+    return bufrw.UInt8.writeInto(Number(bool), buffer, offset);
 }
 
+function BooleanSpec() { }
+BooleanSpec.prototype.rw = BooleanRW;
+BooleanSpec.prototype.typeid = TYPE.BOOL;
+
 module.exports.BooleanRW = BooleanRW;
+module.exports.BooleanSpec = BooleanSpec;

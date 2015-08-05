@@ -52,7 +52,33 @@ module.exports.TField = tstruct.TField;
 module.exports.TStruct = tstruct.TStruct;
 module.exports.TStructRW = ttypes[TYPE.STRUCT];
 
+module.exports.BinaryRW = require('./binary').BinaryRW;
+module.exports.BinarySpec = require('./binary').BinarySpec;
+
 module.exports.BooleanRW = require('./boolean').BooleanRW;
+module.exports.BooleanSpec = require('./boolean').BooleanSpec;
+
+module.exports.ByteRW = require('./byte').ByteRW;
+module.exports.ByteSpec = require('./byte').ByteSpec;
+
+module.exports.DoubleRW = require('./double').DoubleRW;
+module.exports.DoubleSpec = require('./double').DoubleSpec;
+
+module.exports.I16RW = require('./i16').I16RW;
+module.exports.I16Spec = require('./i16').I16Spec;
+
+module.exports.I32RW = require('./i32').I32RW;
+module.exports.I32Spec = require('./i32').I32Spec;
+
+module.exports.I64RW = require('./i64').I64RW;
+module.exports.I64Spec = require('./i64').I64Spec;
+
 module.exports.SpecListRW = require('./speclist').SpecListRW;
 module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
 module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+
+module.exports.StringRW = require('./string').StringRW;
+module.exports.StringSpec = require('./string').StringSpec;
+
+module.exports.VoidRW = require('./void').VoidRW;
+module.exports.VoidSpec = require('./void').VoidSpec;

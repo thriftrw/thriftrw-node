@@ -20,19 +20,27 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var specTest = require('./spec-test');
+
+var thriftrw = require('../index');
+var DoubleRW = thriftrw.DoubleRW;
+var DoubleSpec = thriftrw.DoubleSpec;
+var TYPE = require('../TYPE');
+
+/*eslint-disable space-in-brackets*/
+var validTestCases = [
+    // Thrift is Big Endian
+    [-1, [0xbf, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]],
+    [ 0, [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]],
+    [ 1, [0x3f, 0xf0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]]
+];
+/*eslint-enable space-in-brackets*/
+
+var testCases = [].concat(
+    validTestCases
+);
+
+test('DoubleRW', testRW.cases(DoubleRW, testCases));
+test('DoubleSpec', specTest(DoubleSpec, DoubleRW, TYPE.DOUBLE));

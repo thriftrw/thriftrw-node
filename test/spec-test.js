@@ -20,19 +20,18 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+function specTest(SpecConstructor, rw, typeid) {
+    return t;
+    function t(assert) {
+        var s = new SpecConstructor();
+        assert.equal(typeof s, 'object',
+            SpecConstructor.name + ' is constructor');
+        assert.equal(s.rw, rw,
+            SpecConstructor.name + ' has `rw` method');
+        assert.equal(s.typeid, typeid,
+            SpecConstructor.name + ' has string typeid');
+        assert.end();
+    }
+}
+
+module.exports = specTest;

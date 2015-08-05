@@ -20,19 +20,16 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
+
+var VoidRW = bufrw.Null;
+
+function VoidSpec() {
+}
+
+VoidSpec.prototype.rw = VoidRW;
+VoidSpec.prototype.typeid = TYPE.VOID;
+
+module.exports.VoidRW = VoidRW;
+module.exports.VoidSpec = VoidSpec;

@@ -20,19 +20,15 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
+
+var I16RW = bufrw.Int16BE;
+
+function I16Spec() { }
+
+I16Spec.prototype.rw = I16RW;
+I16Spec.prototype.typeid = TYPE.I16;
+
+module.exports.I16RW = I16RW;
+module.exports.I16Spec = I16Spec;
