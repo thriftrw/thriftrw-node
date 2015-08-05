@@ -29,18 +29,16 @@ var Buffer = require('buffer').Buffer;
 var I64RW = bufrw.AtomRW(8,
     function readTInt64From(buffer, offset) {
         var value = new Buffer(8);
-        value.fill(0);
-        buffer.copy(value, 0, offset, offset + 7);
+        buffer.copy(value, 0, offset, offset + 8);
         return new bufrw.ReadResult(null, offset + 8, value);
     },
     function writeTInt64Into(value, buffer, offset) {
         // istanbul ignore if
         if (!(value instanceof Buffer)) {
             return bufrw.WriteResult.error(expected(value, 'a buffer'));
-        } else {
-            value.copy(buffer, offset, 0, 7);
-            return new bufrw.WriteResult(null, offset + 8);
         }
+        value.copy(buffer, offset, 0, 8);
+        return new bufrw.WriteResult(null, offset + 8);
     });
 
 // TODO decide whether to do buffer or [hi, lo] based on annotations
