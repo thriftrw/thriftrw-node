@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* eslint max-len:[0, 120] */
 /* eslint max-statements:[0, 99] */
 'use strict';
 
@@ -52,9 +53,10 @@ function TMapRW(opts) {
         return new TMapRW(opts);
     }
     this.ttypes = opts.ttypes;
-    this.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int8, bufrw.Int32BE]);
 }
 inherits(TMapRW, bufrw.Base);
+
+TMapRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int8, bufrw.Int32BE]);
 
 TMapRW.prototype.byteLength = function byteLength(map) {
     var ktype = this.ttypes[map.ktypeid];
