@@ -20,19 +20,22 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+function invalidArgumentTestCase(expectedType) {
+
+    return testCaseGenerator;
+
+    function testCaseGenerator(value) {
+        return {
+            writeTest: {
+                value: value,
+                error: {
+                    type: 'bufrw.invalid-argument',
+                    name: 'BufrwInvalidArgumentError',
+                    message: 'invalid argument, expected a ' + expectedType
+                }
+            }
+        };
+    }
+}
+
+module.exports.invalidArgumentTestCase = invalidArgumentTestCase;

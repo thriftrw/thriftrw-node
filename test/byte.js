@@ -26,30 +26,60 @@ var specTest = require('./spec-test');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
 var thriftrw = require('../index');
-var BooleanRW = thriftrw.BooleanRW;
-var BooleanSpec = thriftrw.BooleanSpec;
+var ByteRW = thriftrw.ByteRW;
+var ByteSpec = thriftrw.ByteSpec;
 var TYPE = require('../TYPE');
 
+var Buffer = require('buffer').Buffer;
+
 var validTestCases = [
-    [false, [0x00]],
-    [true, [0x01]]
+    [0x00, [0x00]], // min: 0
+    [0x7f, [0x7f]]  // max: 127
 ];
 
 var invalidArgumentTestCases = [
     null,
     undefined,
-    1,
-    0x00,
-    0x01,
-    0x02,
+    true,
+    false,
+    's',
+    'hello',
     [],
-    {}
-].map(invalidArgumentTestCase('boolean'));
+    {},
+    Buffer(1),
+    Buffer([0]),
+    Buffer('string')
+].map(invalidArgumentTestCase('number'));
+
+var invalidShortBufferTestCases = [{
+    writeTest: {
+        value: 0,
+        error: {
+            type: 'bufrw.short-buffer',
+            name: 'BufrwShortBufferError',
+            message: 'expected at least 1 bytes, only have 0 @0'
+        }
+    }
+}];
+
+var outOfRangeTestCases = [{
+    writeTest: {
+        value: 0xff,
+        bytes: [0xff],
+        error: {
+            type: 'bufrw.range-error',
+            name: 'BufrwRangeErrorError',
+            message: 'value 255 out of range, min: -128 max: 127'
+        }
+    }
+}];
 
 var testCases = [].concat(
     validTestCases,
-    invalidArgumentTestCases
+    invalidArgumentTestCases,
+    invalidShortBufferTestCases,
+    outOfRangeTestCases
 );
 
-test('BooleanRW', testRW.cases(BooleanRW, testCases));
-test('BooleanSpec', specTest(BooleanSpec, BooleanRW, TYPE.BOOL));
+test('ByteRW', testRW.cases(ByteRW, testCases));
+test('ByteSpec', specTest(ByteSpec, ByteRW, TYPE.BYTE));

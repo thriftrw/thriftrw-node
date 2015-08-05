@@ -20,19 +20,18 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
+
+var StringRW = new bufrw.String(bufrw.Int32BE, 'utf-8');
+
+function StringSpec() {
+    // This is where we would decide which RW to use if there is an annotation
+    // for an alternative to utf-8.
+}
+
+StringSpec.prototype.rw = StringRW;
+StringSpec.prototype.typeid = TYPE.STRING;
+
+module.exports.StringRW = StringRW;
+module.exports.StringSpec = StringSpec;

@@ -20,19 +20,29 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var specTest = require('./spec-test');
+
+var thriftrw = require('../index');
+var I64RW = thriftrw.I64RW;
+var I64Spec = thriftrw.I64Spec;
+var TYPE = require('../TYPE');
+
+var Buffer = require('buffer').Buffer;
+
+/*eslint-disable space-in-brackets*/
+var validTestCases = [
+    [
+        Buffer([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]),
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    ]
+];
+/*eslint-enable space-in-brackets*/
+
+var testCases = [].concat(
+    validTestCases
+);
+
+test('I64RW', testRW.cases(I64RW, testCases));
+test('I64Spec', specTest(I64Spec, I64RW, TYPE.I64));

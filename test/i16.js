@@ -20,19 +20,26 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var specTest = require('./spec-test');
+
+var thriftrw = require('../index');
+var I16RW = thriftrw.I16RW;
+var I16Spec = thriftrw.I16Spec;
+var TYPE = require('../TYPE');
+
+/*eslint-disable space-in-brackets,no-multi-spaces*/
+var validTestCases = [
+    [-0x1234, [0xed, 0xcc]],
+    [      0, [0x00, 0x00]],
+    [ 0x1234, [0x12, 0x34]]
+];
+/*eslint-enable space-in-brackets,no-multi-spaces*/
+
+var testCases = [].concat(
+    validTestCases
+);
+
+test('I16RW', testRW.cases(I16RW, testCases));
+test('I16Spec', specTest(I16Spec, I16RW, TYPE.I16));

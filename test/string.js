@@ -20,19 +20,28 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var specTest = require('./spec-test');
+
+var thriftrw = require('../index');
+var StringRW = thriftrw.StringRW;
+var StringSpec = thriftrw.StringSpec;
+var TYPE = require('../TYPE');
+
+var validTestCases = [
+    ['', [
+        0x00, 0x00, 0x00, 0x00
+    ]],
+    ['cat', [
+        0x00, 0x00, 0x00, 0x03, // len: 3
+        0x63, 0x61, 0x74        // chars  -- "cat"
+    ]]
+];
+
+var testCases = [].concat(
+    validTestCases
+);
+
+test('StringRW', testRW.cases(StringRW, testCases));
+test('StringSpec', specTest(StringSpec, StringRW, TYPE.STRING));
