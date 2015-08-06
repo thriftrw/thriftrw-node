@@ -37,3 +37,4 @@ require('./tmap');
 require('./tstruct');
 require('./void');
 require('./skip');
+require('./struct');

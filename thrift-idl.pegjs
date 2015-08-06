@@ -62,6 +62,7 @@
         this.name = name;
         this.fields = fields;
         this.annotations = annotations;
+        this.isArgument = false;
     }
     Struct.prototype.type = 'Struct';
 
@@ -89,6 +90,7 @@
         this.name = name;
         this.functionType = ft;
         this.fields = fields;
+        this.fields.isArgument = true;
         this.throws = _throws;
         this.annotations = annotations;
     }
