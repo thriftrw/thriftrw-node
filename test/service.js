@@ -20,23 +20,15 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./speclist');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./service');
-require('./spec');
+var test = require('tape');
+
+var Spec = require('../spec');
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
+var spec = new Spec({source: source});
+
+test('has args', function t(assert) {
+    assert.ok(spec.getType('Foo::foo_args'), 'has args');
+    assert.end();
+});
