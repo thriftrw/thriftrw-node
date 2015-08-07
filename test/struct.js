@@ -39,11 +39,11 @@ var mockSpec = {
 };
 
 healthSpec.compile({
-    name: 'Health',
+    id: {name: 'Health'},
     fields: [
         {
-            id: 0,
-            name: 'ok',
+            fieldId: 0,
+            id: {name: 'ok'},
             valueType: {
                 type: 'BaseType',
                 baseType: 'boolean'
@@ -235,11 +235,11 @@ test('every field must be marked in strict mode', function t(assert) {
     var spec = new StructSpec();
     try {
         spec.compile({
-            name: 'Health',
+            id: {name: 'Health'},
             fields: [
                 {
-                    id: 0,
-                    name: 'ok',
+                    fieldId: 0,
+                    id: {name: 'ok'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -261,12 +261,12 @@ test('every argument must be marked required in strict mode', function t(assert)
     var spec = new StructSpec();
     try {
         spec.compile({
-            name: 'function_args',
+            id: {name: 'function_args'},
             isArgument: true,
             fields: [
                 {
-                    id: 0,
-                    name: 'namedParam',
+                    fieldId: 0,
+                    id: {name: 'namedParam'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -287,12 +287,12 @@ test('every argument must be marked required in strict mode', function t(assert)
 test('structs and fields must be possible to rename with a js.name annotation', function t(assert) {
     var spec = new StructSpec({strict: false});
     spec.compile({
-        name: 'given',
+        id: {name: 'given'},
         annotations: {'js.name': 'alt'},
         fields: [
             {
-                id: 0,
-                name: 'given',
+                fieldId: 0,
+                id: {name: 'given'},
                 annotations: {'js.name': 'alt'},
                 valueType: {
                     type: 'BaseType',
@@ -334,12 +334,12 @@ test('arguments must not be marked optional', function t(assert) {
     var argStruct = new StructSpec({strict: false});
     try {
         argStruct.compile({
-            name: 'foo_args',
+            id: {name: 'foo_args'},
             isArgument: true,
             fields: [
                 {
-                    id: 0,
-                    name: 'name',
+                    fieldId: 0,
+                    id: {name: 'name'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'i64'
@@ -360,11 +360,11 @@ test('arguments must not be marked optional', function t(assert) {
 test('skips optional elided arguments', function t(assert) {
     var spec = new StructSpec();
     spec.compile({
-        name: 'Health',
+        id: {name: 'Health'},
         fields: [
             {
-                id: 0,
-                name: 'ok',
+                fieldId: 0,
+                id: {name: 'ok'},
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
@@ -393,11 +393,11 @@ test('skips optional elided arguments', function t(assert) {
 test('skips optional elided struct (all fields optional)', function t(assert) {
     var spec = new StructSpec();
     spec.compile({
-        name: 'Health',
+        id: {name: 'Health'},
         fields: [
             {
-                id: 0,
-                name: 'ok',
+                fieldId: 0,
+                id: {name: 'ok'},
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
