@@ -1,5 +1,6 @@
 {
     "rules": {
+        "max-len": [1, 120],
         "curly": 0
     }
 }

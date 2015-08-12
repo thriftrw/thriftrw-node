@@ -35,8 +35,8 @@ var ReadResult = bufrw.ReadResult;
 
 function FieldSpec(def) {
     var self = this;
-    self.id = def.id;
-    self.name = def.name;
+    self.id = def.fieldId;
+    self.name = def.id.name;
     self.required = def.required;
     self.optional = def.optional;
     self.annotations = def.annotations;
@@ -73,7 +73,7 @@ StructSpec.prototype.compile = function compile(def) {
     var self = this;
     // Struct names must be valid JavaScript. If the Thrift name is not valid
     // in JavaScript, it can be overridden with the js.name annotation.
-    self.name = def.annotations && def.annotations['js.name'] || def.name;
+    self.name = def.annotations && def.annotations['js.name'] || def.id.name;
     self.isArgument = def.isArgument;
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {

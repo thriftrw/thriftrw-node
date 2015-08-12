@@ -6,20 +6,22 @@
     }
     Program.prototype.type = 'Program';
 
-    function Identifier(name) {
+    function Identifier(name, line, column) {
         this.name = name;
+        this.line = line;
+        this.column = column;
     }
     Identifier.prototype.type = 'Identifier';
 
-    function Namespace(name, scope) {
-        this.name = name;
+    function Namespace(id, scope) {
+        this.id = id;
         this.scope = scope;
     }
     Namespace.prototype.type = 'Namespace';
 
-    function Typedef(type, name, annotations) {
+    function Typedef(type, id, annotations) {
         this.typedefType = type;
-        this.name = name;
+        this.id = id;
         this.annotations = annotations;
     }
     Typedef.prototype.type = 'Typedef';
@@ -30,80 +32,75 @@
     }
     BaseType.prototype.type = 'BaseType';
 
-    function Enum(name, definitions, annotations) {
-        this.name = name;
+    function Enum(id, definitions, annotations) {
+        this.id = id;
         this.enumDefinitions = definitions;
         this.annotations = annotations;
     }
     Enum.prototype.type = 'Enum';
 
-    function EnumDefinition(name, value, annotations) {
-        this.name = name;
+    function EnumDefinition(id, value, annotations) {
+        this.id = id;
         this.value = value;
         this.annotations = annotations;
     }
     EnumDefinition.prototype.type = 'EnumDefinition';
 
-    function Senum(name, definitions, annotations) {
-        this.name = name;
+    function Senum(id, definitions, annotations) {
+        this.id = id;
         this.senumDefinitions = definitions;
         this.annotations = annotations;
     }
     Senum.prototype.type = 'Senum';
 
-    function Const(name, fieldType, value) {
-        this.name = name;
+    function Const(id, fieldType, value) {
+        this.id = id;
         this.fieldType = fieldType;
         this.value = value;
     }
     Const.prototype.type = 'Const';
 
-    function Struct(name, fields, annotations) {
-        this.name = name;
+    function Struct(id, fields, annotations) {
+        this.id = id;
         this.fields = fields;
         this.annotations = annotations;
         this.isArgument = false;
     }
     Struct.prototype.type = 'Struct';
 
-    function Union(name, fields) {
-        this.name = name;
+    function Union(id, fields) {
+        this.id = id;
         this.fields = fields;
     }
     Union.prototype.type = 'Union';
 
-    function Exception(name, fields, annotations) {
-        this.name = name;
+    function Exception(id, fields, annotations) {
+        this.id = id;
         this.fields = fields;
         this.annotations = annotations;
     }
     Exception.prototype.type = 'Exception';
 
-    function Service(name, functions, annotations) {
-        this.name = name;
+    function Service(id, functions, annotations) {
+        this.id = id;
         this.functions = functions;
         this.annotations = annotations;
     }
     Service.prototype.type = 'Service';
 
-    function FunctionDescription(name, fields, ft, _throws, annotations) {
-        this.name = name;
-        this.functionType = ft;
+    function FunctionDefinition(id, fields, ft, _throws, annotations) {
+        this.id = id;
+        this.returns = ft;
         this.fields = fields;
         this.fields.isArgument = true;
         this.throws = _throws;
         this.annotations = annotations;
     }
-    FunctionDescription.prototype.type = 'function';
+    FunctionDefinition.prototype.type = 'function';
 
-    function Throws(fields) {
-        this.fields = fields;
-    }
-    Throws.prototype.type = 'throws';
-
-    function Field(name, ft, id, req, fv, annotations) {
+    function Field(id, ft, fieldId, req, fv, annotations) {
         this.id = id;
-        this.name = name;
+        this.fieldId = fieldId;
         this.valueType = ft;
         this.required = req === 'required';
         this.optional = req === 'optional';
@@ -155,17 +152,17 @@ Header
   = Include
   / CppInclude
   / Namespace
-  / 'cpp_namespace' IdentifierName
-  / 'php_namespace' IdentifierName
-  / 'py_module' IdentifierName
-  / 'perl_package' IdentifierName
-  / 'ruby_namespace' IdentifierName
-  / 'smalltalk_category' STIdentifierName
-  / 'smalltalk_prefix' IdentifierName
-  / 'java_package' IdentifierName
-  / 'cocoa_package' IdentifierName
+  / 'cpp_namespace' Identifier
+  / 'php_namespace' Identifier
+  / 'py_module' Identifier
+  / 'perl_package' Identifier
+  / 'ruby_namespace' Identifier
+  / 'smalltalk_category' STIdentifier
+  / 'smalltalk_prefix' Identifier
+  / 'java_package' Identifier
+  / 'cocoa_package' Identifier
   / 'xsd_namespace' Literal
-  / 'csharp_namespace' IdentifierName
+  / 'csharp_namespace' Identifier
 
 Include
   = IncludeToken Literal
@@ -174,13 +171,13 @@ CppInclude
   = CppIncludeToken Literal
 
 Namespace
-  = NamespaceToken scope:NamespaceScope __ name:IdentifierName { return new Namespace(name, scope); }
-  / NamespaceToken 'smalltalk.category' __ STIdentifierName
-  / NamespaceToken 'smalltalk.prefix' __ IdentifierName
+  = NamespaceToken scope:NamespaceScope __ id:Identifier { return new Namespace(id, scope); }
+  / NamespaceToken 'smalltalk.category' __ STIdentifier
+  / NamespaceToken 'smalltalk.prefix' __ Identifier
   / 'php_namespace' __ Literal
   / 'xsd_namespace' __ Literal
-  / NamespaceToken scope:'*' __ IdentifierName { return; }
-  / NamespaceToken scope:IdentifierName name:IdentifierName { return; }
+  / NamespaceToken scope:'*' __ Identifier { return; }
+  / NamespaceToken scope:Identifier id:Identifier { return; }
 
 NamespaceScope
   = 'cpp'
@@ -211,8 +208,8 @@ Definition
   / Service
 
 Typedef
-  = TypedefToken __ dt:DefinitionType name:IdentifierName ta:TypeAnnotations? ListSeparator? {
-    return new Typedef(dt, name, ta);
+  = TypedefToken __ dt:DefinitionType id:Identifier ta:TypeAnnotations? ListSeparator? {
+    return new Typedef(dt, id, ta);
   }
 
 DefinitionType
@@ -226,26 +223,26 @@ ListSeparator 'list separator'
   = CommaOrSemicolon
 
 Enum
-  = EnumToken __ name:IdentifierName __ '{' __ ed:EnumDefinition* __ '}' __ ta:TypeAnnotations? {
-    return new Enum(name, ed, ta);
+  = EnumToken __ id:Identifier __ '{' __ ed:EnumDefinition* __ '}' __ ta:TypeAnnotations? {
+    return new Enum(id, ed, ta);
   }
 
 EnumDefinition
-  = name:IdentifierName value:('=' __ v:IntConstant { return v.value })? __ ta:TypeAnnotations? ListSeparator? __ {
-    return new EnumDefinition(name, value, ta);
+  = id:Identifier value:('=' __ v:IntConstant { return v.value })? __ ta:TypeAnnotations? ListSeparator? __ {
+    return new EnumDefinition(id, value, ta);
   }
 
 Senum
-  = SenumToken name:IdentifierName '{' __ ss:SenumDefinition* '}' __ ta:TypeAnnotations? {
-    return new Senum(name, ss, ta);
+  = SenumToken id:Identifier '{' __ ss:SenumDefinition* '}' __ ta:TypeAnnotations? {
+    return new Senum(id, ss, ta);
   }
 
 SenumDefinition
   = s:Literal ListSeparator? { return s; }
 
 Const
-  = ConstToken ft:FieldType name:IdentifierName '=' __ cv:ConstValue ListSeparator? __ {
-    return new Const(name, ft, cv);
+  = ConstToken ft:FieldType id:Identifier '=' __ cv:ConstValue ListSeparator? __ {
+    return new Const(id, ft, cv);
   }
 
 ConstValue
@@ -267,13 +264,13 @@ ConstValuePair
   = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator?
 
 Struct
-  = 'struct' __ name:IdentifierName xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
-    return new Struct(name, fs, ta);
+  = 'struct' __ id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
+    return new Struct(id, fs, ta);
   }
 
 Union
-  = UnionToken name:IdentifierName xsdAll? __ '{' __ fs:Field* __ '}' __ {
-    return new Union(name, fs);
+  = UnionToken id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ {
+    return new Union(id, fs);
   }
 
 xsdAll
@@ -289,21 +286,21 @@ xsdAttributes
   = 'xsd_attributes' __ '{' __ Field* __ '}' __
 
 Exception
-  = 'exception' __ name:IdentifierName '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? __ {
-    return new Exception(name, fs, ta);
+  = 'exception' __ id:Identifier '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? __ {
+    return new Exception(id, fs, ta);
   }
 
 Service
-  = 'service' __ name:IdentifierName extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
-    return new Service(name, fns, ta);
+  = 'service' __ id:Identifier extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
+    return new Service(id, fns, ta);
   }
 
 extends
   = 'extends' __ IdentifierName
 
 function
-  = __ oneway? ft:FunctionType name:IdentifierName '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
-    return new FunctionDescription(name, fs, ft, ts, ta);
+  = __ oneway? ft:FunctionType id:Identifier '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
+    return new FunctionDefinition(id, fs, ft, ts, ta);
   }
 
 oneway
@@ -311,13 +308,13 @@ oneway
 
 throwz
   = 'throws' __ '(' __ fs:Field* __ ')' __ {
-    return new Throws(fs);
+    return fs;
   }
 
 Field
-  = _ id:FieldIdentifier? req:FieldRequiredness? ft:FieldType rec:Recursive? name:IdentifierName fv:FieldValue?
+  = _ id:FieldIdentifier? req:FieldRequiredness? ft:FieldType rec:Recursive? id:IdentifierName fv:FieldValue?
     XsdFieldOptions? ta:TypeAnnotations? ListSeparator? {
-      return new Field(name, ft, id, req, fv, ta);
+      return new Field(id, ft, id, req, fv, ta);
     }
 
 Recursive
@@ -417,7 +414,7 @@ word
   = w:[a-zA-Z0-9_\.]+
 
 Identifier
-  = name:IdentifierName __ { return new Identifier(name); }
+  = name:IdentifierName __ { return new Identifier(name, line(), column()); }
 
 IdentifierName 'identifier'
   = !ReservedWord first:IdentifierStart rest:IdentifierPart* __ {
@@ -457,6 +454,9 @@ UnicodeConnectorPunctuation
 
 Letter
   = [a-zA-Z]
+
+STIdentifier
+  = name:STIdentifierName { return new Identifier(name, line(), column()); }
 
 STIdentifierName
   = !container_type_tokens word /* ('a'..'z' | 'A'..'Z' | '-')
