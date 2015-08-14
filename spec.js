@@ -53,7 +53,9 @@ function Spec(args) {
 
     self.strict = args.strict || false;
 
-    // type specs, including structs, exceptions, typedefs, unions, services
+    self.names = Object.create(null);
+    self.services = Object.create(null);
+    // type specs, including structs, exceptions, typedefs, unions
     self.types = Object.create(null);
     // TODO consts, enum values
 
@@ -97,12 +99,10 @@ Spec.prototype.compile = function compile(source) {
     self.compileDefinitions(syntax.definitions);
 };
 
-Spec.prototype.compileType = function compileType(def, type) {
+Spec.prototype.claim = function claim(name, def) {
     var self = this;
-    var name = def.as || def.name;
-    assert(!self.types[name], 'duplicate reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-    self.types[name] = type;
-    self[name] = type;
+    assert(!self.names[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
+    self.names[name] = true;
 };
 
 Spec.prototype._definitionProcessors = {
@@ -132,8 +132,9 @@ Spec.prototype.compileStruct = function compileStruct(def) {
     var self = this;
     var spec = new StructSpec({strict: self.strict});
     spec.compile(def, self);
-    self.compileType(def.id, spec);
-    self.types[spec.name] = spec;
+    self.claim(spec.fullName, def);
+    self.types[spec.fullName] = spec;
+    self[spec.fullName] = spec;
     return spec;
 };
 
@@ -141,7 +142,9 @@ Spec.prototype.compileService = function compileService(def, spec) {
     var self = this;
     var service = new ServiceSpec({strict: self.strict});
     service.compile(def, self);
-    self.compileType(def.id, service);
+    self.claim(service.name, def.id);
+    self.services[service.name] = service;
+    self[service.name] = service.functionsByName;
 };
 
 Spec.prototype.link = function link() {
@@ -151,6 +154,11 @@ Spec.prototype.link = function link() {
     for (index = 0; index < typeNames.length; index++) {
         var type = self.types[typeNames[index]];
         type.link(self);
+    }
+    var serviceNames = Object.keys(self.services);
+    for (index = 0; index < serviceNames.length; index++) {
+        var service = self.services[serviceNames[index]];
+        service.link(self);
     }
 };
 
