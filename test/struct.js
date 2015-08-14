@@ -42,8 +42,8 @@ healthSpec.compile({
     id: {name: 'Health'},
     fields: [
         {
-            fieldId: 0,
-            id: {name: 'ok'},
+            id: {value: 1},
+            name: {name: 'ok'},
             valueType: {
                 type: 'BaseType',
                 baseType: 'boolean'
@@ -60,18 +60,18 @@ var Health = healthSpec.Constructor;
 
 test('HealthRW', testRW.cases(Health.rw, [
 
-                                   // good
+    // good
     [new Health({ok: true}), [
         0x02,                      // type:1 -- 2 -- BOOL
-        0x00, 0x00,                // id:2   -- 0 -- ok
+        0x00, 0x01,                // id:2   -- 1 -- ok
         0x01,                      // ok:1   -- 1 -- true
         0x00                       // type:1 -- 0 -- stop
     ]],
 
-                                   // bad
+    // bad
     [new Health({ok: false}), [
         0x02,                      // type:1 -- 2 -- BOOL
-        0x00, 0x00,                // id:2   -- 0 -- ok
+        0x00, 0x01,                // id:2   -- 1 -- ok
         0x00,                      // ok:1   -- 0 -- false
         0x00                       // type:1 -- 0 -- stop
     ]]
@@ -81,7 +81,7 @@ test('HealthRW', testRW.cases(Health.rw, [
 test('struct skips unknown void', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1   -- 2 -- BOOL
-        0x00, 0x01,               // id:2     -- 1 -- WHAT EVEN IS!?
+        0x00, 0x02,               // id:2     -- 2 -- WHAT EVEN IS!?
         0x01,                     // typeid:1 -- 1 -- VOID
         0x00                      // typeid:1 -- 0 -- STOP
     ]), 0);
@@ -95,7 +95,7 @@ test('struct skips unknown void', function t(assert) {
 test('fails to read unexpected typeid for known field', function t(assert) {
     var buffer = new Buffer([
         0x01,       // typeid:1 -- 1 -- VOID
-        0x00, 0x00, // fid:2    -- 0 -- ok
+        0x00, 0x01, // fid:2    -- 1 -- ok
         0x00        // typeid:1 -- 0 -- STOP
     ]);
     var res = Health.rw.readFrom(buffer, 0);
@@ -103,14 +103,14 @@ test('fails to read unexpected typeid for known field', function t(assert) {
         assert.fail('should be an error');
         return assert.end();
     }
-    assert.equal(res.err.message, 'unexpected typeid 1 for ok at 0 on Health; expected 2');
+    assert.equal(res.err.message, 'unexpected typeid 1 for ok at 1 on Health; expected 2');
     assert.end();
 });
 
 test('struct skips unknown string', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1   -- 2  -- BOOL
-        0x00, 0x01,               // id:2     -- 1  -- WHAT EVEN IS!?
+        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
         11,                       // typeid:1 -- 11 -- STRING
         0x00, 0x00, 0x00, 0x02,   // len~4
         0x20, 0x20,               // '  '
@@ -126,7 +126,7 @@ test('struct skips unknown string', function t(assert) {
 test('struct skips unknown struct', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1   -- 2  -- BOOL
-        0x00, 0x01,               // id:2     -- 1  -- WHAT EVEN IS!?
+        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
         0x0c,                     // typeid:1 -- 12 -- STRUCT
         0x01,                     // typeid:1 -- 1  -- VOID
         0x01,                     // typeid:1 -- 1  -- VOID
@@ -147,8 +147,8 @@ test('struct skips unknown struct', function t(assert) {
 test('struct skips uknown map', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1           -- 2 BOOL
-        0x00, 0x01,               // id:2             -- 1 UNKNOWN
-        0x0d,                   // typeid:1           -- 13, map
+        0x00, 0x02,               // id:2             -- 2 UNKNOWN
+        0x0d,                     // typeid:1           -- 13, map
 
         // Thus begins a large map
         0x0b,                   // key_type:1         -- string    @ 4
@@ -202,7 +202,7 @@ test('struct skips uknown map', function t(assert) {
 test('struct skips unknown list', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1      -- 2 BOOL
-        0x00, 0x01,               // id:2        -- 1 UNKNOWN
+        0x00, 0x02,               // id:2        -- 2 UNKNOWN
         0x0f,                     // typeid:1    -- 15, list
 
         // Thus begins a list
@@ -238,8 +238,8 @@ test('every field must be marked in strict mode', function t(assert) {
             id: {name: 'Health'},
             fields: [
                 {
-                    fieldId: 0,
-                    id: {name: 'ok'},
+                    id: {value: 1},
+                    name: {name: 'ok'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -265,8 +265,8 @@ test('every argument must be marked required in strict mode', function t(assert)
             isArgument: true,
             fields: [
                 {
-                    fieldId: 0,
-                    id: {name: 'namedParam'},
+                    id: {value: 1},
+                    name: {name: 'namedParam'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -291,8 +291,8 @@ test('structs and fields must be possible to rename with a js.name annotation', 
         annotations: {'js.name': 'alt'},
         fields: [
             {
-                fieldId: 0,
-                id: {name: 'given'},
+                id: {value: 1},
+                name: {name: 'given'},
                 annotations: {'js.name': 'alt'},
                 valueType: {
                     type: 'BaseType',
@@ -302,7 +302,7 @@ test('structs and fields must be possible to rename with a js.name annotation', 
         ]
     });
     assert.equal(spec.name, 'alt', 'struct must have alternate js.name');
-    assert.equal(spec.fieldsById[0].name, 'alt', 'field must have alternate js.name');
+    assert.equal(spec.fieldsById[1].name, 'alt', 'field must have alternate js.name');
     assert.end();
 });
 
@@ -313,7 +313,7 @@ test('required fields are required on measuring byte length', function t(assert)
         assert.fail('should fail to assess byte length');
         return assert.end();
     }
-    assert.equal(res.err.message, 'missing required field ok at 0 of Health', 'message checks out');
+    assert.equal(res.err.message, 'missing required field ok at 1 of Health', 'message checks out');
     assert.deepEqual(res.err.what, health, 'err.what should be the input struct');
     assert.end();
 });
@@ -325,7 +325,7 @@ test('required fields are required on writing into buffer', function t(assert) {
         assert.fail('should fail to write');
         return assert.end();
     }
-    assert.equal(res.err.message, 'missing required field ok at 0 of Health', 'message checks out');
+    assert.equal(res.err.message, 'missing required field ok at 1 of Health', 'message checks out');
     assert.deepEqual(res.err.what, health, 'err.what should be the input struct');
     assert.end();
 });
@@ -338,8 +338,8 @@ test('arguments must not be marked optional', function t(assert) {
             isArgument: true,
             fields: [
                 {
-                    fieldId: 0,
-                    id: {name: 'name'},
+                    id: {value: 1},
+                    name: {name: 'name'},
                     valueType: {
                         type: 'BaseType',
                         baseType: 'i64'
@@ -363,8 +363,8 @@ test('skips optional elided arguments', function t(assert) {
         id: {name: 'Health'},
         fields: [
             {
-                fieldId: 0,
-                id: {name: 'ok'},
+                id: {value: 1},
+                name: {name: 'ok'},
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
@@ -396,8 +396,8 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
         id: {name: 'Health'},
         fields: [
             {
-                fieldId: 0,
-                id: {name: 'ok'},
+                id: {value: 1},
+                name: {name: 'ok'},
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
@@ -419,5 +419,30 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
     assert.equal(writeRes.offset, 1, 'writes to end of buffer');
     assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
 
+    assert.end();
+});
+
+test('enforces ordinal identifiers', function t(assert) {
+    var spec = new StructSpec();
+    try {
+        spec.compile({
+            id: {name: 'Health'},
+            fields: [
+                {
+                    id: {value: 0, line: 1, column: 4},
+                    name: {name: 'ok'},
+                    valueType: {
+                        type: 'BaseType',
+                        baseType: 'boolean'
+                    },
+                    optional: true,
+                    required: false
+                }
+            ]
+        });
+        assert.fail('should throw');
+    } catch (err) {
+        assert.equal(err.message, 'field identifier must be greater than 0 for "ok" on "Health" at 1:4');
+    }
     assert.end();
 });

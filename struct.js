@@ -33,10 +33,16 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function FieldSpec(def) {
+function FieldSpec(def, struct) {
     var self = this;
-    self.id = def.fieldId;
-    self.name = def.id.name;
+    assert(def.isResult || def.id.value > 0,
+        'field identifier must be greater than 0' +
+        ' for ' + JSON.stringify(def.name.name) +
+        ' on ' + JSON.stringify(struct.name) +
+        ' at ' + def.id.line + ':' + def.id.column
+    );
+    self.id = def.id.value;
+    self.name = def.name.name;
     self.required = def.required;
     self.optional = def.optional;
     self.annotations = def.annotations;
@@ -78,7 +84,7 @@ StructSpec.prototype.compile = function compile(def) {
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
         var fieldDef = fields[index];
-        var field = new FieldSpec(fieldDef);
+        var field = new FieldSpec(fieldDef, self);
 
         if (self.strict) {
             assert(field.required || field.optional,

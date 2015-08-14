@@ -98,9 +98,9 @@
     }
     FunctionDefinition.prototype.type = 'function';
 
-    function Field(id, ft, fieldId, req, fv, annotations) {
+    function Field(id, ft, name, req, fv, annotations) {
         this.id = id;
-        this.fieldId = fieldId;
+        this.name = name;
         this.valueType = ft;
         this.required = req === 'required';
         this.optional = req === 'optional';
@@ -108,6 +108,13 @@
         this.annotations = annotations;
     }
     Field.prototype.type = 'Field';
+
+    function FieldIdentifier(value, line, column) {
+        this.value = value;
+        this.line = line;
+        this.column = column;
+    }
+    FieldIdentifier.prototype.type = 'FieldIdentifier';
 
     function MapType(keyType, valueType) {
         this.keyType = keyType;
@@ -312,9 +319,9 @@ throwz
   }
 
 Field
-  = _ id:FieldIdentifier? req:FieldRequiredness? ft:FieldType rec:Recursive? id:IdentifierName fv:FieldValue?
+  = _ id:FieldIdentifier? req:FieldRequiredness? ft:FieldType rec:Recursive? name:IdentifierName fv:FieldValue?
     XsdFieldOptions? ta:TypeAnnotations? ListSeparator? {
-      return new Field(id, ft, id, req, fv, ta);
+      return new Field(id, ft, name, req, fv, ta);
     }
 
 Recursive
@@ -325,7 +332,7 @@ Recursive
   }
 
 FieldIdentifier
-  = id:IntConstant ':' _ { return id.value; }
+  = id:IntConstant ':' _ { return new FieldIdentifier(id.value, line(), column()); }
 
 FieldRequiredness
   = 'required' __ { return 'required'; }
