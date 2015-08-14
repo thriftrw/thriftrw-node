@@ -46,11 +46,12 @@ FunctionSpec.prototype.compile = function process(def, spec) {
 
     var resultFields = def.throws || [];
     resultFields.unshift({ // TODO use Field constructor from pegjs...somehow
-        id: 0,
-        name: 'success',
+        id: {value: 0},
+        name: {name: 'success'},
         valueType: def.returns,
         required: true,
         optional: false,
+        isResult: true,
         annotations: null
     });
 

@@ -3,5 +3,5 @@ struct Struct {
 }
 
 service Service {
-    Struct foo(0: Struct bar)
+    Struct foo(1: Struct bar)
 }
