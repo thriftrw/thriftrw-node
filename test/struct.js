@@ -43,7 +43,7 @@ healthSpec.compile({
     fields: [
         {
             id: {value: 1},
-            name: {name: 'ok'},
+            name: 'ok',
             valueType: {
                 type: 'BaseType',
                 baseType: 'boolean'
@@ -239,7 +239,7 @@ test('every field must be marked in strict mode', function t(assert) {
             fields: [
                 {
                     id: {value: 1},
-                    name: {name: 'ok'},
+                    name: 'ok',
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -252,7 +252,7 @@ test('every field must be marked in strict mode', function t(assert) {
         assert.fail('should throw');
     } catch (err) {
         assert.equal(err.message, 'every field must be marked optional or ' +
-            'required on Health including ok in strict mode');
+            'required on Health including "ok" in strict mode');
     }
     assert.end();
 });
@@ -266,7 +266,7 @@ test('every argument must be marked required in strict mode', function t(assert)
             fields: [
                 {
                     id: {value: 1},
-                    name: {name: 'namedParam'},
+                    name: 'namedParam',
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
@@ -279,7 +279,7 @@ test('every argument must be marked required in strict mode', function t(assert)
         assert.fail('should throw');
     } catch (err) {
         assert.equal(err.message, 'every field must be marked ' +
-            'required on function_args including namedParam in strict mode');
+            'required on function_args including "namedParam" in strict mode');
     }
     assert.end();
 });
@@ -292,7 +292,7 @@ test('structs and fields must be possible to rename with a js.name annotation', 
         fields: [
             {
                 id: {value: 1},
-                name: {name: 'given'},
+                name: 'given',
                 annotations: {'js.name': 'alt'},
                 valueType: {
                     type: 'BaseType',
@@ -339,7 +339,7 @@ test('arguments must not be marked optional', function t(assert) {
             fields: [
                 {
                     id: {value: 1},
-                    name: {name: 'name'},
+                    name: 'name',
                     valueType: {
                         type: 'BaseType',
                         baseType: 'i64'
@@ -364,7 +364,7 @@ test('skips optional elided arguments', function t(assert) {
         fields: [
             {
                 id: {value: 1},
-                name: {name: 'ok'},
+                name: 'ok',
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
@@ -397,7 +397,7 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
         fields: [
             {
                 id: {value: 1},
-                name: {name: 'ok'},
+                name: 'ok',
                 valueType: {
                     type: 'BaseType',
                     baseType: 'boolean'
@@ -430,7 +430,7 @@ test('enforces ordinal identifiers', function t(assert) {
             fields: [
                 {
                     id: {value: 0, line: 1, column: 4},
-                    name: {name: 'ok'},
+                    name: 'ok',
                     valueType: {
                         type: 'BaseType',
                         baseType: 'boolean'
