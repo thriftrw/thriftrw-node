@@ -38,12 +38,12 @@ function FieldSpec(def, struct) {
     var self = this;
     assert(def.isResult || def.id.value > 0,
         'field identifier must be greater than 0' +
-        ' for ' + JSON.stringify(def.name.name) +
+        ' for ' + JSON.stringify(def.name) +
         ' on ' + JSON.stringify(struct.name) +
         ' at ' + def.id.line + ':' + def.id.column
     );
     self.id = def.id.value;
-    self.name = def.name.name;
+    self.name = def.name;
     self.required = def.required;
     self.optional = def.optional;
     self.annotations = def.annotations;
@@ -90,11 +90,11 @@ StructSpec.prototype.compile = function compile(def) {
         if (self.strict) {
             assert(field.required || field.optional,
                 'every field must be marked optional or required on ' + self.name +
-                    ' including ' + field.name + ' in strict mode'
+                    ' including "' + field.name + '" in strict mode'
             );
             if (self.isArgument && !field.required) {
                 assert.ok(false, 'every field must be marked required on ' + self.name +
-                    ' including ' + field.name + ' in strict mode');
+                    ' including "' + field.name + '" in strict mode');
             }
         }
         if (self.isArgument && field.optional) {
