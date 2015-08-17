@@ -66,10 +66,13 @@ module.exports.InvalidTypeidError = TypedError({
 
 module.exports.UnexpectedFieldValueTypeidError = TypedError({
     type: 'thrift-unexpected-field-value-typeid',
-    message: 'unexpected typeid {typeid} for {fieldName} at {fieldId} ' +
-        'on {structName}; expected {expectedTypeid}',
+    message: 'unexpected typeid {typeid} ({typeName}) for field "{fieldName}"' +
+        ' with id {fieldId} on {structName};' +
+        ' expected {expectedTypeid} ({expectedTypeName})',
     typeid: null,
+    typeName: null,
     expectedTypeid: null,
+    expectedTypeName: null,
     fieldName: null,
     fieldId: null,
     structName: null
@@ -77,9 +80,9 @@ module.exports.UnexpectedFieldValueTypeidError = TypedError({
 
 module.exports.FieldRequiredError = TypedError({
     type: 'thrift-required-field',
-    message: 'missing required field {name} at {id} of {specName}',
+    message: 'missing required field "{name}" with id {id} on {structName}',
     name: null,
     id: null,
-    specName: null,
+    structName: null,
     what: null
 });

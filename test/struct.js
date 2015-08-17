@@ -103,7 +103,8 @@ test('fails to read unexpected typeid for known field', function t(assert) {
         assert.fail('should be an error');
         return assert.end();
     }
-    assert.equal(res.err.message, 'unexpected typeid 1 for ok at 1 on Health; expected 2');
+    assert.equal(res.err.message, 'unexpected typeid 1 (VOID) for field "ok" ' +
+        'with id 1 on Health; expected 2 (BOOL)');
     assert.end();
 });
 
@@ -313,7 +314,7 @@ test('required fields are required on measuring byte length', function t(assert)
         assert.fail('should fail to assess byte length');
         return assert.end();
     }
-    assert.equal(res.err.message, 'missing required field ok at 1 of Health', 'message checks out');
+    assert.equal(res.err.message, 'missing required field "ok" with id 1 on Health', 'message checks out');
     assert.deepEqual(res.err.what, health, 'err.what should be the input struct');
     assert.end();
 });
@@ -325,7 +326,7 @@ test('required fields are required on writing into buffer', function t(assert) {
         assert.fail('should fail to write');
         return assert.end();
     }
-    assert.equal(res.err.message, 'missing required field ok at 1 of Health', 'message checks out');
+    assert.equal(res.err.message, 'missing required field "ok" with id 1 on Health', 'message checks out');
     assert.deepEqual(res.err.what, health, 'err.what should be the input struct');
     assert.end();
 });

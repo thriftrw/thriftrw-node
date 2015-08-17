@@ -25,6 +25,7 @@
 var assert = require('assert');
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
+var NAMES = require('./names');
 var UnexpectedFieldValueTypeidError = require('./errors').UnexpectedFieldValueTypeidError;
 var FieldRequiredError = require('./errors').FieldRequiredError;
 var skipField = require('./skip').skipField;
@@ -176,7 +177,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
             return new LengthResult(FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                specName: self.spec.name,
+                structName: self.spec.name,
                 what: struct
             }));
         }
@@ -212,7 +213,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
             return new LengthResult(FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                specName: self.spec.name,
+                structName: self.spec.name,
                 what: struct
             }));
         }
@@ -297,7 +298,9 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
                 fieldName: field.name,
                 structName: self.spec.name,
                 typeid: typeid,
-                expectedTypeid: field.valueType.typeid
+                typeName: NAMES[typeid],
+                expectedTypeid: field.valueType.typeid,
+                expectedTypeName: NAMES[field.valueType.typeid]
             }));
         }
 
