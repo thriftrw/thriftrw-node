@@ -27,7 +27,6 @@ require('./double');
 require('./i16');
 require('./i32');
 require('./i64');
-require('./speclist');
 require('./specmap-entries');
 require('./thrift-idl');
 require('./specmap-obj');
