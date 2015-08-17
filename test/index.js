@@ -38,6 +38,7 @@ require('./void');
 require('./skip');
 require('./struct');
 require('./struct-skip');
+require('./recursion');
 require('./exception');
 require('./service');
 require('./spec');
