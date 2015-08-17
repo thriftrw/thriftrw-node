@@ -40,3 +40,4 @@ require('./skip');
 require('./struct');
 require('./service');
 require('./spec');
+require('./list');
