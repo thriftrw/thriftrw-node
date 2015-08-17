@@ -145,7 +145,7 @@ StructSpec.prototype.createConstructor = function createConstructor(name, fieldN
     return (0, eval)(source);
 };
 
-StructSpec.prototype.initialize = function initialize() {
+StructSpec.prototype.create = function create() {
     var self = this;
     return new self.Constructor();
 };
@@ -257,7 +257,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 
 StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
-    var struct = self.spec.initialize();
+    var struct = self.spec.create();
     var result;
 
     for (;;) {

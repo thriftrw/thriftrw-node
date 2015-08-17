@@ -21,71 +21,77 @@
 'use strict';
 
 var test = require('tape');
-var bufrw = require('bufrw');
 var testRW = require('bufrw/test_rw');
 
-var thriftrw = require('../index');
-var SpecListRW = thriftrw.SpecListRW;
+var ListSpec = require('../list').ListSpec;
+var StringSpec = require('../string').StringSpec;
+var ByteSpec = require('../byte').ByteSpec;
 
-var byteListRW = new SpecListRW({
-    name: 'byte',
-    typeid: 42,
-    rw: bufrw.UInt8
-});
-var strListRW = new SpecListRW({
-    name: 'string',
-    typeid: 99,
-    rw: bufrw.str1
-});
+var byteList = new ListSpec(new ByteSpec());
+var stringList = new ListSpec(new StringSpec());
 
-test('SpecListRW: byteListRW', testRW.cases(byteListRW, [
+test('ListSpec.rw: list of bytes', testRW.cases(byteList.rw, [
 
     [[], [
-        0x2a,                  // type:1   -- 42
+        0x03,                  // type:1   -- 3, BYTE
         0x00, 0x00, 0x00, 0x00 // length:4 -- 0
     ]],
 
     [[1, 2, 3], [
-        0x2a,                   // type:1   -- 42
+        0x03,                   // type:1   -- 3, BYTE
         0x00, 0x00, 0x00, 0x03, // length:4 -- 3
-        0x01,                   // UInt8    -- 1
-        0x02,                   // UInt8    -- 2
-        0x03                    // UInt8    -- 3
+        0x01,                   // byte:1 -- 1
+        0x02,                   // byte:1 -- 2
+        0x03                    // byte:1 -- 3
     ]],
 
     {
         readTest: {
             bytes: [
-                0x2b,                  // type:1   -- 42
+                0x2b,                  // type:1
                 0x00, 0x00, 0x00, 0x00 // length:4 -- 0
             ],
             error: {
                 type: 'thrift-list-typeid-mismatch',
                 name: 'ThriftListTypeidMismatchError',
                 message: 'encoded list typeid 43 doesn\'t match expected ' +
-                         'type "byte" (id: 42)'
+                         'type "BYTE" (id: 3)'
+            }
+        }
+    },
+
+    {
+        readTest: {
+            bytes: [
+                0x03,                  // type:1 -- 3, BYTE
+                0xff, 0xff, 0xff, 0xff // length:4 -- -1
+            ],
+            error: {
+                type: 'thrift-invalid-size',
+                name: 'ThriftInvalidSizeError',
+                message: 'invalid size -1 of list; expects non-negative number'
             }
         }
     }
 
 ]));
 
-test('SpecListRW: strListRW', testRW.cases(strListRW, [
+test('ListSpec.rw: list of strings', testRW.cases(stringList.rw, [
 
     [[], [
-        0x63,                  // type:1   -- 42
+        0x0b,                  // type:1   -- 11, STRING
         0x00, 0x00, 0x00, 0x00 // length:4 -- 0
     ]],
 
     [['a', 'ab', 'abc'], [
-        0x63,                   // type:1    -- 42
-        0x00, 0x00, 0x00, 0x03, // length:4  -- 3
-        0x01,                   // str_len:1 -- 1
-        0x61,                   // chars     -- "a"
-        0x02,                   // str_len:1 -- 1
-        0x61, 0x62,             // chars     -- "ab"
-        0x03,                   // str_len:1 -- 1
-        0x61, 0x62, 0x63        // chars     -- "abc"
+        0x0b,                    // type:1    -- 11, STRING
+        0x00, 0x00, 0x00, 0x03,  // length:4  -- 3
+        0x00, 0x00, 0x00, 0x01,  // str_len:4 -- 1
+        0x61,                    // chars     -- "a"
+        0x000, 0x00, 0x00, 0x02, // str_len:4 -- 1
+        0x61, 0x62,              // chars     -- "ab"
+        0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
+        0x61, 0x62, 0x63         // chars     -- "abc"
     ]]
 
 ]));

@@ -73,7 +73,9 @@ module.exports.I32Spec = require('./i32').I32Spec;
 module.exports.I64RW = require('./i64').I64RW;
 module.exports.I64Spec = require('./i64').I64Spec;
 
-module.exports.SpecListRW = require('./speclist').SpecListRW;
+module.exports.ListRW = require('./list').ListRW;
+module.exports.ListSpec = require('./list').ListSpec;
+
 module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
 module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
 
