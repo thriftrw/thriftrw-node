@@ -186,7 +186,7 @@ StructSpec.prototype.link = function link(spec) {
 
 StructSpec.prototype.createConstructor = function createConstructor(name, fields) {
     var source;
-    source = '(function $' + name + '(options) {\n';
+    source = '(function ' + name + '(options) {\n';
     for (var index = 0; index < fields.length; index++) {
         var field = fields[index];
         source += '    this.' + field.name + ' = null;\n';
