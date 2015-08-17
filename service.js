@@ -71,6 +71,7 @@ function ServiceSpec(args) {
     var self = this;
     self.name = null;
     self.functions = [];
+    self.functionsByName = Object.create(null);
     self.strict = args.strict;
 }
 
@@ -80,6 +81,7 @@ ServiceSpec.prototype.compile = function process(def, spec) {
     for (var index = 0; index < def.functions.length; index++) {
         self.compileFunction(def.functions[index], spec);
     }
+    spec[self.name] = self.functionsByName;
 };
 
 ServiceSpec.prototype.compileFunction = function processFunction(def, spec) {
@@ -91,6 +93,7 @@ ServiceSpec.prototype.compileFunction = function processFunction(def, spec) {
     });
     functionSpec.compile(def, spec);
     self.functions.push(functionSpec);
+    self.functionsByName[functionSpec.name] = functionSpec;
 };
 
 ServiceSpec.prototype.link = function link(spec) {

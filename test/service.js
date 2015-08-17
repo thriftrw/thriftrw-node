@@ -30,5 +30,6 @@ var spec = new Spec({source: source});
 
 test('has args', function t(assert) {
     assert.ok(spec.getType('Foo::foo_args'), 'has args');
+    assert.ok(spec.Foo.foo.args, 'has args exposed on service object');
     assert.end();
 });

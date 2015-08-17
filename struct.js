@@ -81,6 +81,7 @@ StructSpec.prototype.compile = function compile(def) {
     // Struct names must be valid JavaScript. If the Thrift name is not valid
     // in JavaScript, it can be overridden with the js.name annotation.
     self.name = def.annotations && def.annotations['js.name'] || def.id.name;
+    self.fullName = def.id.as || self.name;
     self.isArgument = def.isArgument;
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
