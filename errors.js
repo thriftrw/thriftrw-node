@@ -88,6 +88,12 @@ module.exports.FieldRequiredError = TypedError({
     what: null
 });
 
+module.exports.UnexpectedMapTypeAnnotation = TypedError({
+    type: 'thrift-unexpected-map-type-annotation',
+    message: 'unexpected map js.type annotation "{mapType}"',
+    mapType: null
+});
+
 module.exports.InvalidEnumerationTypeError = TypedError({
     type: 'thrift-invalid-enumeration-type',
     message: 'name must be a string for enumeration {enumName}, got: {name} ({nameType})',

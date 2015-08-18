@@ -20,30 +20,31 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./exception');
-require('./service');
-require('./spec');
-require('./list');
-require('./set');
-require('./map');
-require('./const');
-require('./default');
-require('./enum');
+var TYPE = require('./TYPE');
+var SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
+var SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+var UnexpectedMapTypeAnnotation = require('./errors').UnexpectedMapTypeAnnotation; // TODO
+
+var none = {};
+
+function MapSpec(keyType, valueType, annotations) {
+    var self = this;
+
+    annotations = annotations || none;
+    var type = annotations['js.type'] || 'object';
+
+    if (type === 'object') {
+        self.rw = new SpecMapObjRW(keyType, valueType);
+    } else if (type === 'entries') {
+        self.rw = new SpecMapEntriesRW(keyType, valueType);
+    } else {
+        throw UnexpectedMapTypeAnnotation({
+            mapType: type
+        });
+    }
+}
+
+MapSpec.prototype.name = 'map';
+MapSpec.prototype.typeid = TYPE.MAP;
+
+module.exports.MapSpec = MapSpec;
