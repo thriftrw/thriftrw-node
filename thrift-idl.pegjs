@@ -60,6 +60,22 @@
     }
     Const.prototype.type = 'Const';
 
+    function ConstList(values) {
+        this.values = values;
+    }
+    ConstList.prototype.type = 'ConstList';
+
+    function ConstMap(entries) {
+        this.entries = entries;
+    }
+    ConstMap.prototype.type = 'ConstMap';
+
+    function ConstEntry(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    ConstEntry.prototype.type = 'ConstEntry';
+
     function Struct(id, fields, annotations) {
         this.id = id;
         this.fields = fields;
@@ -264,14 +280,18 @@ ConstValue
 
 ConstList
   = '[' __ values:(v:ConstValue __ ListSeparator? __ { return v} )* ']' __ {
-    return values
+    return new ConstList(values);
   }
 
 ConstMap
-  = '{' __ (ConstValuePair)* '}' __
+  = '{' __ entries:(ConstValueEntry)* '}' __ {
+    return new ConstMap(entries);
+  }
 
-ConstValuePair
-  = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator?
+ConstValueEntry
+  = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator? {
+    return new ConstEntry(k, v);
+  }
 
 Struct
   = 'struct' __ id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
@@ -603,7 +623,9 @@ HexDigit
 
 NumberLiteral 'number'
   = HexIntegerLiteral
-  / [+-]? DecimalLiteral
+  / [+-]? i:DecimalLiteral {
+    return i;
+  }
   / SignedInteger
 
 DecimalLiteral 'decimal literal'
