@@ -24,25 +24,14 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
-var idl = require('../thrift-idl');
-var ExceptionSpec = require('../exception').ExceptionSpec;
-var StringSpec = require('../string').StringSpec;
+var Spec = require('../spec');
 
 var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
-var ast = idl.parse(source);
+var spec = new Spec({source: source});
 
-var mockSpec = {
-    resolve: function resolve() {
-        return new StringSpec();
-    }
-};
-var bogusErrorSpec = new ExceptionSpec();
-bogusErrorSpec.compile(ast.definitions[0]);
-bogusErrorSpec.link(mockSpec);
+test('Exception RW', testRW.cases(spec.BogusNameError.rw, [
 
-test('Exception RW', testRW.cases(bogusErrorSpec.rw, [
-
-    [bogusErrorSpec.Constructor({bogusName: 'Voldemort'}), [
+    [spec.BogusNameError({bogusName: 'Voldemort'}), [
         0x0b, // typeid:1 = 11, STRING
         0x00, 0x01, // id:2 = 1, bogusName
         0x00, 0x00, 0x00, 0x09, // str_len:4 = 9
