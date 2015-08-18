@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* eslint max-statements:[1, 30] */
 'use strict';
 
 var assert = require('assert');
@@ -44,15 +45,15 @@ var SetSpec = require('./set').SetSpec;
 // TODO var MapSpec = require('./map').MapSpec;
 var ConstSpec = require('./const').ConstSpec;
 
-function Spec(args) {
+function Spec(options) {
     var self = this;
 
-    assert(args, 'args required');
-    assert(typeof args === 'object', 'args must be object');
-    assert(args.source, 'source required');
-    assert(typeof args.source === 'string', 'source must be string');
+    assert(options, 'options required');
+    assert(typeof options === 'object', 'options must be object');
+    assert(options.source, 'source required');
+    assert(typeof options.source === 'string', 'source must be string');
 
-    self.strict = args.strict || false;
+    self.strict = options.strict !== undefined ? options.strict : true;
 
     self.names = Object.create(null);
     self.services = Object.create(null);
@@ -64,7 +65,7 @@ function Spec(args) {
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
-    self.compile(args.source);
+    self.compile(options.source);
     // Second pass links field references of structs.
     self.link();
 }
@@ -185,8 +186,8 @@ Spec.prototype.link = function link() {
 
     var constNames = Object.keys(self.constSpecs);
     for (index = 0; index < constNames.length; index++) {
-        var constDefinition = self.constSpecs[constNames[index]];
-        self.consts[constNames[index]] = constDefinition.link(self);
+        var constSpec = self.constSpecs[constNames[index]];
+        self.consts[constNames[index]] = constSpec.link(self);
     }
 };
 
@@ -216,7 +217,9 @@ Spec.prototype.resolve = function resolve(def) {
 Spec.prototype.resolveValue = function resolveValue(def) {
     var self = this;
     var err;
-    if (def.type === 'Literal') {
+    if (!def) {
+        return null;
+    } else if (def.type === 'Literal') {
         return def.value;
     } else if (def.type === 'ConstList') {
         return self.resolveListConst(def);
@@ -224,6 +227,11 @@ Spec.prototype.resolveValue = function resolveValue(def) {
         return self.resolveMapConst(def);
     // istanbul ignore else
     } else if (def.type === 'Identifier') {
+        if (def.name === 'true') {
+            return true;
+        } else if (def.name === 'false') {
+            return false;
+        }
         // istanbul ignore if
         if (!self.constSpecs[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
