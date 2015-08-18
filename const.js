@@ -20,27 +20,21 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./exception');
-require('./service');
-require('./spec');
-require('./list');
-require('./set');
-require('./const');
+function ConstSpec(def) {
+    var self = this;
+    self.name = def.id.name;
+    self.valueDefinition = def.value;
+    self.defined = false;
+    self.value = null;
+}
+
+ConstSpec.prototype.link = function link(spec) {
+    var self = this;
+    if (!self.defined) {
+        self.defined = true;
+        self.value = spec.resolveValue(self.valueDefinition);
+    }
+    return self.value;
+};
+
+module.exports.ConstSpec = ConstSpec;
