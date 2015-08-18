@@ -35,6 +35,8 @@ var mockSpec = {
     resolve: function resolve() {
         // pretend all fields are boolean
         return new BooleanSpec();
+    },
+    resolveValue: function resolveValue() {
     }
 };
 
@@ -250,37 +252,11 @@ test('every field must be marked in strict mode', function t(assert) {
                 }
             ]
         });
+        spec.link(mockSpec);
         assert.fail('should throw');
     } catch (err) {
-        assert.equal(err.message, 'every field must be marked optional or ' +
-            'required on Health including "ok" in strict mode');
-    }
-    assert.end();
-});
-
-test('every argument must be marked required in strict mode', function t(assert) {
-    var spec = new StructSpec();
-    try {
-        spec.compile({
-            id: {name: 'function_args'},
-            isArgument: true,
-            fields: [
-                {
-                    id: {value: 1},
-                    name: 'namedParam',
-                    valueType: {
-                        type: 'BaseType',
-                        baseType: 'boolean'
-                    },
-                    optional: true,
-                    required: false
-                }
-            ]
-        });
-        assert.fail('should throw');
-    } catch (err) {
-        assert.equal(err.message, 'every field must be marked ' +
-            'required on function_args including "namedParam" in strict mode');
+        assert.equal(err.message, 'every field must be marked optional, ' +
+            'required, or have a default value on Health including "ok" in strict mode');
     }
     assert.end();
 });
@@ -350,6 +326,7 @@ test('arguments must not be marked optional', function t(assert) {
                 }
             ]
         });
+        argStruct.link(mockSpec);
         assert.fail('should fail to write');
     } catch (err) {
         assert.equal(err.message, 'no field of an argument struct may be ' +

@@ -108,7 +108,6 @@
         this.id = id;
         this.returns = ft;
         this.fields = fields;
-        this.fields.isArgument = true;
         this.throws = _throws;
         this.annotations = annotations;
     }
