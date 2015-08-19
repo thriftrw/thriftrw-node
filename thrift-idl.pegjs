@@ -34,7 +34,7 @@
 
     function Enum(id, definitions, annotations) {
         this.id = id;
-        this.enumDefinitions = definitions;
+        this.definitions = definitions;
         this.annotations = annotations;
     }
     Enum.prototype.type = 'Enum';
@@ -44,6 +44,7 @@
         this.value = value;
         this.annotations = annotations;
     }
+    EnumDefinition.prototype.fieldType = new BaseType('i32');
     EnumDefinition.prototype.type = 'EnumDefinition';
 
     function Senum(id, definitions, annotations) {
@@ -253,7 +254,7 @@ Enum
   }
 
 EnumDefinition
-  = id:Identifier value:('=' __ v:IntConstant { return v.value })? __ ta:TypeAnnotations? ListSeparator? __ {
+  = id:Identifier value:('=' __ v:IntConstant { return v })? __ ta:TypeAnnotations? ListSeparator? __ {
     return new EnumDefinition(id, value, ta);
   }
 
