@@ -87,3 +87,25 @@ module.exports.FieldRequiredError = TypedError({
     structName: null,
     what: null
 });
+
+module.exports.InvalidEnumerationTypeError = TypedError({
+    type: 'thrift-invalid-enumeration-type',
+    message: 'name must be a string for enumeration {enumName}, got: {name} ({nameType})',
+    enumName: null,
+    name: null,
+    nameType: null
+});
+
+module.exports.InvalidEnumerationNameError = TypedError({
+    type: 'thrift-invalid-enumeration-name',
+    message: 'name must be a valid member of enumeration {enumName}, got: {name}',
+    enumName: null,
+    name: null
+});
+
+module.exports.InvalidEnumerationValueError = TypedError({
+    type: 'thrift-invalid-enumeration-value',
+    message: 'value must be a valid member of enumeration {enumName}, got: {value}',
+    enumName: null,
+    value: null
+});

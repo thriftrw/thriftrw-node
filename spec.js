@@ -29,7 +29,7 @@ var Result = require('bufrw/result');
 var ServiceSpec = require('./service').ServiceSpec;
 var StructSpec = require('./struct').StructSpec;
 var ExceptionSpec = require('./exception').ExceptionSpec;
-// TODO var EnumSpec = require('./enum').EnumSpec;
+var EnumSpec = require('./enum').EnumSpec;
 
 var VoidSpec = require('./void').VoidSpec;
 var BooleanSpec = require('./boolean').BooleanSpec;
@@ -112,9 +112,8 @@ Spec.prototype.claim = function claim(name, def) {
 Spec.prototype._definitionProcessors = {
     // sorted
     Const: 'compileConst',
-    // TODO Enum: 'compileEnum',
+    Enum: 'compileEnum',
     Exception: 'compileException',
-    // TODO Senum: 'compileSenum',
     Service: 'compileService',
     Struct: 'compileStruct'
     // TODO Typedef: 'compileTypedef',
@@ -166,6 +165,14 @@ Spec.prototype.compileConst = function compileConst(def, spec) {
     var constSpec = new ConstSpec(def);
     self.claim(def.id.name, def.id);
     self.constSpecs[def.id.name] = constSpec;
+};
+
+Spec.prototype.compileEnum = function compileEnum(def) {
+    var self = this;
+    var spec = new EnumSpec();
+    spec.compile(def, self);
+    self.claim(spec.name, def.id);
+    self.types[spec.name] = spec;
 };
 
 Spec.prototype.link = function link() {
