@@ -152,7 +152,7 @@ Spec.prototype.compileException = function compileException(def) {
     return spec;
 };
 
-Spec.prototype.compileService = function compileService(def, spec) {
+Spec.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ServiceSpec({strict: self.strict});
     service.compile(def, self);

@@ -84,6 +84,26 @@ function StructSpec(options) {
 StructSpec.prototype.name = 'struct';
 StructSpec.prototype.typeid = TYPE.STRUCT;
 
+StructSpec.prototype.toBuffer = function toBuffer(struct) {
+    var self = this;
+    return bufrw.toBuffer(self.rw, struct);
+};
+
+StructSpec.prototype.toBufferResult = function toBufferResult(struct) {
+    var self = this;
+    return bufrw.toBufferResult(self.rw, struct);
+};
+
+StructSpec.prototype.fromBuffer = function fromBuffer(buffer, offset) {
+    var self = this;
+    return bufrw.fromBuffer(self.rw, buffer, offset);
+};
+
+StructSpec.prototype.fromBufferResult = function fromBufferResult(buffer) {
+    var self = this;
+    return bufrw.fromBufferResult(self.rw, buffer);
+};
+
 StructSpec.prototype.compile = function compile(def) {
     var self = this;
     // Struct names must be valid JavaScript. If the Thrift name is not valid
@@ -137,6 +157,12 @@ StructSpec.prototype.link = function link(spec) {
 
     self.Constructor = self.createConstructor(self.name, self.fields);
     self.Constructor.rw = self.rw;
+
+    self.Constructor.fromBuffer = self.fromBuffer;
+    self.Constructor.fromBufferResult = self.fromBufferResult;
+
+    self.Constructor.toBuffer = self.toBuffer;
+    self.Constructor.toBufferResult = self.toBufferResult;
 
     // Link field types later since they may depend on the constructor existing
     // first.
