@@ -28,6 +28,7 @@ var I16RW = bufrw.Int16BE;
 function I16Spec() { }
 
 I16Spec.prototype.rw = I16RW;
+I16Spec.prototype.name = 'i16';
 I16Spec.prototype.typeid = TYPE.I16;
 
 module.exports.I16RW = I16RW;

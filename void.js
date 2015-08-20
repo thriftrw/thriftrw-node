@@ -29,6 +29,7 @@ function VoidSpec() {
 }
 
 VoidSpec.prototype.rw = VoidRW;
+VoidSpec.prototype.name = 'void';
 VoidSpec.prototype.typeid = TYPE.VOID;
 
 module.exports.VoidRW = VoidRW;
