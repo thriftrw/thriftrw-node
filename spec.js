@@ -39,7 +39,7 @@ var I16Spec = require('./i16').I16Spec;
 var I32Spec = require('./i32').I32Spec;
 var I64Spec = require('./i64').I64Spec;
 var DoubleSpec = require('./double').DoubleSpec;
-// TODO var ListSpec = require('./list').ListSpec;
+var ListSpec = require('./list').ListSpec;
 // TODO var SetSpec = require('./set').SetSpec;
 // TODO var MapSpec = require('./map').MapSpec;
 
@@ -176,6 +176,8 @@ Spec.prototype.resolve = function resolve(def) {
             throw err;
         }
         return self.types[def.name];
+    } else if (def.type === 'List') {
+        return new ListSpec(self.resolve(def.valueType), def.annotations);
     } else {
         err = new Error(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
