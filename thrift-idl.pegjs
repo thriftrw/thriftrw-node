@@ -116,19 +116,22 @@
     }
     FieldIdentifier.prototype.type = 'FieldIdentifier';
 
-    function MapType(keyType, valueType) {
+    function MapType(keyType, valueType, annotations) {
         this.keyType = keyType;
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     MapType.prototype.type = 'Map';
 
-    function SetType(valueType) {
+    function SetType(valueType, annotations) {
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     SetType.prototype.type = 'Set';
 
-    function ListType(valueType) {
+    function ListType(valueType, annotations) {
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     ListType.prototype.type = 'List';
 
@@ -378,12 +381,12 @@ MapType
   = 'map' __ cppType? '<' __ ft1:FieldType __ ',' __ ft2:FieldType __ '>'
     __ ta:TypeAnnotations?
   {
-    return new MapType(ft1, ft2);
+    return new MapType(ft1, ft2, ta);
   }
 
 SetType
   = 'set' __ cppType? '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? {
-    return new SetType(ft);
+    return new SetType(ft, ta);
   }
 
 // It's weird, and probably an error, but the original thrift yacc
@@ -393,7 +396,7 @@ SetType
 
 ListType
   = 'list' __ '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? cppType? {
-    return new ListType(ft);
+    return new ListType(ft, ta);
   }
 
 cppType
