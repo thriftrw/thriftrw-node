@@ -37,6 +37,7 @@ require('./tstruct');
 require('./void');
 require('./skip');
 require('./struct');
+require('./struct-skip');
 require('./service');
 require('./spec');
 require('./list');
