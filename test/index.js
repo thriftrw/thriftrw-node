@@ -45,3 +45,4 @@ require('./list');
 require('./set');
 require('./const');
 require('./default');
+require('./enum');
