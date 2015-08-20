@@ -229,7 +229,7 @@ Spec.prototype.resolve = function resolve(def) {
     } else if (def.type === 'Map') {
         return new MapSpec(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
-        err = new Error(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
+        assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
 };
 
