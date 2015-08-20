@@ -22,9 +22,10 @@
 'use strict';
 
 var bufrw = require('bufrw');
+var assert = require('assert');
 var TYPE = require('./TYPE');
 var InvalidSizeError = require('./errors').InvalidSizeError;
-var ListTypeIdMismatch = require('./errors').ListTypeIdMismatch;
+var TypeIdMismatch = require('./errors').TypeIdMismatch;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
@@ -32,23 +33,12 @@ var ReadResult = bufrw.ReadResult;
 
 function ListSpec(valueType, annotations) {
     var self = this;
+    self.valueType = valueType.name;
     self.rw = new ListRW(valueType, self);
 }
 
 ListSpec.prototype.name = 'list';
 ListSpec.prototype.typeid = TYPE.LIST;
-
-ListSpec.prototype.create = function create() {
-    return [];
-};
-
-ListSpec.prototype.add = function add(list, value) {
-    list.push(value);
-};
-
-ListSpec.prototype.finalize = function finalize(list) {
-    return list;
-};
 
 function ListRW(valueType, spec) {
     var self = this;
@@ -58,9 +48,24 @@ function ListRW(valueType, spec) {
 
 ListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 
+ListRW.prototype.form = {
+    create: function create() {
+        return [];
+    },
+    add: function add(array, value) {
+        array.push(value);
+    },
+    toArray: function toArray(array) {
+        assert(Array.isArray(array), 'list must be expressed as an array');
+        return array;
+    }
+};
+
 ListRW.prototype.byteLength = function byteLength(list) {
     var self = this;
     var valueType = self.valueType;
+
+    list = self.form.toArray(list);
 
     var length = 5; // header length
     var t;
@@ -78,6 +83,8 @@ ListRW.prototype.byteLength = function byteLength(list) {
 ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
     var self = this;
     var valueType = self.valueType;
+
+    list = self.form.toArray(list);
 
     var t = this.headerRW.writeInto([valueType.typeid, list.length],
         buffer, offset);
@@ -112,20 +119,21 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var size = t.value[1];
 
     if (valueTypeid !== valueType.typeid) {
-        return new ReadResult(ListTypeIdMismatch({
+        return new ReadResult(TypeIdMismatch({
             encoded: valueTypeid,
             expectedId: valueType.typeid,
-            expected: valueType.name
+            expected: valueType.name,
+            what: self.spec.name
         }));
     }
     if (size < 0) {
         return new ReadResult(InvalidSizeError({
             size: size,
-            what: 'list'
+            what: self.spec.name
         }));
     }
 
-    var list = self.spec.create();
+    var list = self.form.create();
 
     for (var i = 0; i < size; i++) {
         t = valueType.rw.readFrom(buffer, offset);
@@ -134,9 +142,9 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
             return t;
         }
         offset = t.offset;
-        self.spec.add(list, t.value);
+        self.form.add(list, t.value);
     }
-    return ReadResult.just(offset, self.spec.finalize(list));
+    return new ReadResult(null, offset, list);
 };
 
 module.exports.ListRW = ListRW;

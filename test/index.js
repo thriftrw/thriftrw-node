@@ -42,3 +42,4 @@ require('./exception');
 require('./service');
 require('./spec');
 require('./list');
+require('./set');
