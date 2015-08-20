@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* global Buffer */
 'use strict';
 
 var fs = require('fs');
@@ -43,8 +44,54 @@ test('can get type result from spec', function t(assert) {
 });
 
 test('can get type from spec', function t(assert) {
-    var Struct = spec.getTypeResult('Struct');
+    var Struct = spec.getType('Struct');
     assert.ok(Struct, 'got struct');
+    assert.end();
+});
+
+test('can read struct from buffer', function t(assert) {
+    var struct = spec.Struct.fromBuffer(new Buffer([
+        0x08, // typeid:1 -- 8, i32
+        0x00, 0x01, // id:2 -- 1, "number"
+        0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
+        0x00 // typeid:1 -- 0, stop
+    ]));
+    assert.ok(struct instanceof spec.Struct, 'struct instanceof Strict');
+    assert.deepEqual(struct, new spec.Struct({number: 10}), 'struct properties read properly');
+    assert.end();
+});
+
+test('can read struct result from buffer', function t(assert) {
+    var result = spec.Struct.fromBufferResult(new Buffer([
+        0x08, // typeid:1 -- 8, i32
+        0x00, 0x01, // id:2 -- 1, "number"
+        0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
+        0x00 // typeid:1 -- 0, stop
+    ]));
+    assert.ok(result.value instanceof spec.Struct, 'struct instanceof Strict');
+    assert.deepEqual(result.value, new spec.Struct({number: 10}), 'struct properties read properly');
+    assert.end();
+});
+
+test('can write struct to buffer', function t(assert) {
+    var buffer = spec.Struct.toBuffer(new spec.Struct({number: 10}));
+    assert.deepEqual(buffer, new Buffer([
+        0x08, // typeid:1 -- 8, i32
+        0x00, 0x01, // id:2 -- 1, "number"
+        0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
+        0x00 // typeid:1 -- 0, stop
+    ]));
+    assert.end();
+});
+
+test('can write struct to buffer', function t(assert) {
+    var result = spec.Struct.toBufferResult(new spec.Struct({number: 10}));
+    assert.deepEqual(result.value, new Buffer([
+        0x08, // typeid:1 -- 8, i32
+        0x00, 0x01, // id:2 -- 1, "number"
+        0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
+        0x00 // typeid:1 -- 0, stop
+    ]));
     assert.end();
 });
 

@@ -85,3 +85,5 @@ module.exports.StringSpec = require('./string').StringSpec;
 
 module.exports.VoidRW = require('./void').VoidRW;
 module.exports.VoidSpec = require('./void').VoidSpec;
+
+module.exports.Spec = require('./spec');
