@@ -57,6 +57,7 @@ function FieldSpec(def, struct) {
 FieldSpec.prototype.link = function link(spec) {
     var self = this;
     self.valueType = spec.resolve(self.valueDefinition);
+    assert(self.valueType, 'value type was defined, as returned by resolve');
 };
 
 FieldSpec.prototype.linkValue = function linkValue(spec) {
@@ -79,6 +80,7 @@ function StructSpec(options) {
     self.isArgument = null;
     self.Constructor = null;
     self.rw = new StructRW(self);
+    self.linked = false;
 }
 
 StructSpec.prototype.name = 'struct';
@@ -130,6 +132,12 @@ StructSpec.prototype.compile = function compile(def) {
 
 StructSpec.prototype.link = function link(spec) {
     var self = this;
+
+    if (self.linked) {
+        return self;
+    }
+    self.linked = true;
+
     var index;
 
     // Link default values first since they're used by the constructor
@@ -170,6 +178,8 @@ StructSpec.prototype.link = function link(spec) {
     for (index = 0; index < self.fields.length; index++) {
         self.fields[index].link(spec);
     }
+
+    return self;
 };
 
 // The following methods have alternate implementations for Exception and Union.

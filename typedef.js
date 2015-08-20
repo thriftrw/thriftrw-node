@@ -20,31 +20,25 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./exception');
-require('./service');
-require('./spec');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
+function TypedefSpec() {
+    var self = this;
+    self.name = null;
+    self.valueDefinition = null;
+    self.to = null;
+}
+
+TypedefSpec.prototype.compile = function compile(def, spec) {
+    var self = this;
+    self.name = def.id.name;
+    self.valueDefinition = def.valueType;
+};
+
+TypedefSpec.prototype.link = function link(spec) {
+    var self = this;
+    if (!self.to) {
+        self.to = spec.resolve(self.valueDefinition);
+    }
+    return self.to;
+};
+
+module.exports.TypedefSpec = TypedefSpec;

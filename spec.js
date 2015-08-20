@@ -44,6 +44,7 @@ var ListSpec = require('./list').ListSpec;
 var SetSpec = require('./set').SetSpec;
 var MapSpec = require('./map').MapSpec;
 var ConstSpec = require('./const').ConstSpec;
+var TypedefSpec = require('./typedef').TypedefSpec;
 
 function Spec(options) {
     var self = this;
@@ -81,7 +82,7 @@ Spec.prototype.getTypeResult = function getType(name) {
     if (!type) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
-    return new Result(null, type);
+    return new Result(null, type.link());
 };
 
 Spec.prototype.baseTypes = {
@@ -115,8 +116,8 @@ Spec.prototype._definitionProcessors = {
     Enum: 'compileEnum',
     Exception: 'compileException',
     Service: 'compileService',
-    Struct: 'compileStruct'
-    // TODO Typedef: 'compileTypedef',
+    Struct: 'compileStruct',
+    Typedef: 'compileTypedef'
     // TODO Union: 'compileUnion'
 };
 
@@ -148,6 +149,15 @@ Spec.prototype.compileException = function compileException(def) {
     self.claim(spec.fullName, def);
     self.types[spec.fullName] = spec;
     self[spec.fullName] = spec;
+    return spec;
+};
+
+Spec.prototype.compileTypedef = function compileTypedef(def) {
+    var self = this;
+    var spec = new TypedefSpec();
+    spec.compile(def, self);
+    self.claim(spec.name, spec);
+    self.types[spec.name] = spec;
     return spec;
 };
 
@@ -203,7 +213,6 @@ Spec.prototype.resolve = function resolve(def) {
     var err;
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
-    // istanbul ignore else
     } else if (def.type === 'Identifier') {
         if (!self.types[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
@@ -211,7 +220,8 @@ Spec.prototype.resolve = function resolve(def) {
             err.column = def.column;
             throw err;
         }
-        return self.types[def.name];
+        return self.types[def.name].link(self);
+    // istanbul ignore else
     } else if (def.type === 'List') {
         return new ListSpec(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
