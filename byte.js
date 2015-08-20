@@ -28,6 +28,7 @@ var ByteRW = bufrw.Int8;
 function ByteSpec() { }
 
 ByteSpec.prototype.rw = ByteRW;
+ByteSpec.prototype.name = 'byte';
 ByteSpec.prototype.typeid = TYPE.BYTE;
 
 module.exports.ByteRW = ByteRW;

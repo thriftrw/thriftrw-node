@@ -28,6 +28,7 @@ var I32RW = bufrw.Int32BE;
 function I32Spec() { }
 
 I32Spec.prototype.rw = I32RW;
+I32Spec.prototype.name = 'i32';
 I32Spec.prototype.typeid = TYPE.I32;
 
 module.exports.I32RW = I32RW;

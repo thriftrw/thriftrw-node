@@ -45,6 +45,7 @@ var I64RW = bufrw.AtomRW(8,
 function I64Spec() { }
 
 I64Spec.prototype.rw = I64RW;
+I64Spec.prototype.name = 'i64';
 I64Spec.prototype.typeid = TYPE.I64;
 
 module.exports.I64RW = I64RW;

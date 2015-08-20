@@ -28,6 +28,7 @@ var DoubleRW = bufrw.DoubleBE;
 function DoubleSpec() { }
 
 DoubleSpec.prototype.rw = DoubleRW;
+DoubleSpec.prototype.name = 'double';
 DoubleSpec.prototype.typeid = TYPE.DOUBLE;
 
 module.exports.DoubleRW = DoubleRW;

@@ -23,7 +23,6 @@
 
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
-var typeNames = require('./names');
 var InvalidSizeError = require('./errors').InvalidSizeError;
 var ListTypeIdMismatch = require('./errors').ListTypeIdMismatch;
 
@@ -36,6 +35,9 @@ function ListSpec(valueType, annotations) {
     self.rw = new ListRW(valueType, self);
 }
 
+ListSpec.prototype.name = 'list';
+ListSpec.prototype.typeid = TYPE.LIST;
+
 ListSpec.prototype.create = function create() {
     return [];
 };
@@ -47,8 +49,6 @@ ListSpec.prototype.add = function add(list, value) {
 ListSpec.prototype.finalize = function finalize(list) {
     return list;
 };
-
-ListSpec.prototype.typeid = TYPE.LIST;
 
 function ListRW(valueType, spec) {
     var self = this;
@@ -114,8 +114,8 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
     if (valueTypeid !== valueType.typeid) {
         return new ReadResult(ListTypeIdMismatch({
             encoded: valueTypeid,
-            expected: typeNames[valueType.typeid],
-            expectedId: valueType.typeid
+            expectedId: valueType.typeid,
+            expected: valueType.name
         }));
     }
     if (size < 0) {
