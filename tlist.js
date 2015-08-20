@@ -23,12 +23,7 @@
 
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
-var InvalidTypeidError = require('./errors').InvalidTypeidError;
-var InvalidSizeError = require('./errors').InvalidSizeError;
-
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
+var errors = require('./errors');
 
 function TList(etypeid, elements) {
     if (!(this instanceof TList)) {
@@ -51,7 +46,7 @@ TListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 TListRW.prototype.byteLength = function byteLength(list) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return LengthResult.error(InvalidTypeidError({
+        return new bufrw.LengthResult(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
         }));
@@ -67,13 +62,13 @@ TListRW.prototype.byteLength = function byteLength(list) {
         }
         length += t.length;
     }
-    return LengthResult.just(length);
+    return new bufrw.LengthResult(null, length);
 };
 
 TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return WriteResult.error(InvalidTypeidError({
+        return new bufrw.WriteResult(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
         }));
@@ -95,7 +90,7 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
         }
         offset = t.offset;
     }
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 TListRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -108,7 +103,7 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var etypeid = t.value[0];
     var size = t.value[1];
     if (size < 0) {
-        return ReadResult.error(InvalidSizeError({
+        return new bufrw.ReadResult(errors.InvalidSizeError({
             size: size,
             what: 'list::size'
         }));
@@ -117,7 +112,7 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var list = new TList(etypeid);
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return ReadResult.error(InvalidTypeidError({
+        return new bufrw.ReadResult(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
         }));
@@ -132,7 +127,7 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         list.elements.push(t.value);
     }
-    return ReadResult.just(offset, list);
+    return new bufrw.ReadResult(null, offset, list);
 };
 
 module.exports.TList = TList;

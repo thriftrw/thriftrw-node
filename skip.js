@@ -23,8 +23,8 @@
 
 var TYPE = require('./TYPE');
 var ReadResult = require('bufrw/base').ReadResult;
-var ShortBufferError = require('bufrw/errors').ShortBuffer;
-var InvalidTypeidError = require('./errors').InvalidTypeidError;
+var bufrwErrors = require('bufrw/errors');
+var errors = require('./errors');
 var TMapHeaderRW = require('./tmap').TMapRW.prototype.headerRW;
 var TListHeaderRW = require('./tlist').TListRW.prototype.headerRW;
 
@@ -49,7 +49,7 @@ function skipField(buffer, offset) {
 
     // istanbul ignore if
     if (offset + 1 > buffer.length) {
-        return new ReadResult(ShortBufferError({
+        return new ReadResult(bufrwErrors.ShortBuffer({
             expected: offset + 1,
             actual: buffer.length,
             buffer: buffer,
@@ -78,7 +78,7 @@ function skipType(buffer, offset, typeid) {
     } else if (widths[typeid] !== undefined) {
         var length = widths[typeid];
         if (offset + length > buffer.length) {
-            return new ReadResult(ShortBufferError({
+            return new ReadResult(bufrwErrors.ShortBuffer({
                 expected: offset + length,
                 actual: buffer.length,
                 buffer: buffer,
@@ -88,7 +88,7 @@ function skipType(buffer, offset, typeid) {
         offset += length;
 
     } else {
-        return new ReadResult(InvalidTypeidError({
+        return new ReadResult(errors.InvalidTypeidError({
             typeid: typeid,
             what: 'field::type'
         }));
@@ -104,7 +104,7 @@ function skipStruct(buffer, offset) {
         // typeid
         // istanbul ignore if
         if (offset + 1 > buffer.length) {
-            return new ReadResult(ShortBufferError({
+            return new ReadResult(bufrwErrors.ShortBuffer({
                 expected: offset + 1,
                 actual: buffer.length,
                 buffer: buffer,
@@ -121,7 +121,7 @@ function skipStruct(buffer, offset) {
         // id
         // istanbul ignore if
         if (offset + 2 > buffer.length) {
-            return new ReadResult(ShortBufferError({
+            return new ReadResult(bufrwErrors.ShortBuffer({
                 expected: offset + 2,
                 actual: buffer.length,
                 buffer: buffer,
@@ -144,7 +144,7 @@ function skipString(buffer, offset) {
 
     // istanbul ignore if
     if (offset + 4 > buffer.length) {
-        return new ReadResult(ShortBufferError({
+        return new ReadResult(bufrwErrors.ShortBuffer({
             expected: offset + 4,
             actual: buffer.length,
             buffer: buffer,
@@ -157,7 +157,7 @@ function skipString(buffer, offset) {
 
     // istanbul ignore if
     if (offset + length > buffer.length) {
-        return new ReadResult(ShortBufferError({
+        return new ReadResult(bufrwErrors.ShortBuffer({
             expected: offset + length,
             actual: buffer.length,
             buffer: buffer,

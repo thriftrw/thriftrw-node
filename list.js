@@ -24,12 +24,7 @@
 var bufrw = require('bufrw');
 var assert = require('assert');
 var TYPE = require('./TYPE');
-var InvalidSizeError = require('./errors').InvalidSizeError;
-var TypeIdMismatch = require('./errors').TypeIdMismatch;
-
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
+var errors = require('./errors');
 
 function ListSpec(valueType, annotations) {
     var self = this;
@@ -78,7 +73,7 @@ ListRW.prototype.byteLength = function byteLength(list) {
         }
         length += t.length;
     }
-    return LengthResult.just(length);
+    return new bufrw.LengthResult(null, length);
 };
 
 ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
@@ -103,7 +98,7 @@ ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
         }
         offset = t.offset;
     }
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 ListRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -120,7 +115,7 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var size = t.value[1];
 
     if (valueTypeid !== valueType.typeid) {
-        return new ReadResult(TypeIdMismatch({
+        return new bufrw.ReadResult(errors.TypeIdMismatch({
             encoded: valueTypeid,
             expectedId: valueType.typeid,
             expected: valueType.name,
@@ -128,7 +123,7 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
         }));
     }
     if (size < 0) {
-        return new ReadResult(InvalidSizeError({
+        return new bufrw.ReadResult(errors.InvalidSizeError({
             size: size,
             what: self.spec.name
         }));
@@ -145,7 +140,7 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         self.form.add(list, t.value);
     }
-    return new ReadResult(null, offset, list);
+    return new bufrw.ReadResult(null, offset, list);
 };
 
 module.exports.ListRW = ListRW;

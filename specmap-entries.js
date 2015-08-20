@@ -25,10 +25,6 @@ var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var errors = require('./errors');
 
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
-
 // RW a thrift map to an array of [k, v] entries
 
 // ktype:1 vtype:1 length:4 (k... v...){length}
@@ -65,7 +61,7 @@ function mapVarVarByteLength(entries) {
         len += res.length;
     }
 
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapEntriesRW.prototype.mapVarFixbyteLength =
@@ -78,7 +74,7 @@ function mapVarFixByteLength(entries) {
         if (res.err) return res;
         len += res.length;
     }
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapEntriesRW.prototype.mapFixVarbyteLength =
@@ -91,7 +87,7 @@ function mapFixVarByteLength(entries) {
         if (res.err) return res;
         len += res.length;
     }
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapEntriesRW.prototype.mapFixFixbyteLength =
@@ -100,7 +96,7 @@ function mapFixFixByteLength(entries) {
     var len = 6 +
         entries.length * self.ktype.rw.width +
         entries.length * self.vtype.rw.width;
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapEntriesRW.prototype.writeInto =
@@ -142,7 +138,7 @@ function writeInto(entries, buffer, offset) {
         offset = res.offset;
     }
 
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -156,7 +152,7 @@ SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     var ktypeid = res.value;
 
     if (ktypeid !== self.ktype.typeid) {
-        return ReadResult.error(errors.MapKeyTypeIdMismatch({
+        return new bufrw.ReadResult(errors.MapKeyTypeIdMismatch({
             encoded: ktypeid,
             expected: self.ktype.name,
             expectedId: self.ktype.typeid
@@ -171,7 +167,7 @@ SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     var vtypeid = res.value;
 
     if (vtypeid !== self.vtype.typeid) {
-        return ReadResult.error(errors.MapValTypeIdMismatch({
+        return new bufrw.ReadResult(errors.MapValTypeIdMismatch({
             encoded: vtypeid,
             expected: self.vtype.name,
             expectedId: self.vtype.typeid
@@ -206,7 +202,7 @@ SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
         entries.push([key, val]);
     }
 
-    return ReadResult.just(offset, entries);
+    return new bufrw.ReadResult(null, offset, entries);
 };
 
 module.exports.SpecMapEntriesRW = SpecMapEntriesRW;

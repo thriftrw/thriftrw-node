@@ -23,7 +23,7 @@
 var TYPE = require('./TYPE');
 var SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
 var SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
-var UnexpectedMapTypeAnnotation = require('./errors').UnexpectedMapTypeAnnotation; // TODO
+var errors = require('./errors');
 
 var none = {};
 
@@ -42,7 +42,7 @@ function MapSpec(keyType, valueType, annotations) {
         self.rw = new SpecMapEntriesRW(keyType, valueType);
         self.surface = Array;
     } else {
-        throw UnexpectedMapTypeAnnotation({
+        throw errors.UnexpectedMapTypeAnnotation({
             mapType: type
         });
     }

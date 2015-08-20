@@ -24,11 +24,7 @@
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var inherits = require('util').inherits;
-var InvalidTypeidError = require('./errors').InvalidTypeidError;
-
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
+var errors = require('./errors');
 
 function TField(typeid, id, val) {
     if (!(this instanceof TField)) {
@@ -61,7 +57,7 @@ TStructRW.prototype.byteLength = function byteLength(struct) {
         var field = struct.fields[i];
         var type = this.ttypes[field.typeid];
         if (!type) {
-            return LengthResult.error(InvalidTypeidError({
+            return new bufrw.LengthResult(errors.InvalidTypeidError({
                 typeid: field.typeid, what: 'field::type'
             }));
         }
@@ -75,7 +71,7 @@ TStructRW.prototype.byteLength = function byteLength(struct) {
         }
         length += t.length;
     }
-    return LengthResult.just(length);
+    return new bufrw.LengthResult(null, length);
 };
 
 TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
@@ -84,7 +80,7 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         var field = struct.fields[i];
         var type = this.ttypes[field.typeid];
         if (!type) {
-            return WriteResult.error(InvalidTypeidError({
+            return new bufrw.WriteResult(errors.InvalidTypeidError({
                 typeid: field.typeid, what: 'field::type'
             }));
         }
@@ -116,7 +112,7 @@ TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         return t;
     }
     offset = t.offset;
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -136,7 +132,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         var type = this.ttypes[typeid];
         if (!type) {
-            return ReadResult.error(InvalidTypeidError({
+            return new bufrw.ReadResult(errors.InvalidTypeidError({
                 typeid: typeid,
                 what: 'field::type'
             }));
@@ -159,7 +155,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         var val = t.value;
         struct.fields.push(TField(typeid, id, val));
     }
-    return ReadResult.just(offset, struct);
+    return new bufrw.ReadResult(null, offset, struct);
 };
 
 module.exports.TStruct = TStruct;

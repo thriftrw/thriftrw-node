@@ -26,8 +26,7 @@ var assert = require('assert');
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var NAMES = require('./names');
-var UnexpectedFieldValueTypeidError = require('./errors').UnexpectedFieldValueTypeidError;
-var FieldRequiredError = require('./errors').FieldRequiredError;
+var errors = require('./errors');
 var skipField = require('./skip').skipField;
 
 var LengthResult = bufrw.LengthResult;
@@ -238,7 +237,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
         var available = value !== null && value !== undefined;
 
         if (!available && field.required) {
-            return new LengthResult(FieldRequiredError({
+            return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
                 structName: self.spec.name,
@@ -274,7 +273,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         var available = value !== null && value !== undefined;
 
         if (!available && field.required) {
-            return new LengthResult(FieldRequiredError({
+            return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
                 structName: self.spec.name,
@@ -357,7 +356,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         var field = self.spec.fieldsById[id];
         if (field.valueType.typeid !== typeid) {
-            return new ReadResult(UnexpectedFieldValueTypeidError({
+            return new ReadResult(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
                 structName: self.spec.name,

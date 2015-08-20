@@ -23,7 +23,7 @@
 
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
-var expected = require('bufrw/errors').expected;
+var errors = require('bufrw/errors');
 
 var I64RW = bufrw.AtomRW(8,
     function readTInt64From(buffer, offset) {
@@ -34,7 +34,7 @@ var I64RW = bufrw.AtomRW(8,
     function writeTInt64Into(value, buffer, offset) {
         // istanbul ignore if
         if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(expected(value, 'a buffer'));
+            return bufrw.WriteResult.error(errors.expected(value, 'a buffer'));
         }
         value.copy(buffer, offset, 0, 8);
         return new bufrw.WriteResult(null, offset + 8);
