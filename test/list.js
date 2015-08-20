@@ -52,8 +52,8 @@ test('ListSpec.rw: list of bytes', testRW.cases(byteList.rw, [
                 0x00, 0x00, 0x00, 0x00 // length:4 -- 0
             ],
             error: {
-                type: 'thrift-list-typeid-mismatch',
-                name: 'ThriftListTypeidMismatchError',
+                type: 'thrift-typeid-mismatch',
+                name: 'ThriftTypeidMismatchError',
                 message: 'encoded list typeid 43 doesn\'t match expected ' +
                          'type "byte" (id: 3)'
             }
