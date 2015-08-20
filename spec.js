@@ -27,7 +27,7 @@ var Result = require('bufrw/result');
 
 var ServiceSpec = require('./service').ServiceSpec;
 var StructSpec = require('./struct').StructSpec;
-// TODO var ExceptionSpec = require('./exception').ExceptionSpec;
+var ExceptionSpec = require('./exception').ExceptionSpec;
 // TODO var EnumSpec = require('./enum').EnumSpec;
 
 var VoidSpec = require('./void').VoidSpec;
@@ -109,7 +109,7 @@ Spec.prototype._definitionProcessors = {
     // sorted
     // TODO Const: 'compileConst',
     // TODO Enum: 'compileEnum',
-    // TODO Exception: 'compileException',
+    Exception: 'compileException',
     // TODO Senum: 'compileSenum',
     Service: 'compileService',
     Struct: 'compileStruct'
@@ -131,6 +131,16 @@ Spec.prototype.compileDefinitions = function compileDefinitions(defs) {
 Spec.prototype.compileStruct = function compileStruct(def) {
     var self = this;
     var spec = new StructSpec({strict: self.strict});
+    spec.compile(def, self);
+    self.claim(spec.fullName, def);
+    self.types[spec.fullName] = spec;
+    self[spec.fullName] = spec;
+    return spec;
+};
+
+Spec.prototype.compileException = function compileException(def) {
+    var self = this;
+    var spec = new ExceptionSpec({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
     self.types[spec.fullName] = spec;

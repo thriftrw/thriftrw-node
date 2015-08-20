@@ -20,25 +20,24 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./exception');
-require('./service');
-require('./spec');
-require('./list');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var Spec = require('../spec');
+
+var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
+var spec = new Spec({source: source});
+
+test('Exception RW', testRW.cases(spec.BogusNameError.rw, [
+
+    [spec.BogusNameError({bogusName: 'Voldemort'}), [
+        0x0b,                         // typeid:1 -- 11, STRING
+        0x00, 0x01,                   // id:2     -- 1, bogusName
+        0x00, 0x00, 0x00, 0x09,       // length:4 -- 9
+        0x56, 0x6f, 0x6c, 0x64, 0x65, //          -- 'Voldemort'
+        0x6d, 0x6f, 0x72, 0x74,       //
+        0x00                          // typeid:1 -- 0, STOP
+    ]]
+
+]));
