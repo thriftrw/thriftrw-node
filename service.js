@@ -41,7 +41,8 @@ FunctionSpec.prototype.compile = function process(def, spec) {
     self.args = new StructSpec({strict: self.strict});
     self.args = spec.compileStruct({
         id: {name: self.name + '_args', as: self.fullName + '_args'},
-        fields: def.fields
+        fields: def.fields,
+        isArgument: true
     });
 
     var resultFields = def.throws || [];
@@ -57,7 +58,8 @@ FunctionSpec.prototype.compile = function process(def, spec) {
 
     self.result = spec.compileStruct({
         id: {name: self.name + '_result', as: self.fullName + '_result'},
-        fields: resultFields
+        fields: resultFields,
+        isResult: true
     });
 };
 

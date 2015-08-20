@@ -22,13 +22,14 @@
 
 var TypedError = require('error/typed');
 
-module.exports.ListTypeIdMismatch = TypedError({
-    type: 'thrift-list-typeid-mismatch',
-    message: 'encoded list typeid {encoded} doesn\'t match ' +
+module.exports.TypeIdMismatch = TypedError({
+    type: 'thrift-typeid-mismatch',
+    message: 'encoded {what} typeid {encoded} doesn\'t match ' +
         'expected type "{expected}" (id: {expectedId})',
     encoded: null,
     expected: null,
-    expectedId: null
+    expectedId: null,
+    what: null
 });
 
 module.exports.MapKeyTypeIdMismatch = TypedError({
@@ -85,4 +86,32 @@ module.exports.FieldRequiredError = TypedError({
     id: null,
     structName: null,
     what: null
+});
+
+module.exports.UnexpectedMapTypeAnnotation = TypedError({
+    type: 'thrift-unexpected-map-type-annotation',
+    message: 'unexpected map js.type annotation "{mapType}"',
+    mapType: null
+});
+
+module.exports.InvalidEnumerationTypeError = TypedError({
+    type: 'thrift-invalid-enumeration-type',
+    message: 'name must be a string for enumeration {enumName}, got: {name} ({nameType})',
+    enumName: null,
+    name: null,
+    nameType: null
+});
+
+module.exports.InvalidEnumerationNameError = TypedError({
+    type: 'thrift-invalid-enumeration-name',
+    message: 'name must be a valid member of enumeration {enumName}, got: {name}',
+    enumName: null,
+    name: null
+});
+
+module.exports.InvalidEnumerationValueError = TypedError({
+    type: 'thrift-invalid-enumeration-value',
+    message: 'value must be a valid member of enumeration {enumName}, got: {value}',
+    enumName: null,
+    value: null
 });

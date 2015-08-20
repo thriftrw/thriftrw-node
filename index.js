@@ -75,6 +75,7 @@ module.exports.I64Spec = require('./i64').I64Spec;
 
 module.exports.ListRW = require('./list').ListRW;
 module.exports.ListSpec = require('./list').ListSpec;
+module.exports.SetSpec = require('./set').SetSpec;
 
 module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
 module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
@@ -84,3 +85,5 @@ module.exports.StringSpec = require('./string').StringSpec;
 
 module.exports.VoidRW = require('./void').VoidRW;
 module.exports.VoidSpec = require('./void').VoidSpec;
+
+module.exports.Spec = require('./spec');

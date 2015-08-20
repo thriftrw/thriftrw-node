@@ -20,33 +20,31 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
-var expected = require('bufrw/errors').expected;
+var SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
+var SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+var UnexpectedMapTypeAnnotation = require('./errors').UnexpectedMapTypeAnnotation; // TODO
 
-var Buffer = require('buffer').Buffer;
+var none = {};
 
-var I64RW = bufrw.AtomRW(8,
-    function readTInt64From(buffer, offset) {
-        var value = new Buffer(8);
-        buffer.copy(value, 0, offset, offset + 8);
-        return new bufrw.ReadResult(null, offset + 8, value);
-    },
-    function writeTInt64Into(value, buffer, offset) {
-        // istanbul ignore if
-        if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(expected(value, 'a buffer'));
-        }
-        value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
-    });
+function MapSpec(keyType, valueType, annotations) {
+    var self = this;
 
-// TODO decide whether to do buffer or [hi, lo] based on annotations
-function I64Spec() { }
+    annotations = annotations || none;
+    var type = annotations['js.type'] || 'object';
 
-I64Spec.prototype.rw = I64RW;
-I64Spec.prototype.name = 'i64';
-I64Spec.prototype.typeid = TYPE.I64;
+    if (type === 'object') {
+        self.rw = new SpecMapObjRW(keyType, valueType);
+    } else if (type === 'entries') {
+        self.rw = new SpecMapEntriesRW(keyType, valueType);
+    } else {
+        throw UnexpectedMapTypeAnnotation({
+            mapType: type
+        });
+    }
+}
 
-module.exports.I64RW = I64RW;
-module.exports.I64Spec = I64Spec;
+MapSpec.prototype.name = 'map';
+MapSpec.prototype.typeid = TYPE.MAP;
+
+module.exports.MapSpec = MapSpec;

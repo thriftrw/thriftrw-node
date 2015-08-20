@@ -26,7 +26,7 @@ var Spec = require('../spec');
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
-var spec = new Spec({source: source});
+var spec = new Spec({source: source, strict: false});
 
 test('has args', function t(assert) {
     assert.ok(spec.getType('Foo::foo_args'), 'has args');

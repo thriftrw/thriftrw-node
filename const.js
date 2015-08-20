@@ -20,33 +20,21 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
-var TYPE = require('./TYPE');
-var expected = require('bufrw/errors').expected;
+function ConstSpec(def) {
+    var self = this;
+    self.name = def.id.name;
+    self.valueDefinition = def.value;
+    self.defined = false;
+    self.value = null;
+}
 
-var Buffer = require('buffer').Buffer;
+ConstSpec.prototype.link = function link(spec) {
+    var self = this;
+    if (!self.defined) {
+        self.defined = true;
+        self.value = spec.resolveValue(self.valueDefinition);
+    }
+    return self.value;
+};
 
-var I64RW = bufrw.AtomRW(8,
-    function readTInt64From(buffer, offset) {
-        var value = new Buffer(8);
-        buffer.copy(value, 0, offset, offset + 8);
-        return new bufrw.ReadResult(null, offset + 8, value);
-    },
-    function writeTInt64Into(value, buffer, offset) {
-        // istanbul ignore if
-        if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(expected(value, 'a buffer'));
-        }
-        value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
-    });
-
-// TODO decide whether to do buffer or [hi, lo] based on annotations
-function I64Spec() { }
-
-I64Spec.prototype.rw = I64RW;
-I64Spec.prototype.name = 'i64';
-I64Spec.prototype.typeid = TYPE.I64;
-
-module.exports.I64RW = I64RW;
-module.exports.I64Spec = I64Spec;
+module.exports.ConstSpec = ConstSpec;

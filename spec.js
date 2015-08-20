@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* eslint max-statements:[1, 30] */
 'use strict';
 
 var assert = require('assert');
@@ -27,8 +28,8 @@ var Result = require('bufrw/result');
 
 var ServiceSpec = require('./service').ServiceSpec;
 var StructSpec = require('./struct').StructSpec;
-// TODO var ExceptionSpec = require('./exception').ExceptionSpec;
-// TODO var EnumSpec = require('./enum').EnumSpec;
+var ExceptionSpec = require('./exception').ExceptionSpec;
+var EnumSpec = require('./enum').EnumSpec;
 
 var VoidSpec = require('./void').VoidSpec;
 var BooleanSpec = require('./boolean').BooleanSpec;
@@ -40,28 +41,32 @@ var I32Spec = require('./i32').I32Spec;
 var I64Spec = require('./i64').I64Spec;
 var DoubleSpec = require('./double').DoubleSpec;
 var ListSpec = require('./list').ListSpec;
-// TODO var SetSpec = require('./set').SetSpec;
-// TODO var MapSpec = require('./map').MapSpec;
+var SetSpec = require('./set').SetSpec;
+var MapSpec = require('./map').MapSpec;
+var ConstSpec = require('./const').ConstSpec;
+var TypedefSpec = require('./typedef').TypedefSpec;
 
-function Spec(args) {
+function Spec(options) {
     var self = this;
 
-    assert(args, 'args required');
-    assert(typeof args === 'object', 'args must be object');
-    assert(args.source, 'source required');
-    assert(typeof args.source === 'string', 'source must be string');
+    assert(options, 'options required');
+    assert(typeof options === 'object', 'options must be object');
+    assert(options.source, 'source required');
+    assert(typeof options.source === 'string', 'source must be string');
 
-    self.strict = args.strict || false;
+    self.strict = options.strict !== undefined ? options.strict : true;
 
     self.names = Object.create(null);
     self.services = Object.create(null);
     // type specs, including structs, exceptions, typedefs, unions
     self.types = Object.create(null);
+    self.constSpecs = Object.create(null);
+    self.consts = Object.create(null);
     // TODO consts, enum values
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
-    self.compile(args.source);
+    self.compile(options.source);
     // Second pass links field references of structs.
     self.link();
 }
@@ -77,7 +82,7 @@ Spec.prototype.getTypeResult = function getType(name) {
     if (!type) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
-    return new Result(null, type);
+    return new Result(null, type.link());
 };
 
 Spec.prototype.baseTypes = {
@@ -107,13 +112,12 @@ Spec.prototype.claim = function claim(name, def) {
 
 Spec.prototype._definitionProcessors = {
     // sorted
-    // TODO Const: 'compileConst',
-    // TODO Enum: 'compileEnum',
-    // TODO Exception: 'compileException',
-    // TODO Senum: 'compileSenum',
+    Const: 'compileConst',
+    Enum: 'compileEnum',
+    Exception: 'compileException',
     Service: 'compileService',
-    Struct: 'compileStruct'
-    // TODO Typedef: 'compileTypedef',
+    Struct: 'compileStruct',
+    Typedef: 'compileTypedef'
     // TODO Union: 'compileUnion'
 };
 
@@ -138,7 +142,26 @@ Spec.prototype.compileStruct = function compileStruct(def) {
     return spec;
 };
 
-Spec.prototype.compileService = function compileService(def, spec) {
+Spec.prototype.compileException = function compileException(def) {
+    var self = this;
+    var spec = new ExceptionSpec({strict: self.strict});
+    spec.compile(def, self);
+    self.claim(spec.fullName, def);
+    self.types[spec.fullName] = spec;
+    self[spec.fullName] = spec;
+    return spec;
+};
+
+Spec.prototype.compileTypedef = function compileTypedef(def) {
+    var self = this;
+    var spec = new TypedefSpec();
+    spec.compile(def, self);
+    self.claim(spec.name, spec);
+    self.types[spec.name] = spec;
+    return spec;
+};
+
+Spec.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ServiceSpec({strict: self.strict});
     service.compile(def, self);
@@ -147,18 +170,41 @@ Spec.prototype.compileService = function compileService(def, spec) {
     self[service.name] = service.functionsByName;
 };
 
+Spec.prototype.compileConst = function compileConst(def, spec) {
+    var self = this;
+    var constSpec = new ConstSpec(def);
+    self.claim(def.id.name, def.id);
+    self.constSpecs[def.id.name] = constSpec;
+};
+
+Spec.prototype.compileEnum = function compileEnum(def) {
+    var self = this;
+    var spec = new EnumSpec();
+    spec.compile(def, self);
+    self.claim(spec.name, def.id);
+    self.types[spec.name] = spec;
+};
+
 Spec.prototype.link = function link() {
     var self = this;
     var index;
+
     var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
         var type = self.types[typeNames[index]];
         type.link(self);
     }
+
     var serviceNames = Object.keys(self.services);
     for (index = 0; index < serviceNames.length; index++) {
         var service = self.services[serviceNames[index]];
         service.link(self);
+    }
+
+    var constNames = Object.keys(self.constSpecs);
+    for (index = 0; index < constNames.length; index++) {
+        var constSpec = self.constSpecs[constNames[index]];
+        self.consts[constNames[index]] = constSpec.link(self);
     }
 };
 
@@ -167,7 +213,6 @@ Spec.prototype.resolve = function resolve(def) {
     var err;
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
-    // istanbul ignore else
     } else if (def.type === 'Identifier') {
         if (!self.types[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
@@ -175,12 +220,67 @@ Spec.prototype.resolve = function resolve(def) {
             err.column = def.column;
             throw err;
         }
-        return self.types[def.name];
+        return self.types[def.name].link(self);
+    // istanbul ignore else
     } else if (def.type === 'List') {
         return new ListSpec(self.resolve(def.valueType), def.annotations);
+    } else if (def.type === 'Set') {
+        return new SetSpec(self.resolve(def.valueType), def.annotations);
+    } else if (def.type === 'Map') {
+        return new MapSpec(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
-        err = new Error(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
+        assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
+};
+
+Spec.prototype.resolveValue = function resolveValue(def) {
+    var self = this;
+    var err;
+    if (!def) {
+        return null;
+    } else if (def.type === 'Literal') {
+        return def.value;
+    } else if (def.type === 'ConstList') {
+        return self.resolveListConst(def);
+    } else if (def.type === 'ConstMap') {
+        return self.resolveMapConst(def);
+    // istanbul ignore else
+    } else if (def.type === 'Identifier') {
+        if (def.name === 'true') {
+            return true;
+        } else if (def.name === 'false') {
+            return false;
+        }
+        // istanbul ignore if
+        if (!self.constSpecs[def.name]) {
+            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+            err.line = def.line;
+            err.column = def.column;
+            throw err;
+        }
+        return self.constSpecs[def.name].link(self);
+    } else {
+        assert.fail('unrecognized const type ' + def.type);
+    }
+};
+
+Spec.prototype.resolveListConst = function resolveListConst(def) {
+    var self = this;
+    var list = [];
+    for (var index = 0; index < def.values.length; index++) {
+        list.push(self.resolveValue(def.values[index]));
+    }
+    return list;
+};
+
+Spec.prototype.resolveMapConst = function resolveMapConst(def) {
+    var self = this;
+    var map = {};
+    for (var index = 0; index < def.entries.length; index++) {
+        map[self.resolveValue(def.entries[index].key)] =
+            self.resolveValue(def.entries[index].value);
+    }
+    return map;
 };
 
 module.exports = Spec;

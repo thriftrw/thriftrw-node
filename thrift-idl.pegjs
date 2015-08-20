@@ -20,7 +20,7 @@
     Namespace.prototype.type = 'Namespace';
 
     function Typedef(type, id, annotations) {
-        this.typedefType = type;
+        this.valueType = type;
         this.id = id;
         this.annotations = annotations;
     }
@@ -34,7 +34,7 @@
 
     function Enum(id, definitions, annotations) {
         this.id = id;
-        this.enumDefinitions = definitions;
+        this.definitions = definitions;
         this.annotations = annotations;
     }
     Enum.prototype.type = 'Enum';
@@ -44,6 +44,7 @@
         this.value = value;
         this.annotations = annotations;
     }
+    EnumDefinition.prototype.fieldType = new BaseType('i32');
     EnumDefinition.prototype.type = 'EnumDefinition';
 
     function Senum(id, definitions, annotations) {
@@ -59,6 +60,22 @@
         this.value = value;
     }
     Const.prototype.type = 'Const';
+
+    function ConstList(values) {
+        this.values = values;
+    }
+    ConstList.prototype.type = 'ConstList';
+
+    function ConstMap(entries) {
+        this.entries = entries;
+    }
+    ConstMap.prototype.type = 'ConstMap';
+
+    function ConstEntry(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+    ConstEntry.prototype.type = 'ConstEntry';
 
     function Struct(id, fields, annotations) {
         this.id = id;
@@ -92,7 +109,6 @@
         this.id = id;
         this.returns = ft;
         this.fields = fields;
-        this.fields.isArgument = true;
         this.throws = _throws;
         this.annotations = annotations;
     }
@@ -116,19 +132,22 @@
     }
     FieldIdentifier.prototype.type = 'FieldIdentifier';
 
-    function MapType(keyType, valueType) {
+    function MapType(keyType, valueType, annotations) {
         this.keyType = keyType;
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     MapType.prototype.type = 'Map';
 
-    function SetType(valueType) {
+    function SetType(valueType, annotations) {
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     SetType.prototype.type = 'Set';
 
-    function ListType(valueType) {
+    function ListType(valueType, annotations) {
         this.valueType = valueType;
+        this.annotations = annotations;
     }
     ListType.prototype.type = 'List';
 
@@ -235,7 +254,7 @@ Enum
   }
 
 EnumDefinition
-  = id:Identifier value:('=' __ v:IntConstant { return v.value })? __ ta:TypeAnnotations? ListSeparator? __ {
+  = id:Identifier value:('=' __ v:IntConstant { return v })? __ ta:TypeAnnotations? ListSeparator? __ {
     return new EnumDefinition(id, value, ta);
   }
 
@@ -261,14 +280,18 @@ ConstValue
 
 ConstList
   = '[' __ values:(v:ConstValue __ ListSeparator? __ { return v} )* ']' __ {
-    return values
+    return new ConstList(values);
   }
 
 ConstMap
-  = '{' __ (ConstValuePair)* '}' __
+  = '{' __ entries:(ConstValueEntry)* '}' __ {
+    return new ConstMap(entries);
+  }
 
-ConstValuePair
-  = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator?
+ConstValueEntry
+  = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator? {
+    return new ConstEntry(k, v);
+  }
 
 Struct
   = 'struct' __ id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
@@ -378,12 +401,12 @@ MapType
   = 'map' __ cppType? '<' __ ft1:FieldType __ ',' __ ft2:FieldType __ '>'
     __ ta:TypeAnnotations?
   {
-    return new MapType(ft1, ft2);
+    return new MapType(ft1, ft2, ta);
   }
 
 SetType
   = 'set' __ cppType? '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? {
-    return new SetType(ft);
+    return new SetType(ft, ta);
   }
 
 // It's weird, and probably an error, but the original thrift yacc
@@ -393,7 +416,7 @@ SetType
 
 ListType
   = 'list' __ '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? cppType? {
-    return new ListType(ft);
+    return new ListType(ft, ta);
   }
 
 cppType
@@ -600,7 +623,9 @@ HexDigit
 
 NumberLiteral 'number'
   = HexIntegerLiteral
-  / [+-]? DecimalLiteral
+  / [+-]? i:DecimalLiteral {
+    return i;
+  }
   / SignedInteger
 
 DecimalLiteral 'decimal literal'

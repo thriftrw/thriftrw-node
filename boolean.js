@@ -51,6 +51,7 @@ function writeTBooleanInto(bool, buffer, offset) {
 
 function BooleanSpec() { }
 BooleanSpec.prototype.rw = BooleanRW;
+BooleanSpec.prototype.name = 'boolean';
 BooleanSpec.prototype.typeid = TYPE.BOOL;
 
 module.exports.BooleanRW = BooleanRW;

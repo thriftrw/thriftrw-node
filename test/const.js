@@ -20,33 +20,20 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
-var TYPE = require('./TYPE');
-var expected = require('bufrw/errors').expected;
+var test = require('tape');
 
-var Buffer = require('buffer').Buffer;
+var Spec = require('../spec');
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
+var spec;
 
-var I64RW = bufrw.AtomRW(8,
-    function readTInt64From(buffer, offset) {
-        var value = new Buffer(8);
-        buffer.copy(value, 0, offset, offset + 8);
-        return new bufrw.ReadResult(null, offset + 8, value);
-    },
-    function writeTInt64Into(value, buffer, offset) {
-        // istanbul ignore if
-        if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(expected(value, 'a buffer'));
-        }
-        value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
-    });
-
-// TODO decide whether to do buffer or [hi, lo] based on annotations
-function I64Spec() { }
-
-I64Spec.prototype.rw = I64RW;
-I64Spec.prototype.name = 'i64';
-I64Spec.prototype.typeid = TYPE.I64;
-
-module.exports.I64RW = I64RW;
-module.exports.I64Spec = I64Spec;
+test('consts parse', function t(assert) {
+    spec = new Spec({source: source});
+    assert.equal(spec.consts.ten, 10, 'ten constant');
+    assert.equal(spec.consts.tenForward, 10, 'forward reference');
+    assert.deepEqual(spec.consts.edges, {0: 1, 1: 2}, 'map constant');
+    assert.deepEqual(spec.consts.names, ['a', 'ab', 'abc'], 'list constant');
+    assert.deepEqual(spec.consts.tens, [10, 10, 10], 'list of identifiers');
+    assert.end();
+});

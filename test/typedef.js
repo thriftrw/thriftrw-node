@@ -20,33 +20,31 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
-var TYPE = require('./TYPE');
-var expected = require('bufrw/errors').expected;
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var Spec = require('../spec');
 
-var Buffer = require('buffer').Buffer;
+var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
+var spec = new Spec({source: source});
 
-var I64RW = bufrw.AtomRW(8,
-    function readTInt64From(buffer, offset) {
-        var value = new Buffer(8);
-        buffer.copy(value, 0, offset, offset + 8);
-        return new bufrw.ReadResult(null, offset + 8, value);
-    },
-    function writeTInt64Into(value, buffer, offset) {
-        // istanbul ignore if
-        if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(expected(value, 'a buffer'));
-        }
-        value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
-    });
+test('follows references through typedefs', function t(assert) {
+    assert.strictEqual(spec.getType('Structure'), spec.getType('Tree'));
+    assert.end();
+});
 
-// TODO decide whether to do buffer or [hi, lo] based on annotations
-function I64Spec() { }
+test('Typedef rw', testRW.cases(spec.Tree.rw, [
 
-I64Spec.prototype.rw = I64RW;
-I64Spec.prototype.name = 'i64';
-I64Spec.prototype.typeid = TYPE.I64;
+    [new spec.Tree({value: 0, children: []}), [
+        0x08,                   // typeid:1  -- 8, i32
+        0x00, 0x01,             // id:2      -- 1, "value"
+        0x00, 0x00, 0x00, 0x00, // value:4   -- 0
+        0x0f,                   // typeid:1  -- 15, list
+        0x00, 0x02,             // id:2      -- 2, "children"
+        0x0c,                   // el_type:1 -- struct
+        0x00, 0x00, 0x00, 0x00, // length:4  -- 0
+        0x00                    // typeid:1  -- 0, stop
+    ]]
 
-module.exports.I64RW = I64RW;
-module.exports.I64Spec = I64Spec;
+]));
