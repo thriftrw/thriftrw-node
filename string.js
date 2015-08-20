@@ -31,6 +31,7 @@ function StringSpec() {
 }
 
 StringSpec.prototype.rw = StringRW;
+StringSpec.prototype.name = 'string';
 StringSpec.prototype.typeid = TYPE.STRING;
 
 module.exports.StringRW = StringRW;

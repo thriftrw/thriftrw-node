@@ -74,6 +74,7 @@ function StructSpec(options) {
     self.rw = new StructRW(self);
 }
 
+StructSpec.prototype.name = 'struct';
 StructSpec.prototype.typeid = TYPE.STRUCT;
 
 StructSpec.prototype.compile = function compile(def) {

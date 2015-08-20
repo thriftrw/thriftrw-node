@@ -28,6 +28,7 @@ var BinaryRW = new bufrw.VariableBuffer(bufrw.Int32BE);
 function BinarySpec() { }
 
 BinarySpec.prototype.rw = BinaryRW;
+BinarySpec.prototype.name = 'binary';
 BinarySpec.prototype.typeid = TYPE.STRING;
 
 module.exports.BinaryRW = BinaryRW;
