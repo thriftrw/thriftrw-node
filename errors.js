@@ -22,13 +22,14 @@
 
 var TypedError = require('error/typed');
 
-module.exports.ListTypeIdMismatch = TypedError({
-    type: 'thrift-list-typeid-mismatch',
-    message: 'encoded list typeid {encoded} doesn\'t match ' +
+module.exports.TypeIdMismatch = TypedError({
+    type: 'thrift-typeid-mismatch',
+    message: 'encoded {what} typeid {encoded} doesn\'t match ' +
         'expected type "{expected}" (id: {expectedId})',
     encoded: null,
     expected: null,
-    expectedId: null
+    expectedId: null,
+    what: null
 });
 
 module.exports.MapKeyTypeIdMismatch = TypedError({
