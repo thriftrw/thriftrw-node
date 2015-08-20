@@ -42,6 +42,7 @@ var DoubleSpec = require('./double').DoubleSpec;
 var ListSpec = require('./list').ListSpec;
 var SetSpec = require('./set').SetSpec;
 // TODO var MapSpec = require('./map').MapSpec;
+var ConstSpec = require('./const').ConstSpec;
 
 function Spec(args) {
     var self = this;
@@ -57,6 +58,8 @@ function Spec(args) {
     self.services = Object.create(null);
     // type specs, including structs, exceptions, typedefs, unions
     self.types = Object.create(null);
+    self.constSpecs = Object.create(null);
+    self.consts = Object.create(null);
     // TODO consts, enum values
 
     // Two passes permits forward references and cyclic references.
@@ -107,7 +110,7 @@ Spec.prototype.claim = function claim(name, def) {
 
 Spec.prototype._definitionProcessors = {
     // sorted
-    // TODO Const: 'compileConst',
+    Const: 'compileConst',
     // TODO Enum: 'compileEnum',
     Exception: 'compileException',
     // TODO Senum: 'compileSenum',
@@ -157,18 +160,33 @@ Spec.prototype.compileService = function compileService(def, spec) {
     self[service.name] = service.functionsByName;
 };
 
+Spec.prototype.compileConst = function compileConst(def, spec) {
+    var self = this;
+    var constSpec = new ConstSpec(def);
+    self.claim(def.id.name, def.id);
+    self.constSpecs[def.id.name] = constSpec;
+};
+
 Spec.prototype.link = function link() {
     var self = this;
     var index;
+
     var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
         var type = self.types[typeNames[index]];
         type.link(self);
     }
+
     var serviceNames = Object.keys(self.services);
     for (index = 0; index < serviceNames.length; index++) {
         var service = self.services[serviceNames[index]];
         service.link(self);
+    }
+
+    var constNames = Object.keys(self.constSpecs);
+    for (index = 0; index < constNames.length; index++) {
+        var constDefinition = self.constSpecs[constNames[index]];
+        self.consts[constNames[index]] = constDefinition.link(self);
     }
 };
 
@@ -193,6 +211,49 @@ Spec.prototype.resolve = function resolve(def) {
     } else {
         err = new Error(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
+};
+
+Spec.prototype.resolveValue = function resolveValue(def) {
+    var self = this;
+    var err;
+    if (def.type === 'Literal') {
+        return def.value;
+    } else if (def.type === 'ConstList') {
+        return self.resolveListConst(def);
+    } else if (def.type === 'ConstMap') {
+        return self.resolveMapConst(def);
+    // istanbul ignore else
+    } else if (def.type === 'Identifier') {
+        // istanbul ignore if
+        if (!self.constSpecs[def.name]) {
+            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+            err.line = def.line;
+            err.column = def.column;
+            throw err;
+        }
+        return self.constSpecs[def.name].link(self);
+    } else {
+        assert.fail('unrecognized const type ' + def.type);
+    }
+};
+
+Spec.prototype.resolveListConst = function resolveListConst(def) {
+    var self = this;
+    var list = [];
+    for (var index = 0; index < def.values.length; index++) {
+        list.push(self.resolveValue(def.values[index]));
+    }
+    return list;
+};
+
+Spec.prototype.resolveMapConst = function resolveMapConst(def) {
+    var self = this;
+    var map = {};
+    for (var index = 0; index < def.entries.length; index++) {
+        map[self.resolveValue(def.entries[index].key)] =
+            self.resolveValue(def.entries[index].value);
+    }
+    return map;
 };
 
 module.exports = Spec;
