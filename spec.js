@@ -42,7 +42,7 @@ var I64Spec = require('./i64').I64Spec;
 var DoubleSpec = require('./double').DoubleSpec;
 var ListSpec = require('./list').ListSpec;
 var SetSpec = require('./set').SetSpec;
-// TODO var MapSpec = require('./map').MapSpec;
+var MapSpec = require('./map').MapSpec;
 var ConstSpec = require('./const').ConstSpec;
 
 function Spec(options) {
@@ -216,6 +216,8 @@ Spec.prototype.resolve = function resolve(def) {
         return new ListSpec(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
         return new SetSpec(self.resolve(def.valueType), def.annotations);
+    } else if (def.type === 'Map') {
+        return new MapSpec(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
         err = new Error(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
