@@ -49,12 +49,19 @@ function FieldSpec(def, struct) {
     self.annotations = def.annotations;
     self.valueDefinition = def.valueType;
     self.valueType = null;
-    self.constructDefaultValue = null; // def.defaultValue
+    self.defaultValueDefinition = def.defaultValue;
+    self.defaultValue = null;
+    self.constructDefaultValue = null;
 }
 
 FieldSpec.prototype.link = function link(spec) {
     var self = this;
     self.valueType = spec.resolve(self.valueDefinition);
+};
+
+FieldSpec.prototype.linkValue = function linkValue(spec) {
+    var self = this;
+    self.defaultValue = spec.resolveValue(self.defaultValueDefinition);
 };
 
 function StructSpec(options) {
@@ -83,27 +90,12 @@ StructSpec.prototype.compile = function compile(def) {
     // in JavaScript, it can be overridden with the js.name annotation.
     self.name = def.annotations && def.annotations['js.name'] || def.id.name;
     self.fullName = def.id.as || self.name;
-    self.isArgument = def.isArgument;
+    self.isArgument = def.isArgument || false;
+    self.isResult = def.isResult || false;
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
         var fieldDef = fields[index];
         var field = new FieldSpec(fieldDef, self);
-
-        if (self.strict) {
-            assert(field.required || field.optional,
-                'every field must be marked optional or required on ' + self.name +
-                    ' including "' + field.name + '" in strict mode'
-            );
-            if (self.isArgument && !field.required) {
-                assert.ok(false, 'every field must be marked required on ' + self.name +
-                    ' including "' + field.name + '" in strict mode');
-            }
-        }
-        if (self.isArgument && field.optional) {
-            assert.ok(false, 'no field of an argument struct may be marked ' +
-                'optional including ' + field.name + ' of ' + self.name);
-        }
-        field.required = field.required || self.isArgument;
 
         // Field names must be valid JavaScript. If the Thrift name is not
         // valid in JavaScript, it can be overridden with the js.name
@@ -118,24 +110,56 @@ StructSpec.prototype.compile = function compile(def) {
 
 StructSpec.prototype.link = function link(spec) {
     var self = this;
-    self.Constructor = self.createConstructor(self.name, self.fieldNames);
+    var index;
+
+    // Link default values first since they're used by the constructor
+    for (index = 0; index < self.fields.length; index++) {
+        var field = self.fields[index];
+        field.linkValue(spec);
+
+        // Validate field
+        if (self.strict) {
+            assert(
+                field.required || field.optional ||
+                field.defaultValue !== null && field.defaultValue !== undefined ||
+                self.isArgument || self.isResult,
+                'every field must be marked optional, required, or have a default value on ' +
+                    self.name + ' including "' + field.name + '" in strict mode'
+            );
+        }
+        if (self.isArgument && field.optional) {
+            assert.ok(false, 'no field of an argument struct may be marked ' +
+                'optional including ' + field.name + ' of ' + self.name);
+        }
+        field.required = field.required || self.isArgument;
+
+    }
+
+    self.Constructor = self.createConstructor(self.name, self.fields);
     self.Constructor.rw = self.rw;
+
+    // Link field types later since they may depend on the constructor existing
+    // first.
     spec[self.name] = self.Constructor;
-    for (var index = 0; index < self.fields.length; index++) {
+    for (index = 0; index < self.fields.length; index++) {
         self.fields[index].link(spec);
     }
 };
 
 // The following methods have alternate implementations for Exception and Union.
 
-StructSpec.prototype.createConstructor = function createConstructor(name, fieldNames) {
+StructSpec.prototype.createConstructor = function createConstructor(name, fields) {
     var source;
     source = '(function $' + name + '(options) {\n';
-    for (var index = 0; index < fieldNames.length; index++) {
-        var fieldName = fieldNames[index];
-        source += '    this.' + fieldName + ' = null;\n';
-        source += 'if (options && \'' + fieldName + '\' in options) ' +
-            '{ this.' + fieldName + ' = options.' + fieldName + '; }';
+    for (var index = 0; index < fields.length; index++) {
+        var field = fields[index];
+        source += '    this.' + field.name + ' = null;\n';
+        source += '    if (options && typeof options.' + field.name + ' !== "undefined") ' +
+            '{ this.' + field.name + ' = options.' + field.name + '; }\n';
+        if (field.defaultValue !== null) {
+            source += '    else { this.' + field.name +
+                ' = ' + JSON.stringify(field.defaultValue) + '; }\n';
+        }
     }
     source += '})\n';
     // eval is an operator that captures the lexical scope of the calling
