@@ -20,6 +20,7 @@
 
 'use strict';
 
+var ast = require('./ast');
 var StructSpec = require('./struct').StructSpec;
 
 function FunctionSpec(args) {
@@ -39,28 +40,25 @@ FunctionSpec.prototype.compile = function process(def, spec) {
     self.name = def.id.name;
 
     self.args = new StructSpec({strict: self.strict});
-    self.args = spec.compileStruct({
-        id: {name: self.name + '_args', as: self.fullName + '_args'},
-        fields: def.fields,
-        isArgument: true
-    });
+    var argsId = new ast.Identifier(self.name + '_args');
+    argsId.as = self.fullName + '_args';
+    var argsStruct = new ast.Struct(argsId, def.fields);
+    argsStruct.isArgument = true;
+    self.args = spec.compileStruct(argsStruct);
 
     var resultFields = def.throws || [];
-    resultFields.unshift({ // TODO use Field constructor from pegjs...somehow
-        id: {value: 0},
-        name: 'success',
-        valueType: def.returns,
-        required: true,
-        optional: false,
-        isResult: true,
-        annotations: null
-    });
+    var successFieldId = new ast.FieldIdentifier(0);
+    var successField = new ast.Field(successFieldId, def.returns, 'success');
+    successField.required = false;
+    successField.optional = true;
+    successField.isResult = true;
+    resultFields.unshift(successField);
 
-    self.result = spec.compileStruct({
-        id: {name: self.name + '_result', as: self.fullName + '_result'},
-        fields: resultFields,
-        isResult: true
-    });
+    var resultId = new ast.Identifier(self.name + '_result');
+    resultId.as = self.fullName + '_result';
+    var resultStruct = new ast.Struct(resultId, resultFields);
+    resultStruct.isResult = true;
+    self.result = spec.compileStruct(resultStruct);
 };
 
 FunctionSpec.prototype.link = function link(spec) {
