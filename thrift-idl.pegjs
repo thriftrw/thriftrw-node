@@ -1,177 +1,7 @@
-{
-
-    function Program(headers, definitions) {
-        this.headers = headers;
-        this.definitions = definitions;
-    }
-    Program.prototype.type = 'Program';
-
-    function Identifier(name, line, column) {
-        this.name = name;
-        this.line = line;
-        this.column = column;
-    }
-    Identifier.prototype.type = 'Identifier';
-
-    function Namespace(id, scope) {
-        this.id = id;
-        this.scope = scope;
-    }
-    Namespace.prototype.type = 'Namespace';
-
-    function Typedef(type, id, annotations) {
-        this.valueType = type;
-        this.id = id;
-        this.annotations = annotations;
-    }
-    Typedef.prototype.type = 'Typedef';
-
-    function BaseType(type, annotations) {
-        this.baseType = type;
-        this.annotations = annotations;
-    }
-    BaseType.prototype.type = 'BaseType';
-
-    function Enum(id, definitions, annotations) {
-        this.id = id;
-        this.definitions = definitions;
-        this.annotations = annotations;
-    }
-    Enum.prototype.type = 'Enum';
-
-    function EnumDefinition(id, value, annotations) {
-        this.id = id;
-        this.value = value;
-        this.annotations = annotations;
-    }
-    EnumDefinition.prototype.fieldType = new BaseType('i32');
-    EnumDefinition.prototype.type = 'EnumDefinition';
-
-    function Senum(id, definitions, annotations) {
-        this.id = id;
-        this.senumDefinitions = definitions;
-        this.annotations = annotations;
-    }
-    Senum.prototype.type = 'Senum';
-
-    function Const(id, fieldType, value) {
-        this.id = id;
-        this.fieldType = fieldType;
-        this.value = value;
-    }
-    Const.prototype.type = 'Const';
-
-    function ConstList(values) {
-        this.values = values;
-    }
-    ConstList.prototype.type = 'ConstList';
-
-    function ConstMap(entries) {
-        this.entries = entries;
-    }
-    ConstMap.prototype.type = 'ConstMap';
-
-    function ConstEntry(key, value) {
-        this.key = key;
-        this.value = value;
-    }
-    ConstEntry.prototype.type = 'ConstEntry';
-
-    function Struct(id, fields, annotations) {
-        this.id = id;
-        this.fields = fields;
-        this.annotations = annotations;
-        this.isArgument = false;
-    }
-    Struct.prototype.type = 'Struct';
-
-    function Union(id, fields) {
-        this.id = id;
-        this.fields = fields;
-    }
-    Union.prototype.type = 'Union';
-
-    function Exception(id, fields, annotations) {
-        this.id = id;
-        this.fields = fields;
-        this.annotations = annotations;
-    }
-    Exception.prototype.type = 'Exception';
-
-    function Service(id, functions, annotations) {
-        this.id = id;
-        this.functions = functions;
-        this.annotations = annotations;
-    }
-    Service.prototype.type = 'Service';
-
-    function FunctionDefinition(id, fields, ft, _throws, annotations) {
-        this.id = id;
-        this.returns = ft;
-        this.fields = fields;
-        this.throws = _throws;
-        this.annotations = annotations;
-    }
-    FunctionDefinition.prototype.type = 'function';
-
-    function Field(id, ft, name, req, fv, annotations) {
-        this.id = id;
-        this.name = name;
-        this.valueType = ft;
-        this.required = req === 'required';
-        this.optional = req === 'optional';
-        this.defaultValue = fv;
-        this.annotations = annotations;
-    }
-    Field.prototype.type = 'Field';
-
-    function FieldIdentifier(value, line, column) {
-        this.value = value;
-        this.line = line;
-        this.column = column;
-    }
-    FieldIdentifier.prototype.type = 'FieldIdentifier';
-
-    function MapType(keyType, valueType, annotations) {
-        this.keyType = keyType;
-        this.valueType = valueType;
-        this.annotations = annotations;
-    }
-    MapType.prototype.type = 'Map';
-
-    function SetType(valueType, annotations) {
-        this.valueType = valueType;
-        this.annotations = annotations;
-    }
-    SetType.prototype.type = 'Set';
-
-    function ListType(valueType, annotations) {
-        this.valueType = valueType;
-        this.annotations = annotations;
-    }
-    ListType.prototype.type = 'List';
-
-    function TypeAnnotation(name, value) {
-        this.name = name;
-        this.value = value;
-    }
-    TypeAnnotation.prototype.type = 'TypeAnnotation';
-
-    function Comment(value) {
-        this.value = value;
-    }
-    Comment.prototype.type = 'Comment';
-
-    function Literal(value) {
-        this.value = value;
-    }
-    Literal.prototype.type = 'Literal';
-
-}
 
 Program
   = __ hs:Header* ds:Definition* {
-    return new Program(hs.filter(Boolean), ds);
+    return new ast.Program(hs.filter(Boolean), ds);
   }
 
 Header
@@ -197,7 +27,7 @@ CppInclude
   = CppIncludeToken Literal
 
 Namespace
-  = NamespaceToken scope:NamespaceScope __ id:Identifier { return new Namespace(id, scope); }
+  = NamespaceToken scope:NamespaceScope __ id:Identifier { return new ast.Namespace(id, scope); }
   / NamespaceToken 'smalltalk.category' __ STIdentifier
   / NamespaceToken 'smalltalk.prefix' __ Identifier
   / 'php_namespace' __ Literal
@@ -235,7 +65,7 @@ Definition
 
 Typedef
   = TypedefToken __ dt:DefinitionType id:Identifier ta:TypeAnnotations? ListSeparator? {
-    return new Typedef(dt, id, ta);
+    return new ast.Typedef(dt, id, ta);
   }
 
 DefinitionType
@@ -250,17 +80,17 @@ ListSeparator 'list separator'
 
 Enum
   = EnumToken __ id:Identifier __ '{' __ ed:EnumDefinition* __ '}' __ ta:TypeAnnotations? {
-    return new Enum(id, ed, ta);
+    return new ast.Enum(id, ed, ta);
   }
 
 EnumDefinition
   = id:Identifier value:('=' __ v:IntConstant { return v })? __ ta:TypeAnnotations? ListSeparator? __ {
-    return new EnumDefinition(id, value, ta);
+    return new ast.EnumDefinition(id, value, ta);
   }
 
 Senum
   = SenumToken id:Identifier '{' __ ss:SenumDefinition* '}' __ ta:TypeAnnotations? {
-    return new Senum(id, ss, ta);
+    return new ast.Senum(id, ss, ta);
   }
 
 SenumDefinition
@@ -268,7 +98,7 @@ SenumDefinition
 
 Const
   = ConstToken ft:FieldType id:Identifier '=' __ cv:ConstValue ListSeparator? __ {
-    return new Const(id, ft, cv);
+    return new ast.Const(id, ft, cv);
   }
 
 ConstValue
@@ -280,27 +110,27 @@ ConstValue
 
 ConstList
   = '[' __ values:(v:ConstValue __ ListSeparator? __ { return v} )* ']' __ {
-    return new ConstList(values);
+    return new ast.ConstList(values);
   }
 
 ConstMap
   = '{' __ entries:(ConstValueEntry)* '}' __ {
-    return new ConstMap(entries);
+    return new ast.ConstMap(entries);
   }
 
 ConstValueEntry
   = k:ConstValue __ ':' __ v:ConstValue __ ListSeparator? {
-    return new ConstEntry(k, v);
+    return new ast.ConstEntry(k, v);
   }
 
 Struct
   = 'struct' __ id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
-    return new Struct(id, fs, ta);
+    return new ast.Struct(id, fs, ta);
   }
 
 Union
   = UnionToken id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ {
-    return new Union(id, fs);
+    return new ast.Union(id, fs);
   }
 
 xsdAll
@@ -317,12 +147,12 @@ xsdAttributes
 
 Exception
   = 'exception' __ id:Identifier '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? __ {
-    return new Exception(id, fs, ta);
+    return new ast.Exception(id, fs, ta);
   }
 
 Service
   = 'service' __ id:Identifier extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
-    return new Service(id, fns, ta);
+    return new ast.Service(id, fns, ta);
   }
 
 extends
@@ -330,7 +160,7 @@ extends
 
 function
   = __ oneway? ft:FunctionType id:Identifier '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
-    return new FunctionDefinition(id, fs, ft, ts, ta);
+    return new ast.FunctionDefinition(id, fs, ft, ts, ta);
   }
 
 oneway
@@ -344,7 +174,7 @@ throwz
 Field
   = _ id:FieldIdentifier? req:FieldRequiredness? ft:FieldType rec:Recursive? name:IdentifierName fv:FieldValue?
     XsdFieldOptions? ta:TypeAnnotations? ListSeparator? {
-      return new Field(id, ft, name, req, fv, ta);
+      return new ast.Field(id, ft, name, req, fv, ta);
     }
 
 Recursive
@@ -355,7 +185,7 @@ Recursive
   }
 
 FieldIdentifier
-  = id:IntConstant ':' _ { return new FieldIdentifier(id.value, line(), column()); }
+  = id:IntConstant ':' _ { return new ast.FieldIdentifier(id.value, line(), column()); }
 
 FieldRequiredness
   = 'required' __ { return 'required'; }
@@ -378,7 +208,7 @@ XsdFieldOptions
 
 BaseType
   = t:BaseTypeName __ ta:TypeAnnotations? {
-    return new BaseType(t, ta);
+    return new ast.BaseType(t, ta);
   }
 
 BaseTypeName
@@ -401,12 +231,12 @@ MapType
   = 'map' __ cppType? '<' __ ft1:FieldType __ ',' __ ft2:FieldType __ '>'
     __ ta:TypeAnnotations?
   {
-    return new MapType(ft1, ft2, ta);
+    return new ast.MapType(ft1, ft2, ta);
   }
 
 SetType
   = 'set' __ cppType? '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? {
-    return new SetType(ft, ta);
+    return new ast.SetType(ft, ta);
   }
 
 // It's weird, and probably an error, but the original thrift yacc
@@ -416,7 +246,7 @@ SetType
 
 ListType
   = 'list' __ '<' __ ft:FieldType __ '>' __ ta:TypeAnnotations? cppType? {
-    return new ListType(ft, ta);
+    return new ast.ListType(ft, ta);
   }
 
 cppType
@@ -433,7 +263,7 @@ TypeAnnotations
 
 TypeAnnotation
   = name:IdentifierName v:('=' __ l:Literal { return l })? ListSeparator? {
-    return new TypeAnnotation(name, v);
+    return new ast.TypeAnnotation(name, v);
   }
 
 IntConstant
@@ -444,7 +274,7 @@ word
   = w:[a-zA-Z0-9_\.]+
 
 Identifier
-  = name:IdentifierName __ { return new Identifier(name, line(), column()); }
+  = name:IdentifierName __ { return new ast.Identifier(name, line(), column()); }
 
 IdentifierName 'identifier'
   = !ReservedWord first:IdentifierStart rest:IdentifierPart* __ {
@@ -486,7 +316,7 @@ Letter
   = [a-zA-Z]
 
 STIdentifier
-  = name:STIdentifierName { return new Identifier(name, line(), column()); }
+  = name:STIdentifierName { return new ast.Identifier(name, line(), column()); }
 
 STIdentifierName
   = !container_type_tokens word /* ('a'..'z' | 'A'..'Z' | '-')
@@ -536,7 +366,7 @@ Comment 'comment'
 
 MultiLineComment
   = '/*' comment:(!'*/' c:SourceCharacter { return c; })* '*/' {
-    return new Comment(comment);
+    return new ast.Comment(comment);
   }
 
 MultiLineCommentNoLineTerminator
@@ -544,20 +374,20 @@ MultiLineCommentNoLineTerminator
 
 SingleLineComment
   = '//' comment:(!LineTerminator sc:SourceCharacter { return sc; })* {
-    return new Comment(comment);
+    return new ast.Comment(comment);
   }
 
 UnixComment
   = '#' comment:(!LineTerminator sc:SourceCharacter { return sc; })* {
-    return new Comment(comment);
+    return new ast.Comment(comment);
   }
 
 StringLiteral 'string'
   = '"' chars:DoubleStringCharacter* '"' {
-      return new Literal(chars.join(''));
+      return new ast.Literal(chars.join(''));
     }
   / "'" chars:SingleStringCharacter* "'" {
-      return new Literal(chars.join(''));
+      return new ast.Literal(chars.join(''));
     }
 
 DoubleStringCharacter
@@ -615,7 +445,7 @@ UnicodeEscapeSequence
 
 HexIntegerLiteral 'hex literal'
   = '0x'i digits:$HexDigit+ {
-      return new Literal(parseInt(digits, 16));
+      return new ast.Literal(parseInt(digits, 16));
     }
 
 HexDigit
@@ -630,13 +460,13 @@ NumberLiteral 'number'
 
 DecimalLiteral 'decimal literal'
   = DecimalDigit+ ('.' DecimalDigit+)? ExponentPart? {
-    return new Literal(parseFloat(text()));
+    return new ast.Literal(parseFloat(text()));
   }
   / '.' DecimalDigit+ ExponentPart? {
-    return new Literal(parseFloat(text()));
+    return new ast.Literal(parseFloat(text()));
   }
   / DecimalDigit+ ExponentPart? {
-    return new Literal(parseFloat(text()));
+    return new ast.Literal(parseFloat(text()));
   }
 
 ExponentPart
@@ -656,7 +486,7 @@ NonZeroDigit
 
 SignedInteger
   = [+-]? DecimalDigit+ {
-    return new Literal(parseFloat(text(), 10));
+    return new ast.Literal(parseFloat(text(), 10));
   }
 
 

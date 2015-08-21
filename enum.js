@@ -25,6 +25,7 @@ var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var errors = require('./errors');
 var ConstSpec = require('./const').ConstSpec;
+var ast = require('./ast');
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
@@ -66,10 +67,13 @@ EnumSpec.prototype.compile = function compile(def, spec) {
 
         var fullName = self.name + '.' + name;
         spec.claim(fullName, enumDef.id);
-        spec.constSpecs[fullName] = new ConstSpec({
-            id: {name: name},
-            value: {type: 'Literal', value: name}
-        });
+        spec.constSpecs[fullName] = new ConstSpec(
+            new ast.Const(
+                new ast.Identifier(name),
+                null, // TODO infer type for default value validation
+                new ast.Literal(name)
+            )
+        );
         self.namesToValues[name] = value;
         self.namesToNames[name] = name;
         self.valuesToNames[value] = name;
