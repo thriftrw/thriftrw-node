@@ -20,15 +20,20 @@
 
 'use strict';
 
+/* eslint no-new-func:[0] */
+
 var PEG = require('pegjs');
 var fs = require('fs');
 var path = require('path');
+var ast = require('./ast');
 
 var grammarPath = path.join(__dirname, 'thrift-idl.pegjs');
-var grammar = PEG.buildParser(fs.readFileSync(grammarPath).toString('ascii'));
+var parserSource = PEG.buildParser(fs.readFileSync(grammarPath).toString('ascii'), {output: 'source'});
+var parserMaker = new Function('ast', 'return ' + parserSource);
+var parser = parserMaker(ast);
 
 function parse(source) {
-    return grammar.parse(source);
+    return parser.parse(source);
 }
 
 module.exports.parse = parse;
