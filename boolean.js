@@ -53,6 +53,7 @@ function BooleanSpec() { }
 BooleanSpec.prototype.rw = BooleanRW;
 BooleanSpec.prototype.name = 'boolean';
 BooleanSpec.prototype.typeid = TYPE.BOOL;
+BooleanSpec.prototype.surface = Boolean;
 
 module.exports.BooleanRW = BooleanRW;
 module.exports.BooleanSpec = BooleanSpec;

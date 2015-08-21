@@ -30,6 +30,7 @@ function DoubleSpec() { }
 DoubleSpec.prototype.rw = DoubleRW;
 DoubleSpec.prototype.name = 'double';
 DoubleSpec.prototype.typeid = TYPE.DOUBLE;
+DoubleSpec.prototype.surface = Number;
 
 module.exports.DoubleRW = DoubleRW;
 module.exports.DoubleSpec = DoubleSpec;

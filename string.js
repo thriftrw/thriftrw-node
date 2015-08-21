@@ -33,6 +33,7 @@ function StringSpec() {
 StringSpec.prototype.rw = StringRW;
 StringSpec.prototype.name = 'string';
 StringSpec.prototype.typeid = TYPE.STRING;
+StringSpec.prototype.surface = String;
 
 module.exports.StringRW = StringRW;
 module.exports.StringSpec = StringSpec;

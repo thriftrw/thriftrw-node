@@ -56,13 +56,10 @@ function Spec(options) {
 
     self.strict = options.strict !== undefined ? options.strict : true;
 
-    self.names = Object.create(null);
-    self.services = Object.create(null);
-    // type specs, including structs, exceptions, typedefs, unions
-    self.types = Object.create(null);
+    self.claims = Object.create(null);
+    self.typeSpecs = Object.create(null);
+    self.serviceSpecs = Object.create(null);
     self.constSpecs = Object.create(null);
-    self.consts = Object.create(null);
-    // TODO consts, enum values
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
@@ -78,7 +75,7 @@ Spec.prototype.getType = function getType(name) {
 
 Spec.prototype.getTypeResult = function getType(name) {
     var self = this;
-    var type = self.types[name];
+    var type = self.typeSpecs[name];
     if (!type) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
@@ -106,8 +103,8 @@ Spec.prototype.compile = function compile(source) {
 
 Spec.prototype.claim = function claim(name, def) {
     var self = this;
-    assert(!self.names[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    self.names[name] = true;
+    assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
+    self.claims[name] = true;
 };
 
 Spec.prototype._definitionProcessors = {
@@ -137,8 +134,7 @@ Spec.prototype.compileStruct = function compileStruct(def) {
     var spec = new StructSpec({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
-    self.types[spec.fullName] = spec;
-    self[spec.fullName] = spec;
+    self.typeSpecs[spec.fullName] = spec;
     return spec;
 };
 
@@ -147,8 +143,7 @@ Spec.prototype.compileException = function compileException(def) {
     var spec = new ExceptionSpec({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
-    self.types[spec.fullName] = spec;
-    self[spec.fullName] = spec;
+    self.typeSpecs[spec.fullName] = spec;
     return spec;
 };
 
@@ -157,7 +152,7 @@ Spec.prototype.compileTypedef = function compileTypedef(def) {
     var spec = new TypedefSpec();
     spec.compile(def, self);
     self.claim(spec.name, spec);
-    self.types[spec.name] = spec;
+    self.typeSpecs[spec.name] = spec;
     return spec;
 };
 
@@ -166,8 +161,7 @@ Spec.prototype.compileService = function compileService(def) {
     var service = new ServiceSpec({strict: self.strict});
     service.compile(def, self);
     self.claim(service.name, def.id);
-    self.services[service.name] = service;
-    self[service.name] = service.functionsByName;
+    self.serviceSpecs[service.name] = service;
 };
 
 Spec.prototype.compileConst = function compileConst(def, spec) {
@@ -182,29 +176,29 @@ Spec.prototype.compileEnum = function compileEnum(def) {
     var spec = new EnumSpec();
     spec.compile(def, self);
     self.claim(spec.name, def.id);
-    self.types[spec.name] = spec;
+    self.typeSpecs[spec.name] = spec;
 };
 
 Spec.prototype.link = function link() {
     var self = this;
     var index;
 
-    var typeNames = Object.keys(self.types);
+    var typeNames = Object.keys(self.typeSpecs);
     for (index = 0; index < typeNames.length; index++) {
-        var type = self.types[typeNames[index]];
-        type.link(self);
+        var type = self.typeSpecs[typeNames[index]];
+        self[type.name] = type.link(self).surface;
     }
 
-    var serviceNames = Object.keys(self.services);
+    var serviceNames = Object.keys(self.serviceSpecs);
     for (index = 0; index < serviceNames.length; index++) {
-        var service = self.services[serviceNames[index]];
-        service.link(self);
+        var service = self.serviceSpecs[serviceNames[index]];
+        self[service.name] = service.link(self).surface;
     }
 
     var constNames = Object.keys(self.constSpecs);
     for (index = 0; index < constNames.length; index++) {
         var constSpec = self.constSpecs[constNames[index]];
-        self.consts[constNames[index]] = constSpec.link(self);
+        self[constSpec.name] = constSpec.link(self).surface;
     }
 };
 
@@ -214,13 +208,13 @@ Spec.prototype.resolve = function resolve(def) {
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        if (!self.types[def.name]) {
+        if (!self.typeSpecs[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
             err.line = def.line;
             err.column = def.column;
             throw err;
         }
-        return self.types[def.name].link(self);
+        return self.typeSpecs[def.name].link(self);
     // istanbul ignore else
     } else if (def.type === 'List') {
         return new ListSpec(self.resolve(def.valueType), def.annotations);
@@ -258,7 +252,7 @@ Spec.prototype.resolveValue = function resolveValue(def) {
             err.column = def.column;
             throw err;
         }
-        return self.constSpecs[def.name].link(self);
+        return self.constSpecs[def.name].link(self).value;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }

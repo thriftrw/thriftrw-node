@@ -26,6 +26,7 @@ function ConstSpec(def) {
     self.valueDefinition = def.value;
     self.defined = false;
     self.value = null;
+    self.surface = null;
 }
 
 ConstSpec.prototype.link = function link(spec) {
@@ -33,8 +34,9 @@ ConstSpec.prototype.link = function link(spec) {
     if (!self.defined) {
         self.defined = true;
         self.value = spec.resolveValue(self.valueDefinition);
+        self.surface = self.value;
     }
-    return self.value;
+    return self;
 };
 
 module.exports.ConstSpec = ConstSpec;

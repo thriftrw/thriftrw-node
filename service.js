@@ -74,6 +74,7 @@ function ServiceSpec(args) {
     self.name = null;
     self.functions = [];
     self.functionsByName = Object.create(null);
+    self.surface = self.functionsByName;
     self.strict = args.strict;
 }
 
@@ -83,7 +84,6 @@ ServiceSpec.prototype.compile = function process(def, spec) {
     for (var index = 0; index < def.functions.length; index++) {
         self.compileFunction(def.functions[index], spec);
     }
-    spec[self.name] = self.functionsByName;
 };
 
 ServiceSpec.prototype.compileFunction = function processFunction(def, spec) {
@@ -103,6 +103,7 @@ ServiceSpec.prototype.link = function link(spec) {
     for (var index = 0; index < self.functions.length; index++) {
         self.functions[index].link(spec);
     }
+    return self;
 };
 
 module.exports.FunctionSpec = FunctionSpec;

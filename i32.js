@@ -30,6 +30,7 @@ function I32Spec() { }
 I32Spec.prototype.rw = I32RW;
 I32Spec.prototype.name = 'i32';
 I32Spec.prototype.typeid = TYPE.I32;
+I32Spec.prototype.surface = Number;
 
 module.exports.I32RW = I32RW;
 module.exports.I32Spec = I32Spec;

@@ -18,6 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* global Buffer */
 'use strict';
 
 var bufrw = require('bufrw');
@@ -30,6 +31,7 @@ function BinarySpec() { }
 BinarySpec.prototype.rw = BinaryRW;
 BinarySpec.prototype.name = 'binary';
 BinarySpec.prototype.typeid = TYPE.STRING;
+BinarySpec.prototype.surface = Buffer;
 
 module.exports.BinaryRW = BinaryRW;
 module.exports.BinarySpec = BinarySpec;

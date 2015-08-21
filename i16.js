@@ -30,6 +30,7 @@ function I16Spec() { }
 I16Spec.prototype.rw = I16RW;
 I16Spec.prototype.name = 'i16';
 I16Spec.prototype.typeid = TYPE.I16;
+I16Spec.prototype.surface = Number;
 
 module.exports.I16RW = I16RW;
 module.exports.I16Spec = I16Spec;

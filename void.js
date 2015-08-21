@@ -31,6 +31,10 @@ function VoidSpec() {
 VoidSpec.prototype.rw = VoidRW;
 VoidSpec.prototype.name = 'void';
 VoidSpec.prototype.typeid = TYPE.VOID;
+// istanbul ignore next
+VoidSpec.prototype.surface = function Void() {
+    return null;
+};
 
 module.exports.VoidRW = VoidRW;
 module.exports.VoidSpec = VoidSpec;
