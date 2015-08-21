@@ -25,11 +25,11 @@ var TYPE = require('./TYPE');
 
 var I32RW = bufrw.Int32BE;
 
-function I32Spec() { }
+function ThriftI32() { }
 
-I32Spec.prototype.rw = I32RW;
-I32Spec.prototype.name = 'i32';
-I32Spec.prototype.typeid = TYPE.I32;
+ThriftI32.prototype.rw = I32RW;
+ThriftI32.prototype.name = 'i32';
+ThriftI32.prototype.typeid = TYPE.I32;
 
 module.exports.I32RW = I32RW;
-module.exports.I32Spec = I32Spec;
+module.exports.ThriftI32 = ThriftI32;

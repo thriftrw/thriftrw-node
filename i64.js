@@ -42,11 +42,11 @@ var I64RW = bufrw.AtomRW(8,
     });
 
 // TODO decide whether to do buffer or [hi, lo] based on annotations
-function I64Spec() { }
+function ThriftI64() { }
 
-I64Spec.prototype.rw = I64RW;
-I64Spec.prototype.name = 'i64';
-I64Spec.prototype.typeid = TYPE.I64;
+ThriftI64.prototype.rw = I64RW;
+ThriftI64.prototype.name = 'i64';
+ThriftI64.prototype.typeid = TYPE.I64;
 
 module.exports.I64RW = I64RW;
-module.exports.I64Spec = I64Spec;
+module.exports.ThriftI64 = ThriftI64;

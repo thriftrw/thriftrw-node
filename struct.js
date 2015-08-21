@@ -34,7 +34,7 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function FieldSpec(def, struct) {
+function ThriftField(def, struct) {
     var self = this;
     assert(def.isResult || def.id.value > 0,
         'field identifier must be greater than 0' +
@@ -54,18 +54,18 @@ function FieldSpec(def, struct) {
     self.constructDefaultValue = null;
 }
 
-FieldSpec.prototype.link = function link(spec) {
+ThriftField.prototype.link = function link(spec) {
     var self = this;
     self.valueType = spec.resolve(self.valueDefinition);
     assert(self.valueType, 'value type was defined, as returned by resolve');
 };
 
-FieldSpec.prototype.linkValue = function linkValue(spec) {
+ThriftField.prototype.linkValue = function linkValue(spec) {
     var self = this;
     self.defaultValue = spec.resolveValue(self.defaultValueDefinition);
 };
 
-function StructSpec(options) {
+function ThriftStruct(options) {
     var self = this;
     options = options || {};
 
@@ -83,30 +83,30 @@ function StructSpec(options) {
     self.linked = false;
 }
 
-StructSpec.prototype.name = 'struct';
-StructSpec.prototype.typeid = TYPE.STRUCT;
+ThriftStruct.prototype.name = 'struct';
+ThriftStruct.prototype.typeid = TYPE.STRUCT;
 
-StructSpec.prototype.toBuffer = function toBuffer(struct) {
+ThriftStruct.prototype.toBuffer = function toBuffer(struct) {
     var self = this;
     return bufrw.toBuffer(self.rw, struct);
 };
 
-StructSpec.prototype.toBufferResult = function toBufferResult(struct) {
+ThriftStruct.prototype.toBufferResult = function toBufferResult(struct) {
     var self = this;
     return bufrw.toBufferResult(self.rw, struct);
 };
 
-StructSpec.prototype.fromBuffer = function fromBuffer(buffer, offset) {
+ThriftStruct.prototype.fromBuffer = function fromBuffer(buffer, offset) {
     var self = this;
     return bufrw.fromBuffer(self.rw, buffer, offset);
 };
 
-StructSpec.prototype.fromBufferResult = function fromBufferResult(buffer) {
+ThriftStruct.prototype.fromBufferResult = function fromBufferResult(buffer) {
     var self = this;
     return bufrw.fromBufferResult(self.rw, buffer);
 };
 
-StructSpec.prototype.compile = function compile(def) {
+ThriftStruct.prototype.compile = function compile(def) {
     var self = this;
     // Struct names must be valid JavaScript. If the Thrift name is not valid
     // in JavaScript, it can be overridden with the js.name annotation.
@@ -117,7 +117,7 @@ StructSpec.prototype.compile = function compile(def) {
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
         var fieldDef = fields[index];
-        var field = new FieldSpec(fieldDef, self);
+        var field = new ThriftField(fieldDef, self);
 
         // Field names must be valid JavaScript. If the Thrift name is not
         // valid in JavaScript, it can be overridden with the js.name
@@ -130,7 +130,7 @@ StructSpec.prototype.compile = function compile(def) {
     }
 };
 
-StructSpec.prototype.link = function link(spec) {
+ThriftStruct.prototype.link = function link(spec) {
     var self = this;
 
     if (self.linked) {
@@ -184,7 +184,7 @@ StructSpec.prototype.link = function link(spec) {
 
 // The following methods have alternate implementations for Exception and Union.
 
-StructSpec.prototype.createConstructor = function createConstructor(name, fields) {
+ThriftStruct.prototype.createConstructor = function createConstructor(name, fields) {
     var source;
     source = '(function thriftrw_' + name + '(options) {\n';
     for (var index = 0; index < fields.length; index++) {
@@ -206,16 +206,16 @@ StructSpec.prototype.createConstructor = function createConstructor(name, fields
     return (0, eval)(source);
 };
 
-StructSpec.prototype.create = function create() {
+ThriftStruct.prototype.create = function create() {
     var self = this;
     return new self.Constructor();
 };
 
-StructSpec.prototype.set = function set(struct, key, value) {
+ThriftStruct.prototype.set = function set(struct, key, value) {
     struct[key] = value;
 };
 
-StructSpec.prototype.finalize = function finalize(struct) {
+ThriftStruct.prototype.finalize = function finalize(struct) {
     return struct;
 };
 
@@ -378,6 +378,6 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     return new ReadResult(null, offset, self.spec.finalize(struct));
 };
 
-module.exports.FieldSpec = FieldSpec;
-module.exports.StructSpec = StructSpec;
+module.exports.ThriftField = ThriftField;
+module.exports.ThriftStruct = ThriftStruct;
 module.exports.StructRW = StructRW;

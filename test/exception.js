@@ -24,14 +24,14 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
-var Spec = require('../spec');
+var Thrift = require('../thrift').Thrift;
 
 var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
-var spec = new Spec({source: source});
+var thrift = new Thrift({source: source});
 
-test('Exception RW', testRW.cases(spec.BogusNameError.rw, [
+test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
 
-    [spec.BogusNameError({bogusName: 'Voldemort'}), [
+    [thrift.BogusNameError({bogusName: 'Voldemort'}), [
         0x0b, // typeid:1 = 11, STRING
         0x00, 0x01, // id:2 = 1, bogusName
         0x00, 0x00, 0x00, 0x09, // str_len:4 = 9

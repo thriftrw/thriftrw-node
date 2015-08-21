@@ -22,21 +22,20 @@
 
 var util = require('util');
 var assert = require('assert');
-var ListSpec = require('./list').ListSpec;
+var ThriftList = require('./list').ThriftList;
 
-function SetSpec(valueType, annotations) {
-    // TODO consider annotations for {key: true} vs Set vs [] (default)
+function ThriftSet(valueType, annotations) {
     var self = this;
-    ListSpec.call(self, valueType, annotations);
+    ThriftList.call(self, valueType, annotations);
     self.mode = annotations && annotations['js.type'] || 'array';
     assert(self.mode === 'array' || self.mode === 'object', 'js.type annotation must be either "array" or "object"');
 }
 
-util.inherits(SetSpec, ListSpec);
+util.inherits(ThriftSet, ThriftList);
 
-SetSpec.prototype.name = 'set';
+ThriftSet.prototype.name = 'set';
 
-SetSpec.prototype.create = function create() {
+ThriftSet.prototype.create = function create() {
     var self = this;
     if (self.mode === 'array') {
         return [];
@@ -45,7 +44,7 @@ SetSpec.prototype.create = function create() {
     }
 };
 
-SetSpec.prototype.add = function add(set, value) {
+ThriftSet.prototype.add = function add(set, value) {
     var self = this;
     if (self.mode === 'array') {
         set.push(value);
@@ -54,7 +53,7 @@ SetSpec.prototype.add = function add(set, value) {
     }
 };
 
-SetSpec.prototype.toArray = function toArray(set) {
+ThriftSet.prototype.toArray = function toArray(set) {
     var self = this;
     var index;
     var keys;
@@ -86,6 +85,6 @@ SetSpec.prototype.toArray = function toArray(set) {
     }
 };
 
-SetSpec.prototype.type = 'set';
+ThriftSet.prototype.type = 'set';
 
-module.exports.SetSpec = SetSpec;
+module.exports.ThriftSet = ThriftSet;

@@ -21,22 +21,22 @@
 'use strict';
 
 var TYPE = require('./TYPE');
-var SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
-var SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+var MapObjRW = require('./map-object').MapObjRW;
+var MapEntriesRW = require('./map-entries').MapEntriesRW;
 var UnexpectedMapTypeAnnotation = require('./errors').UnexpectedMapTypeAnnotation; // TODO
 
 var none = {};
 
-function MapSpec(keyType, valueType, annotations) {
+function ThriftMap(keyType, valueType, annotations) {
     var self = this;
 
     annotations = annotations || none;
     var type = annotations['js.type'] || 'object';
 
     if (type === 'object') {
-        self.rw = new SpecMapObjRW(keyType, valueType);
+        self.rw = new MapObjRW(keyType, valueType);
     } else if (type === 'entries') {
-        self.rw = new SpecMapEntriesRW(keyType, valueType);
+        self.rw = new MapEntriesRW(keyType, valueType);
     } else {
         throw UnexpectedMapTypeAnnotation({
             mapType: type
@@ -44,7 +44,7 @@ function MapSpec(keyType, valueType, annotations) {
     }
 }
 
-MapSpec.prototype.name = 'map';
-MapSpec.prototype.typeid = TYPE.MAP;
+ThriftMap.prototype.name = 'map';
+ThriftMap.prototype.typeid = TYPE.MAP;
 
-module.exports.MapSpec = MapSpec;
+module.exports.ThriftMap = ThriftMap;

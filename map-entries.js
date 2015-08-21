@@ -29,35 +29,37 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-// RW a thrift map to an Object
+// RW a thrift map to an array of [k, v] entries
 
 // ktype:1 vtype:1 length:4 (k... v...){length}
 
-function SpecMapObjRW(ktype, vtype) {
+function MapEntriesRW(ktype, vtype) {
     var self = this;
     self.ktype = ktype;
     self.vtype = vtype;
 
-    if (self.vtype.rw.width) {
+    if (self.ktype.rw.width && self.vtype.rw.width) {
+        self.byteLength = self.mapFixFixbyteLength;
+    } else if (self.ktype.rw.width) {
+        self.byteLength = self.mapFixVarbyteLength;
+    } else if (self.vtype.rw.width) {
         self.byteLength = self.mapVarFixbyteLength;
     }
 }
-inherits(SpecMapObjRW, bufrw.Base);
+inherits(MapEntriesRW, bufrw.Base);
 
-SpecMapObjRW.prototype.byteLength = function mapVarVarByteLength(obj) {
+MapEntriesRW.prototype.byteLength =
+function mapVarVarByteLength(entries) {
     var self = this;
-    var keys = obj && Object.keys(obj);
     var len = 6; // static overhead
 
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var value = obj[key];
-        var res = self.ktype.rw.byteLength(key);
+    for (var i = 0; i < entries.length; i++) {
+        var res = self.ktype.rw.byteLength(entries[i][0]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
 
-        res = self.vtype.rw.byteLength(value);
+        res = self.vtype.rw.byteLength(entries[i][1]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -66,23 +68,43 @@ SpecMapObjRW.prototype.byteLength = function mapVarVarByteLength(obj) {
     return LengthResult.just(len);
 };
 
-SpecMapObjRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
+MapEntriesRW.prototype.mapVarFixbyteLength =
+function mapVarFixByteLength(entries) {
     var self = this;
-    var keys = obj && Object.keys(obj);
-    var len = 6 + keys.length * self.vtype.rw.width;
-
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var res = self.ktype.rw.byteLength(key);
+    var len = 6 + entries.length * self.vtype.rw.width;
+    for (var i = 0; i < entries.length; i++) {
+        var res = self.ktype.rw.byteLength(entries[i][0]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
     }
-
     return LengthResult.just(len);
 };
 
-SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
+MapEntriesRW.prototype.mapFixVarbyteLength =
+function mapFixVarByteLength(entries) {
+    var self = this;
+    var len = 6 + entries.length * self.ktype.rw.width;
+    for (var i = 0; i < entries.length; i++) {
+        var res = self.vtype.rw.byteLength(entries[i][1]);
+        // istanbul ignore if
+        if (res.err) return res;
+        len += res.length;
+    }
+    return LengthResult.just(len);
+};
+
+MapEntriesRW.prototype.mapFixFixbyteLength =
+function mapFixFixByteLength(entries) {
+    var self = this;
+    var len = 6 +
+        entries.length * self.ktype.rw.width +
+        entries.length * self.vtype.rw.width;
+    return LengthResult.just(len);
+};
+
+MapEntriesRW.prototype.writeInto =
+function writeInto(entries, buffer, offset) {
     var self = this;
 
     // ktype:1
@@ -98,25 +120,23 @@ SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
     offset = res.offset;
 
     // length:4
-    var keys = obj && Object.keys(obj);
-    res = bufrw.UInt32BE.writeInto(keys.length, buffer, offset);
+    res = bufrw.UInt32BE.writeInto(entries.length, buffer, offset);
     // istanbul ignore if
     if (res.err) return res;
     offset = res.offset;
 
     // (k... v...){length}
-    for (var i = 0; i < keys.length; i++) {
-        var key = keys[i];
-        var value = obj[key];
+    for (var i = 0; i < entries.length; i++) {
+        var pair = entries[i];
 
         // k...
-        res = self.ktype.rw.writeInto(key, buffer, offset);
+        res = self.ktype.rw.writeInto(pair[0], buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
 
         // v...
-        res = self.vtype.rw.writeInto(value, buffer, offset);
+        res = self.vtype.rw.writeInto(pair[1], buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
@@ -125,7 +145,7 @@ SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
     return WriteResult.just(offset);
 };
 
-SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
+MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
 
     // ktype:1
@@ -166,7 +186,7 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
     var length = res.value;
 
     // (k... v...){length}
-    var obj = {};
+    var entries = [];
     for (var i = 0; i < length; i++) {
 
         // k...
@@ -183,10 +203,10 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = res.offset;
         var val = res.value;
 
-        obj[key] = val;
+        entries.push([key, val]);
     }
 
-    return ReadResult.just(offset, obj);
+    return ReadResult.just(offset, entries);
 };
 
-module.exports.SpecMapObjRW = SpecMapObjRW;
+module.exports.MapEntriesRW = MapEntriesRW;

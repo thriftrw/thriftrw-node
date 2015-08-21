@@ -24,24 +24,24 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var path = require('path');
 var fs = require('fs');
-var MapSpec = require('../map').MapSpec;
-var Spec = require('../spec');
-var spec;
+var ThriftMap = require('../map').ThriftMap;
+var Thrift = require('../thrift').Thrift;
+var thrift;
 
-var StringSpec = require('../string').StringSpec;
-var I16Spec = require('../i16').I16Spec;
+var ThriftString = require('../string').ThriftString;
+var ThriftI16 = require('../i16').ThriftI16;
 
-test('spec parses', function t(assert) {
+test('thrift parses', function t(assert) {
     var filename = path.join(__dirname, 'map.thrift');
     var source = fs.readFileSync(filename, 'ascii');
-    spec = new Spec({source: source});
-    spec.getType('Graph');
-    assert.pass('spec parses');
+    thrift = new Thrift({source: source});
+    thrift.getType('Graph');
+    assert.pass('thrift parses');
     assert.end();
 });
 
-var strI16Map = new MapSpec(new StringSpec(), new I16Spec(), {});
-test('MapSpec: strI16MapRW', testRW.cases(strI16Map.rw, [
+var strI16Map = new ThriftMap(new ThriftString(), new ThriftI16(), {});
+test('ThriftMap: strI16MapRW', testRW.cases(strI16Map.rw, [
     [{}, [
         0x0b,                  // key_type:1 -- 11, string
         0x06,                  // val_type:1 -- 6, i16
@@ -104,8 +104,8 @@ test('MapSpec: strI16MapRW', testRW.cases(strI16Map.rw, [
 
 ]));
 
-var strI16MapEntries = new MapSpec(new StringSpec(), new I16Spec(), {'js.type': 'entries'});
-test('MapSpec: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
+var strI16MapEntries = new ThriftMap(new ThriftString(), new ThriftI16(), {'js.type': 'entries'});
+test('ThriftMap: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
     [[], [
         0x0b,                  // key_type:1 -- 11, string
         0x06,                  // val_type:1 -- 6, i16
@@ -170,8 +170,8 @@ test('MapSpec: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
 
 test('invalid map type annotation', function t(assert) {
     try {
-        var graphSpec = new Spec({source: 'struct Graph { 1: required map<byte, byte> (js.type = "bogus") edges }'});
-        assert.ok(!graphSpec, 'should not parse');
+        var thriftGraph = new Thrift({source: 'struct Graph { 1: required map<byte, byte> (js.type = "bogus") edges }'});
+        assert.ok(!thriftGraph, 'should not parse');
     } catch (err) {
         assert.equals(err.message, 'unexpected map js.type annotation "bogus"', 'error message');
     }

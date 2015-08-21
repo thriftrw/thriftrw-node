@@ -31,24 +31,24 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function ListSpec(valueType, annotations) {
+function ThriftList(valueType, annotations) {
     var self = this;
     self.valueType = valueType.name;
     self.rw = new ListRW(valueType, self);
 }
 
-ListSpec.prototype.name = 'list';
-ListSpec.prototype.typeid = TYPE.LIST;
+ThriftList.prototype.name = 'list';
+ThriftList.prototype.typeid = TYPE.LIST;
 
-ListSpec.prototype.create = function create() {
+ThriftList.prototype.create = function create() {
     return [];
 };
 
-ListSpec.prototype.add = function add(list, value) {
+ThriftList.prototype.add = function add(list, value) {
     list.push(value);
 };
 
-ListSpec.prototype.toArray = function toArray(list) {
+ThriftList.prototype.toArray = function toArray(list) {
     assert(Array.isArray(list), 'list must be expressed as an array');
     return list;
 };
@@ -148,4 +148,4 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
 };
 
 module.exports.ListRW = ListRW;
-module.exports.ListSpec = ListSpec;
+module.exports.ThriftList = ThriftList;

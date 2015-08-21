@@ -25,12 +25,12 @@ var TYPE = require('./TYPE');
 
 var VoidRW = bufrw.Null;
 
-function VoidSpec() {
+function ThriftVoid() {
 }
 
-VoidSpec.prototype.rw = VoidRW;
-VoidSpec.prototype.name = 'void';
-VoidSpec.prototype.typeid = TYPE.VOID;
+ThriftVoid.prototype.rw = VoidRW;
+ThriftVoid.prototype.name = 'void';
+ThriftVoid.prototype.typeid = TYPE.VOID;
 
 module.exports.VoidRW = VoidRW;
-module.exports.VoidSpec = VoidSpec;
+module.exports.ThriftVoid = ThriftVoid;

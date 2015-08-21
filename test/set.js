@@ -25,16 +25,16 @@ var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
 
-var Spec = require('../spec');
-var SetSpec = require('../set').SetSpec;
-var StringSpec = require('../string').StringSpec;
-var ByteSpec = require('../byte').ByteSpec;
+var Thrift = require('../thrift').Thrift;
+var ThriftSet = require('../set').ThriftSet;
+var ThriftString = require('../string').ThriftString;
+var ThriftByte = require('../byte').ThriftByte;
 
-var byteSet = new SetSpec(new ByteSpec());
-var stringSet = new SetSpec(new StringSpec());
-var stringObjectSet = new SetSpec(new StringSpec(), {'js.type': 'object'});
+var byteSet = new ThriftSet(new ThriftByte());
+var stringSet = new ThriftSet(new ThriftString());
+var stringObjectSet = new ThriftSet(new ThriftString(), {'js.type': 'object'});
 
-test('SetSpec.rw: set of bytes', testRW.cases(byteSet.rw, [
+test('ThriftSet.rw: set of bytes', testRW.cases(byteSet.rw, [
 
     [[], [
         0x03,                  // type:1   -- 3, BYTE
@@ -80,7 +80,7 @@ test('SetSpec.rw: set of bytes', testRW.cases(byteSet.rw, [
 
 ]));
 
-test('SetSpec.rw: set of strings', testRW.cases(stringSet.rw, [
+test('ThriftSet.rw: set of strings', testRW.cases(stringSet.rw, [
 
     [[], [
         0x0b,                  // type:1   -- 11, STRING
@@ -100,7 +100,7 @@ test('SetSpec.rw: set of strings', testRW.cases(stringSet.rw, [
 
 ]));
 
-test('SetSpec.rw: set of strings as object', testRW.cases(stringObjectSet.rw, [
+test('ThriftSet.rw: set of strings as object', testRW.cases(stringObjectSet.rw, [
 
     [{}, [
         0x0b,                  // type:1   -- 11, STRING
@@ -121,11 +121,11 @@ test('SetSpec.rw: set of strings as object', testRW.cases(stringObjectSet.rw, [
 ]));
 
 var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'ascii');
-var spec = new Spec({source: source});
+var thrift = new Thrift({source: source});
 
-test('Struct with set rw', testRW.cases(spec.Bucket.rw, [
+test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
 
-    [new spec.Bucket({asArray: [1, 2, 3]}), [
+    [new thrift.Bucket({asArray: [1, 2, 3]}), [
         0x0f,                   // type:1  -- 15, struct
         0x00, 0x01,             // field:2 -- 1, asArray
         0x08,                   // type:1  -- 8, i32
@@ -136,7 +136,7 @@ test('Struct with set rw', testRW.cases(spec.Bucket.rw, [
         0x00                    // type:1  -- 0, stop
     ]],
 
-    [new spec.Bucket({numbersAsObject: {1: true, 2: true, 3: true}}), [
+    [new thrift.Bucket({numbersAsObject: {1: true, 2: true, 3: true}}), [
         0x0f,                   // type:1  -- 15, struct
         0x00, 0x02,             // field:2 -- 1, numbersAsObject
         0x08,                   // type:1  -- 8, i32
@@ -147,7 +147,7 @@ test('Struct with set rw', testRW.cases(spec.Bucket.rw, [
         0x00                    // type:1  -- 0, stop
     ]],
 
-    [new spec.Bucket({stringsAsObject: {1: true, 2: true, 3: true}}), [
+    [new thrift.Bucket({stringsAsObject: {1: true, 2: true, 3: true}}), [
         0x0f,                   // type:1       -- 15, struct
         0x00, 0x03,             // field:2      -- 1, numbersAsObject
         0x0b,                   // type:1       -- 11, string

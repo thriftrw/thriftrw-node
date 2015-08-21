@@ -22,11 +22,11 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 
 var thriftrw = require('../index');
 var BinaryRW = thriftrw.BinaryRW;
-var BinarySpec = thriftrw.BinarySpec;
+var ThriftBinary = thriftrw.ThriftBinary;
 var TYPE = require('../TYPE');
 
 var Buffer = require('buffer').Buffer;
@@ -80,4 +80,4 @@ test('BinaryRW', testRW.cases(BinaryRW, [
 
 ]));
 
-test('BinarySpec', specTest(BinarySpec, BinaryRW, TYPE.STRING));
+test('ThriftBinary', testThrift(ThriftBinary, BinaryRW, TYPE.STRING));

@@ -22,11 +22,11 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 
 var thriftrw = require('../index');
 var I16RW = thriftrw.I16RW;
-var I16Spec = thriftrw.I16Spec;
+var ThriftI16 = thriftrw.ThriftI16;
 var TYPE = require('../TYPE');
 
 /*eslint-disable space-in-brackets,no-multi-spaces*/
@@ -42,4 +42,4 @@ var testCases = [].concat(
 );
 
 test('I16RW', testRW.cases(I16RW, testCases));
-test('I16Spec', specTest(I16Spec, I16RW, TYPE.I16));
+test('ThriftI16', testThrift(ThriftI16, I16RW, TYPE.I16));

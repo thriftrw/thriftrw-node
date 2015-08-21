@@ -23,12 +23,12 @@
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
 
-var Spec = require('../spec');
+var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'ascii');
-var spec = new Spec({source: source});
-var Shark = spec.Shark;
+var thrift = new Thrift({source: source});
+var Shark = thrift.Shark;
 
 test('recursive rw', testRW.cases(Shark.rw, [
 

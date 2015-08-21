@@ -25,11 +25,11 @@ var TYPE = require('./TYPE');
 
 var I16RW = bufrw.Int16BE;
 
-function I16Spec() { }
+function ThriftI16() { }
 
-I16Spec.prototype.rw = I16RW;
-I16Spec.prototype.name = 'i16';
-I16Spec.prototype.typeid = TYPE.I16;
+ThriftI16.prototype.rw = I16RW;
+ThriftI16.prototype.name = 'i16';
+ThriftI16.prototype.typeid = TYPE.I16;
 
 module.exports.I16RW = I16RW;
-module.exports.I16Spec = I16Spec;
+module.exports.ThriftI16 = ThriftI16;

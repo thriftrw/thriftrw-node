@@ -49,10 +49,10 @@ function writeTBooleanInto(bool, buffer, offset) {
     return bufrw.UInt8.writeInto(Number(bool), buffer, offset);
 }
 
-function BooleanSpec() { }
-BooleanSpec.prototype.rw = BooleanRW;
-BooleanSpec.prototype.name = 'boolean';
-BooleanSpec.prototype.typeid = TYPE.BOOL;
+function ThriftBoolean() { }
+ThriftBoolean.prototype.rw = BooleanRW;
+ThriftBoolean.prototype.name = 'boolean';
+ThriftBoolean.prototype.typeid = TYPE.BOOL;
 
 module.exports.BooleanRW = BooleanRW;
-module.exports.BooleanSpec = BooleanSpec;
+module.exports.ThriftBoolean = ThriftBoolean;

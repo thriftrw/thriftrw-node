@@ -22,14 +22,14 @@
 
 var test = require('tape');
 
-var Spec = require('../spec');
+var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
 var spec;
 
 test('consts parse', function t(assert) {
-    spec = new Spec({source: source});
+    spec = new Thrift({source: source});
     assert.equal(spec.consts.ten, 10, 'ten constant');
     assert.equal(spec.consts.tenForward, 10, 'forward reference');
     assert.deepEqual(spec.consts.edges, {0: 1, 1: 2}, 'map constant');

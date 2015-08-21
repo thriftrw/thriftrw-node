@@ -25,11 +25,11 @@ var TYPE = require('./TYPE');
 
 var ByteRW = bufrw.Int8;
 
-function ByteSpec() { }
+function ThriftByte() { }
 
-ByteSpec.prototype.rw = ByteRW;
-ByteSpec.prototype.name = 'byte';
-ByteSpec.prototype.typeid = TYPE.BYTE;
+ThriftByte.prototype.rw = ByteRW;
+ThriftByte.prototype.name = 'byte';
+ThriftByte.prototype.typeid = TYPE.BYTE;
 
 module.exports.ByteRW = ByteRW;
-module.exports.ByteSpec = ByteSpec;
+module.exports.ThriftByte = ThriftByte;
