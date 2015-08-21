@@ -29,7 +29,7 @@ var errors = require('./errors');
 
 // ktype:1 vtype:1 length:4 (k... v...){length}
 
-function SpecMapObjRW(ktype, vtype) {
+function MapObjectRW(ktype, vtype) {
     var self = this;
     self.ktype = ktype;
     self.vtype = vtype;
@@ -38,9 +38,9 @@ function SpecMapObjRW(ktype, vtype) {
         self.byteLength = self.mapVarFixbyteLength;
     }
 }
-inherits(SpecMapObjRW, bufrw.Base);
+inherits(MapObjectRW, bufrw.Base);
 
-SpecMapObjRW.prototype.byteLength = function mapVarVarByteLength(obj) {
+MapObjectRW.prototype.byteLength = function mapVarVarByteLength(obj) {
     var self = this;
     var keys = obj && Object.keys(obj);
     var len = 6; // static overhead
@@ -62,7 +62,7 @@ SpecMapObjRW.prototype.byteLength = function mapVarVarByteLength(obj) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapObjRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
+MapObjectRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
     var self = this;
     var keys = obj && Object.keys(obj);
     var len = 6 + keys.length * self.vtype.rw.width;
@@ -78,7 +78,7 @@ SpecMapObjRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
+MapObjectRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
     var self = this;
 
     // ktype:1
@@ -121,7 +121,7 @@ SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
     return new bufrw.WriteResult(null, offset);
 };
 
-SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
+MapObjectRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
 
     // ktype:1
@@ -185,4 +185,4 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
     return new bufrw.ReadResult(null, offset, obj);
 };
 
-module.exports.SpecMapObjRW = SpecMapObjRW;
+module.exports.MapObjectRW = MapObjectRW;

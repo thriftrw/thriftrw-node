@@ -25,15 +25,15 @@ var TYPE = require('./TYPE');
 
 var StringRW = new bufrw.String(bufrw.Int32BE, 'utf-8');
 
-function StringSpec() {
+function ThriftString() {
     // This is where we would decide which RW to use if there is an annotation
     // for an alternative to utf-8.
 }
 
-StringSpec.prototype.rw = StringRW;
-StringSpec.prototype.name = 'string';
-StringSpec.prototype.typeid = TYPE.STRING;
-StringSpec.prototype.surface = String;
+ThriftString.prototype.rw = StringRW;
+ThriftString.prototype.name = 'string';
+ThriftString.prototype.typeid = TYPE.STRING;
+ThriftString.prototype.surface = String;
 
 module.exports.StringRW = StringRW;
-module.exports.StringSpec = StringSpec;
+module.exports.ThriftString = ThriftString;

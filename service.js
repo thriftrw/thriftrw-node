@@ -21,9 +21,9 @@
 'use strict';
 
 var ast = require('./ast');
-var StructSpec = require('./struct').StructSpec;
+var ThriftStruct = require('./struct').ThriftStruct;
 
-function FunctionSpec(args) {
+function ThriftFunction(args) {
     var self = this;
     self.name = args.name;
     self.service = args.service;
@@ -34,12 +34,12 @@ function FunctionSpec(args) {
     self.strict = args.strict;
 }
 
-FunctionSpec.prototype.compile = function process(def, spec) {
+ThriftFunction.prototype.compile = function process(def, spec) {
     var self = this;
 
     self.name = def.id.name;
 
-    self.args = new StructSpec({strict: self.strict});
+    self.args = new ThriftStruct({strict: self.strict});
     var argsId = new ast.Identifier(self.name + '_args');
     argsId.as = self.fullName + '_args';
     var argsStruct = new ast.Struct(argsId, def.fields);
@@ -61,13 +61,13 @@ FunctionSpec.prototype.compile = function process(def, spec) {
     self.result = spec.compileStruct(resultStruct);
 };
 
-FunctionSpec.prototype.link = function link(spec) {
+ThriftFunction.prototype.link = function link(spec) {
     var self = this;
     self.args.link(spec);
     self.result.link(spec);
 };
 
-function ServiceSpec(args) {
+function ThriftService(args) {
     var self = this;
     self.name = null;
     self.functions = [];
@@ -76,7 +76,7 @@ function ServiceSpec(args) {
     self.strict = args.strict;
 }
 
-ServiceSpec.prototype.compile = function process(def, spec) {
+ThriftService.prototype.compile = function process(def, spec) {
     var self = this;
     self.name = def.id.name;
     for (var index = 0; index < def.functions.length; index++) {
@@ -84,19 +84,19 @@ ServiceSpec.prototype.compile = function process(def, spec) {
     }
 };
 
-ServiceSpec.prototype.compileFunction = function processFunction(def, spec) {
+ThriftService.prototype.compileFunction = function processFunction(def, spec) {
     var self = this;
-    var functionSpec = new FunctionSpec({
+    var thriftFunction = new ThriftFunction({
         name: def.id.name,
         service: self,
         strict: self.strict
     });
-    functionSpec.compile(def, spec);
-    self.functions.push(functionSpec);
-    self.functionsByName[functionSpec.name] = functionSpec;
+    thriftFunction.compile(def, spec);
+    self.functions.push(thriftFunction);
+    self.functionsByName[thriftFunction.name] = thriftFunction;
 };
 
-ServiceSpec.prototype.link = function link(spec) {
+ThriftService.prototype.link = function link(spec) {
     var self = this;
     for (var index = 0; index < self.functions.length; index++) {
         self.functions[index].link(spec);
@@ -104,5 +104,5 @@ ServiceSpec.prototype.link = function link(spec) {
     return self;
 };
 
-module.exports.FunctionSpec = FunctionSpec;
-module.exports.ServiceSpec = ServiceSpec;
+module.exports.ThriftFunction = ThriftFunction;
+module.exports.ThriftService = ThriftService;

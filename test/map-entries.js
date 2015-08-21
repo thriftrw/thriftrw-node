@@ -25,7 +25,7 @@ var bufrw = require('bufrw');
 var testRW = require('bufrw/test_rw');
 
 var thriftrw = require('../index');
-var SpecMapObjRW = thriftrw.SpecMapObjRW;
+var MapEntriesRW = thriftrw.MapEntriesRW;
 
 var strType = {
     name: 'string',
@@ -38,19 +38,19 @@ var i16Type = {
     rw: bufrw.Int16BE
 };
 
-var strI16MapRW = new SpecMapObjRW(strType, i16Type);
-test('SpecMapObjRW: strI16MapRW', testRW.cases(strI16MapRW, [
-    [{}, [
+var strI16MapRW = new MapEntriesRW(strType, i16Type);
+test('MapEntriesRW: strI16MapRW', testRW.cases(strI16MapRW, [
+    [[], [
         0x01,                  // key_type:1 -- 99
         0x02,                  // val_type:1 -- 98
         0x00, 0x00, 0x00, 0x00 // length:4   -- 0
     ]],
 
-    [{
-        'abc': 1,
-        'def': 2,
-        'ghi': 3
-    }, [
+    [[
+        ['abc', 1],
+        ['def', 2],
+        ['ghi', 3]
+    ], [
         0x01,                   // key_type:1 -- 99
         0x02,                   // val_type:1 -- 98
         0x00, 0x00, 0x00, 0x03, // length:4   -- 3
@@ -101,13 +101,60 @@ test('SpecMapObjRW: strI16MapRW', testRW.cases(strI16MapRW, [
     }
 ]));
 
-var strStrMapRW = new SpecMapObjRW(strType, strType);
-test('SpecMapObjRW: strStrMapRW', testRW.cases(strStrMapRW, [
-    [{
-        'abc': 'ABC',
-        'def': 'DEF',
-        'ghi': 'GHI'
-    }, [
+var i16StrMapRW = new MapEntriesRW(i16Type, strType);
+test('MapEntriesRW: i16StrMapRW', testRW.cases(i16StrMapRW, [
+    [[
+        [1, 'abc'],
+        [2, 'def'],
+        [3, 'ghi']
+    ], [
+        0x02,                   // key_type:1 -- 98
+        0x01,                   // val_type:1 -- 99
+        0x00, 0x00, 0x00, 0x03, // length:4   -- 3
+                                //            --
+        0x00, 0x01,             // Int16BE    -- 1
+        0x03,                   // str_len:4  -- 3
+        0x61, 0x62, 0x63,       // chars      -- "abc"
+                                //            --
+        0x00, 0x02,             // Int16BE    -- 2
+        0x03,                   // str_len:4  -- 3
+        0x64, 0x65, 0x66,       // chars      -- "def"
+                                //            --
+        0x00, 0x03,             // Int16BE    -- 3
+        0x03,                   // str_len:4  -- 3
+        0x67, 0x68, 0x69        // chars      -- "ghi"
+    ]]
+]));
+
+var i16I16MapRW = new MapEntriesRW(i16Type, i16Type);
+test('MapEntriesRW: i16I16MapRW', testRW.cases(i16I16MapRW, [
+    [[
+        [1, 4],
+        [2, 5],
+        [3, 6]
+    ], [
+        0x02,                   // key_type:1 -- 98
+        0x02,                   // val_type:1 -- 99
+        0x00, 0x00, 0x00, 0x03, // length:4   -- 3
+                                //            --
+        0x00, 0x01,             // Int16BE    -- 1
+        0x00, 0x04,             // Int16BE    -- 4
+                                //            --
+        0x00, 0x02,             // Int16BE    -- 2
+        0x00, 0x05,             // Int16BE    -- 5
+                                //            --
+        0x00, 0x03,             // Int16BE    -- 3
+        0x00, 0x06              // Int16BE    -- 3
+    ]]
+]));
+
+var strStrMapRW = new MapEntriesRW(strType, strType);
+test('MapEntriesRW: strStrMapRW', testRW.cases(strStrMapRW, [
+    [[
+        ['abc', 'ABC'],
+        ['def', 'DEF'],
+        ['ghi', 'GHI']
+    ], [
         0x01,                   // key_type:1 -- 99
         0x01,                   // val_type:1 -- 98
         0x00, 0x00, 0x00, 0x03, // length:4   -- 3

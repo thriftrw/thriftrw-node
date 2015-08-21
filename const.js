@@ -20,7 +20,7 @@
 
 'use strict';
 
-function ConstSpec(def) {
+function ThriftConst(def) {
     var self = this;
     self.name = def.id.name;
     self.valueDefinition = def.value;
@@ -29,7 +29,7 @@ function ConstSpec(def) {
     self.surface = null;
 }
 
-ConstSpec.prototype.link = function link(spec) {
+ThriftConst.prototype.link = function link(spec) {
     var self = this;
     if (!self.defined) {
         self.defined = true;
@@ -39,4 +39,4 @@ ConstSpec.prototype.link = function link(spec) {
     return self;
 };
 
-module.exports.ConstSpec = ConstSpec;
+module.exports.ThriftConst = ThriftConst;

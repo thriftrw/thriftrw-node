@@ -20,18 +20,18 @@
 
 'use strict';
 
-function specTest(SpecConstructor, rw, typeid) {
+function testThrift(ThriftConstructor, rw, typeid) {
     return t;
     function t(assert) {
-        var s = new SpecConstructor();
-        assert.equal(typeof s, 'object',
-            SpecConstructor.name + ' is constructor');
-        assert.equal(s.rw, rw,
-            SpecConstructor.name + ' has `rw` method');
-        assert.equal(s.typeid, typeid,
-            SpecConstructor.name + ' has string typeid');
+        var thrift = new ThriftConstructor();
+        assert.equal(typeof thrift, 'object',
+            ThriftConstructor.name + ' is constructor');
+        assert.equal(thrift.rw, rw,
+            ThriftConstructor.name + ' has `rw` method');
+        assert.equal(thrift.typeid, typeid,
+            ThriftConstructor.name + ' has string typeid');
         assert.end();
     }
 }
 
-module.exports = specTest;
+module.exports = testThrift;

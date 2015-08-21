@@ -22,14 +22,14 @@
 
 var test = require('tape');
 
-var Spec = require('../spec');
+var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'default.thrift'), 'ascii');
 var spec;
 
 test('default values on structs work', function t(assert) {
-    spec = new Spec({source: source});
+    spec = new Thrift({source: source});
     var health = new spec.Health({name: 'grand'});
     assert.equals(health.ok, true, 'default truth value passes through');
     assert.equals(health.notOk, false, 'default false value passes through');

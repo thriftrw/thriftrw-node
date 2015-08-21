@@ -23,13 +23,13 @@
 var test = require('tape');
 
 var Buffer = require('buffer').Buffer;
-var Spec = require('../spec');
+var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'struct.thrift'), 'ascii');
-var spec = new Spec({source: source});
+var thrift = new Thrift({source: source});
 
-var Health = spec.$Health;
+var Health = thrift.$Health;
 
 test('skip void', function t(assert) {
     var result = Health.rw.readFrom(new Buffer([

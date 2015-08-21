@@ -22,11 +22,11 @@
 
 var util = require('util');
 var assert = require('assert');
-var ListSpec = require('./list').ListSpec;
+var ThriftList = require('./list').ThriftList;
 
-function SetSpec(valueType, annotations) {
+function ThriftSet(valueType, annotations) {
     var self = this;
-    ListSpec.call(self, valueType, annotations);
+    ThriftList.call(self, valueType, annotations);
     self.mode = annotations && annotations['js.type'] || 'array';
     self.form = null;
     self.surface = null;
@@ -54,11 +54,11 @@ function SetSpec(valueType, annotations) {
     }
 }
 
-util.inherits(SetSpec, ListSpec);
+util.inherits(ThriftSet, ThriftList);
 
-SetSpec.prototype.name = 'set';
+ThriftSet.prototype.name = 'set';
 
-SetSpec.prototype.arrayForm = {
+ThriftSet.prototype.arrayForm = {
     create: function create() {
         return [];
     },
@@ -71,7 +71,7 @@ SetSpec.prototype.arrayForm = {
     }
 };
 
-SetSpec.prototype.objectNumberForm = {
+ThriftSet.prototype.objectNumberForm = {
     create: function create() {
         return {};
     },
@@ -92,7 +92,7 @@ SetSpec.prototype.objectNumberForm = {
     }
 };
 
-SetSpec.prototype.objectStringForm = {
+ThriftSet.prototype.objectStringForm = {
     create: function create() {
         return {};
     },
@@ -113,4 +113,4 @@ SetSpec.prototype.objectStringForm = {
     }
 };
 
-module.exports.SetSpec = SetSpec;
+module.exports.ThriftSet = ThriftSet;

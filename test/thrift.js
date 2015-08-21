@@ -24,57 +24,57 @@
 var fs = require('fs');
 var path = require('path');
 var test = require('tape');
-var Spec = require('../spec');
+var Thrift = require('../thrift').Thrift;
 
-var spec;
+var thrift;
 
-test('spec parses', function t(assert) {
-    var filename = path.join(__dirname, 'spec.thrift');
+test('thrift parses', function t(assert) {
+    var filename = path.join(__dirname, 'thrift.thrift');
     var source = fs.readFileSync(filename, 'ascii');
-    spec = new Spec({source: source});
-    assert.pass('spec parses');
+    thrift = new Thrift({source: source});
+    assert.pass('thrift parses');
     assert.end();
 });
 
-test('can get type result from spec', function t(assert) {
-    var res = spec.getTypeResult('Struct');
+test('can get type result from thrift', function t(assert) {
+    var res = thrift.getTypeResult('Struct');
     if (res.err) return assert.end(res.err);
     assert.ok(res.value, 'got struct');
     assert.end();
 });
 
-test('can get type from spec', function t(assert) {
-    var Struct = spec.getType('Struct');
+test('can get type from thrift', function t(assert) {
+    var Struct = thrift.getType('Struct');
     assert.ok(Struct, 'got struct');
     assert.end();
 });
 
 test('can read struct from buffer', function t(assert) {
-    var struct = spec.Struct.fromBuffer(new Buffer([
+    var struct = thrift.Struct.fromBuffer(new Buffer([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
         0x00 // typeid:1 -- 0, stop
     ]));
-    assert.ok(struct instanceof spec.Struct, 'struct instanceof Strict');
-    assert.deepEqual(struct, new spec.Struct({number: 10}), 'struct properties read properly');
+    assert.ok(struct instanceof thrift.Struct, 'struct instanceof Strict');
+    assert.deepEqual(struct, new thrift.Struct({number: 10}), 'struct properties read properly');
     assert.end();
 });
 
 test('can read struct result from buffer', function t(assert) {
-    var result = spec.Struct.fromBufferResult(new Buffer([
+    var result = thrift.Struct.fromBufferResult(new Buffer([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
         0x00 // typeid:1 -- 0, stop
     ]));
-    assert.ok(result.value instanceof spec.Struct, 'struct instanceof Strict');
-    assert.deepEqual(result.value, new spec.Struct({number: 10}), 'struct properties read properly');
+    assert.ok(result.value instanceof thrift.Struct, 'struct instanceof Strict');
+    assert.deepEqual(result.value, new thrift.Struct({number: 10}), 'struct properties read properly');
     assert.end();
 });
 
 test('can write struct to buffer', function t(assert) {
-    var buffer = spec.Struct.toBuffer(new spec.Struct({number: 10}));
+    var buffer = thrift.Struct.toBuffer(new thrift.Struct({number: 10}));
     assert.deepEqual(buffer, new Buffer([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
@@ -85,7 +85,7 @@ test('can write struct to buffer', function t(assert) {
 });
 
 test('can write struct to buffer', function t(assert) {
-    var result = spec.Struct.toBufferResult(new spec.Struct({number: 10}));
+    var result = thrift.Struct.toBufferResult(new thrift.Struct({number: 10}));
     assert.deepEqual(result.value, new Buffer([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
@@ -95,17 +95,17 @@ test('can write struct to buffer', function t(assert) {
     assert.end();
 });
 
-test('can get type error result from spec', function t(assert) {
-    var res = spec.getTypeResult('Bogus');
+test('can get type error result from thrift', function t(assert) {
+    var res = thrift.getTypeResult('Bogus');
     assert.ok(res.err, 'got error');
     if (!res.err) return assert.end();
     assert.equal(res.err.message, 'type Bogus not found');
     assert.end();
 });
 
-test('can get type error from spec', function t(assert) {
+test('can get type error from thrift', function t(assert) {
     try {
-        spec.getType('Bogus');
+        thrift.getType('Bogus');
         assert.fail('error expected');
     } catch (err) {
         assert.equal(err.message, 'type Bogus not found');
@@ -113,24 +113,24 @@ test('can get type error from spec', function t(assert) {
     assert.end();
 });
 
-test('reference error in spec', function t(assert) {
-    var filename = path.join(__dirname, 'spec-reference-error.thrift');
+test('reference error in thrift', function t(assert) {
+    var filename = path.join(__dirname, 'reference-error.thrift');
     var source = fs.readFileSync(filename, 'ascii');
     try {
-        spec = new Spec({source: source});
-        assert.fail('spec should not parse');
+        thrift = new Thrift({source: source});
+        assert.fail('thrift should not parse');
     } catch (err) {
         assert.equal(err.message, 'cannot resolve reference to Struct at 3:19');
     }
     assert.end();
 });
 
-test('duplicate reference in spec', function t(assert) {
-    var filename = path.join(__dirname, 'spec-duplicate-error.thrift');
+test('duplicate reference in thrift', function t(assert) {
+    var filename = path.join(__dirname, 'duplicate-error.thrift');
     var source = fs.readFileSync(filename, 'ascii');
     try {
-        spec = new Spec({source: source});
-        assert.fail('spec should not parse');
+        thrift = new Thrift({source: source});
+        assert.fail('thrift should not parse');
     } catch (err) {
         assert.equal(err.message, 'duplicate reference to Service at 4:9');
     }

@@ -22,18 +22,18 @@
 
 var test = require('tape');
 
-var Spec = require('../spec');
+var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
-var spec;
+var thrift;
 
 test('consts parse', function t(assert) {
-    spec = new Spec({source: source});
-    assert.equal(spec.ten, 10, 'ten constant');
-    assert.equal(spec.tenForward, 10, 'forward reference');
-    assert.deepEqual(spec.edges, {0: 1, 1: 2}, 'map constant');
-    assert.deepEqual(spec.names, ['a', 'ab', 'abc'], 'list constant');
-    assert.deepEqual(spec.tens, [10, 10, 10], 'list of identifiers');
+    thrift = new Thrift({source: source});
+    assert.equal(thrift.ten, 10, 'ten constant');
+    assert.equal(thrift.tenForward, 10, 'forward reference');
+    assert.deepEqual(thrift.edges, {0: 1, 1: 2}, 'map constant');
+    assert.deepEqual(thrift.names, ['a', 'ab', 'abc'], 'list constant');
+    assert.deepEqual(thrift.tens, [10, 10, 10], 'list of identifiers');
     assert.end();
 });

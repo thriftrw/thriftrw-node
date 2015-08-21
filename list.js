@@ -26,15 +26,15 @@ var assert = require('assert');
 var TYPE = require('./TYPE');
 var errors = require('./errors');
 
-function ListSpec(valueType, annotations) {
+function ThriftList(valueType, annotations) {
     var self = this;
     self.valueType = valueType.name;
     self.rw = new ListRW(valueType, self);
 }
 
-ListSpec.prototype.name = 'list';
-ListSpec.prototype.typeid = TYPE.LIST;
-ListSpec.prototype.surface = Array;
+ThriftList.prototype.name = 'list';
+ThriftList.prototype.typeid = TYPE.LIST;
+ThriftList.prototype.surface = Array;
 
 function ListRW(valueType, spec) {
     var self = this;
@@ -144,4 +144,4 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
 };
 
 module.exports.ListRW = ListRW;
-module.exports.ListSpec = ListSpec;
+module.exports.ThriftList = ThriftList;

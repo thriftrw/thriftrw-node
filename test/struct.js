@@ -24,23 +24,23 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var StructSpec = require('../struct').StructSpec;
-var BooleanSpec = require('../boolean').BooleanSpec;
+var ThriftStruct = require('../struct').ThriftStruct;
+var ThriftBoolean = require('../boolean').ThriftBoolean;
 
-var healthSpec = new StructSpec();
+var thriftHealth = new ThriftStruct();
 
-// Manually drive compile(idl) and link(spec). This would be done by the Spec.
+// Manually drive compile(idl) and link(thrift). This would be done by the Spec.
 
-var mockSpec = {
+var thriftMock = {
     resolve: function resolve() {
         // pretend all fields are boolean
-        return new BooleanSpec();
+        return new ThriftBoolean();
     },
     resolveValue: function resolveValue() {
     }
 };
 
-healthSpec.compile({
+thriftHealth.compile({
     id: {name: 'Health'},
     fields: [
         {
@@ -56,9 +56,9 @@ healthSpec.compile({
     ]
 });
 
-healthSpec.link(mockSpec);
+thriftHealth.link(thriftMock);
 
-var Health = healthSpec.Constructor;
+var Health = thriftHealth.Constructor;
 
 test('HealthRW', testRW.cases(Health.rw, [
 
@@ -235,9 +235,9 @@ test('struct skips unknown list', function t(assert) {
 });
 
 test('every field must be marked in strict mode', function t(assert) {
-    var spec = new StructSpec();
+    var thrift = new ThriftStruct();
     try {
-        spec.compile({
+        thrift.compile({
             id: {name: 'Health'},
             fields: [
                 {
@@ -252,7 +252,7 @@ test('every field must be marked in strict mode', function t(assert) {
                 }
             ]
         });
-        spec.link(mockSpec);
+        thrift.link(thriftMock);
         assert.fail('should throw');
     } catch (err) {
         assert.equal(err.message, 'every field must be marked optional, ' +
@@ -262,8 +262,8 @@ test('every field must be marked in strict mode', function t(assert) {
 });
 
 test('structs and fields must be possible to rename with a js.name annotation', function t(assert) {
-    var spec = new StructSpec({strict: false});
-    spec.compile({
+    var thrift = new ThriftStruct({strict: false});
+    thrift.compile({
         id: {name: 'given'},
         annotations: {'js.name': 'alt'},
         fields: [
@@ -278,8 +278,8 @@ test('structs and fields must be possible to rename with a js.name annotation', 
             }
         ]
     });
-    assert.equal(spec.name, 'alt', 'struct must have alternate js.name');
-    assert.equal(spec.fieldsById[1].name, 'alt', 'field must have alternate js.name');
+    assert.equal(thrift.name, 'alt', 'struct must have alternate js.name');
+    assert.equal(thrift.fieldsById[1].name, 'alt', 'field must have alternate js.name');
     assert.end();
 });
 
@@ -308,7 +308,7 @@ test('required fields are required on writing into buffer', function t(assert) {
 });
 
 test('arguments must not be marked optional', function t(assert) {
-    var argStruct = new StructSpec({strict: false});
+    var argStruct = new ThriftStruct({strict: false});
     try {
         argStruct.compile({
             id: {name: 'foo_args'},
@@ -326,7 +326,7 @@ test('arguments must not be marked optional', function t(assert) {
                 }
             ]
         });
-        argStruct.link(mockSpec);
+        argStruct.link(thriftMock);
         assert.fail('should fail to write');
     } catch (err) {
         assert.equal(err.message, 'no field of an argument struct may be ' +
@@ -336,8 +336,8 @@ test('arguments must not be marked optional', function t(assert) {
 });
 
 test('skips optional elided arguments', function t(assert) {
-    var spec = new StructSpec();
-    spec.compile({
+    var thrift = new ThriftStruct();
+    thrift.compile({
         id: {name: 'Health'},
         fields: [
             {
@@ -352,15 +352,15 @@ test('skips optional elided arguments', function t(assert) {
             }
         ]
     });
-    spec.link(mockSpec);
-    var health = new spec.Constructor();
+    thrift.link(thriftMock);
+    var health = new thrift.Constructor();
 
-    var byteLengthRes = spec.rw.byteLength(health);
+    var byteLengthRes = thrift.rw.byteLength(health);
     if (byteLengthRes.err) return assert.end(byteLengthRes.err);
     assert.equal(byteLengthRes.length, 1, 'only needs one byte');
 
     var buffer = new Buffer(byteLengthRes.length);
-    var writeRes = spec.rw.writeInto(health, buffer, 0);
+    var writeRes = thrift.rw.writeInto(health, buffer, 0);
     if (writeRes.err) return assert.end(writeRes.err);
     assert.equal(writeRes.offset, 1, 'writes to end of buffer');
     assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
@@ -369,8 +369,8 @@ test('skips optional elided arguments', function t(assert) {
 });
 
 test('skips optional elided struct (all fields optional)', function t(assert) {
-    var spec = new StructSpec();
-    spec.compile({
+    var thrift = new ThriftStruct();
+    thrift.compile({
         id: {name: 'Health'},
         fields: [
             {
@@ -385,14 +385,14 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
             }
         ]
     });
-    spec.link(mockSpec);
+    thrift.link(thriftMock);
 
-    var byteLengthRes = spec.rw.byteLength(null);
+    var byteLengthRes = thrift.rw.byteLength(null);
     if (byteLengthRes.err) return assert.end(byteLengthRes.err);
     assert.equal(byteLengthRes.length, 1, 'only needs one byte');
 
     var buffer = new Buffer(byteLengthRes.length);
-    var writeRes = spec.rw.writeInto(null, buffer, 0);
+    var writeRes = thrift.rw.writeInto(null, buffer, 0);
     if (writeRes.err) return assert.end(writeRes.err);
     assert.equal(writeRes.offset, 1, 'writes to end of buffer');
     assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
@@ -401,9 +401,9 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
 });
 
 test('enforces ordinal identifiers', function t(assert) {
-    var spec = new StructSpec();
+    var thrift = new ThriftStruct();
     try {
-        spec.compile({
+        thrift.compile({
             id: {name: 'Health'},
             fields: [
                 {

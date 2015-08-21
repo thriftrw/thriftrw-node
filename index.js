@@ -53,37 +53,37 @@ module.exports.TStruct = tstruct.TStruct;
 module.exports.TStructRW = ttypes[TYPE.STRUCT];
 
 module.exports.BinaryRW = require('./binary').BinaryRW;
-module.exports.BinarySpec = require('./binary').BinarySpec;
+module.exports.ThriftBinary = require('./binary').ThriftBinary;
 
 module.exports.BooleanRW = require('./boolean').BooleanRW;
-module.exports.BooleanSpec = require('./boolean').BooleanSpec;
+module.exports.ThriftBoolean = require('./boolean').ThriftBoolean;
 
 module.exports.ByteRW = require('./byte').ByteRW;
-module.exports.ByteSpec = require('./byte').ByteSpec;
+module.exports.ThriftByte = require('./byte').ThriftByte;
 
 module.exports.DoubleRW = require('./double').DoubleRW;
-module.exports.DoubleSpec = require('./double').DoubleSpec;
+module.exports.ThriftDouble = require('./double').ThriftDouble;
 
 module.exports.I16RW = require('./i16').I16RW;
-module.exports.I16Spec = require('./i16').I16Spec;
+module.exports.ThriftI16 = require('./i16').ThriftI16;
 
 module.exports.I32RW = require('./i32').I32RW;
-module.exports.I32Spec = require('./i32').I32Spec;
+module.exports.ThriftI32 = require('./i32').ThriftI32;
 
 module.exports.I64RW = require('./i64').I64RW;
-module.exports.I64Spec = require('./i64').I64Spec;
+module.exports.ThriftI64 = require('./i64').ThriftI64;
 
 module.exports.ListRW = require('./list').ListRW;
-module.exports.ListSpec = require('./list').ListSpec;
-module.exports.SetSpec = require('./set').SetSpec;
+module.exports.ThriftList = require('./list').ThriftList;
+module.exports.ThriftSet = require('./set').ThriftSet;
 
-module.exports.SpecMapObjRW = require('./specmap-obj').SpecMapObjRW;
-module.exports.SpecMapEntriesRW = require('./specmap-entries').SpecMapEntriesRW;
+module.exports.MapObjectRW = require('./map-object').MapObjectRW;
+module.exports.MapEntriesRW = require('./map-entries').MapEntriesRW;
 
 module.exports.StringRW = require('./string').StringRW;
-module.exports.StringSpec = require('./string').StringSpec;
+module.exports.ThriftString = require('./string').ThriftString;
 
 module.exports.VoidRW = require('./void').VoidRW;
-module.exports.VoidSpec = require('./void').VoidSpec;
+module.exports.ThriftVoid = require('./void').ThriftVoid;
 
-module.exports.Spec = require('./spec');
+module.exports.Thrift = require('./thrift').Thrift;

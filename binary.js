@@ -26,12 +26,12 @@ var TYPE = require('./TYPE');
 
 var BinaryRW = new bufrw.VariableBuffer(bufrw.Int32BE);
 
-function BinarySpec() { }
+function ThriftBinary() { }
 
-BinarySpec.prototype.rw = BinaryRW;
-BinarySpec.prototype.name = 'binary';
-BinarySpec.prototype.typeid = TYPE.STRING;
-BinarySpec.prototype.surface = Buffer;
+ThriftBinary.prototype.rw = BinaryRW;
+ThriftBinary.prototype.name = 'binary';
+ThriftBinary.prototype.typeid = TYPE.STRING;
+ThriftBinary.prototype.surface = Buffer;
 
 module.exports.BinaryRW = BinaryRW;
-module.exports.BinarySpec = BinarySpec;
+module.exports.ThriftBinary = ThriftBinary;

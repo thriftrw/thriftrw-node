@@ -15,13 +15,13 @@ var source = fs.readFileSync('my.thrift', 'ascii');
 
 // Before:
 var thriftify = require('thriftify');
-var spec = thriftify.parseSpec(source);
+var thrift = thriftify.parseSpec(source);
 
 // After:
-var Spec = require('thriftrw').Spec;
-var spec = new Spec({source: source});
+var Thrift = require('thriftrw').Thrift;
+var thrift = new Thrift({source: source});
 
-var args = spec.getType('MyService::myFunction_args');
+var args = thrift.getType('MyService::myFunction_args');
 var struct = args.fromBuffer(buffer);
 var buffer = args.toBuffer(struct)
 ```

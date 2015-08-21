@@ -22,11 +22,11 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 
 var thriftrw = require('../index');
 var StringRW = thriftrw.StringRW;
-var StringSpec = thriftrw.StringSpec;
+var ThriftString = thriftrw.ThriftString;
 var TYPE = require('../TYPE');
 
 var validTestCases = [
@@ -44,4 +44,4 @@ var testCases = [].concat(
 );
 
 test('StringRW', testRW.cases(StringRW, testCases));
-test('StringSpec', specTest(StringSpec, StringRW, TYPE.STRING));
+test('ThriftString', testThrift(ThriftString, StringRW, TYPE.STRING));
