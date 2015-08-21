@@ -30,10 +30,10 @@ var spec;
 
 test('consts parse', function t(assert) {
     spec = new Spec({source: source});
-    assert.equal(spec.consts.ten, 10, 'ten constant');
-    assert.equal(spec.consts.tenForward, 10, 'forward reference');
-    assert.deepEqual(spec.consts.edges, {0: 1, 1: 2}, 'map constant');
-    assert.deepEqual(spec.consts.names, ['a', 'ab', 'abc'], 'list constant');
-    assert.deepEqual(spec.consts.tens, [10, 10, 10], 'list of identifiers');
+    assert.equal(spec.ten, 10, 'ten constant');
+    assert.equal(spec.tenForward, 10, 'forward reference');
+    assert.deepEqual(spec.edges, {0: 1, 1: 2}, 'map constant');
+    assert.deepEqual(spec.names, ['a', 'ab', 'abc'], 'list constant');
+    assert.deepEqual(spec.tens, [10, 10, 10], 'list of identifiers');
     assert.end();
 });

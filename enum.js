@@ -34,6 +34,9 @@ function EnumSpec() {
     var self = this;
     self.namesToValues = Object.create(null);
     self.valuesToNames = Object.create(null);
+    // "Interned" names
+    self.namesToNames = Object.create(null);
+    self.surface = self.namesToNames;
     self.rw = new EnumRW(self);
 }
 
@@ -68,6 +71,7 @@ EnumSpec.prototype.compile = function compile(def, spec) {
             value: {type: 'Literal', value: name}
         });
         self.namesToValues[name] = value;
+        self.namesToNames[name] = name;
         self.valuesToNames[value] = name;
         value++;
     }

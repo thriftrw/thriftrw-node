@@ -30,6 +30,7 @@ function ByteSpec() { }
 ByteSpec.prototype.rw = ByteRW;
 ByteSpec.prototype.name = 'byte';
 ByteSpec.prototype.typeid = TYPE.BYTE;
+ByteSpec.prototype.surface = Boolean;
 
 module.exports.ByteRW = ByteRW;
 module.exports.ByteSpec = ByteSpec;

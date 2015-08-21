@@ -18,13 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* global Buffer */
 'use strict';
 
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var expected = require('bufrw/errors').expected;
-
-var Buffer = require('buffer').Buffer;
 
 var I64RW = bufrw.AtomRW(8,
     function readTInt64From(buffer, offset) {
@@ -47,6 +46,8 @@ function I64Spec() { }
 I64Spec.prototype.rw = I64RW;
 I64Spec.prototype.name = 'i64';
 I64Spec.prototype.typeid = TYPE.I64;
+
+I64Spec.prototype.surface = Buffer;
 
 module.exports.I64RW = I64RW;
 module.exports.I64Spec = I64Spec;

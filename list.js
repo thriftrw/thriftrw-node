@@ -39,6 +39,7 @@ function ListSpec(valueType, annotations) {
 
 ListSpec.prototype.name = 'list';
 ListSpec.prototype.typeid = TYPE.LIST;
+ListSpec.prototype.surface = Array;
 
 function ListRW(valueType, spec) {
     var self = this;

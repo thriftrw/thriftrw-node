@@ -28,6 +28,8 @@ function SetSpec(valueType, annotations) {
     var self = this;
     ListSpec.call(self, valueType, annotations);
     self.mode = annotations && annotations['js.type'] || 'array';
+    self.form = null;
+    self.surface = null;
     if (self.mode === 'object') {
         if (valueType.name === 'string') {
             self.rw.form = self.objectStringForm;
@@ -42,9 +44,11 @@ function SetSpec(valueType, annotations) {
             assert.fail('sets with js.type of \'object\' must have a value type ' +
                 'of \'string\', \'byte\', \'i16\', or \'i32\'');
         }
+        self.surface = Object;
     // istanbul ignore else
     } else if (self.mode === 'array') {
         self.rw.form = self.arrayForm;
+        self.surface = Array;
     } else {
         assert.fail('set must have js.type of object or array (default)');
     }

@@ -29,14 +29,18 @@ var none = {};
 
 function MapSpec(keyType, valueType, annotations) {
     var self = this;
+    self.rw = null;
+    self.surface = null;
 
     annotations = annotations || none;
     var type = annotations['js.type'] || 'object';
 
     if (type === 'object') {
         self.rw = new SpecMapObjRW(keyType, valueType);
+        self.surface = Object;
     } else if (type === 'entries') {
         self.rw = new SpecMapEntriesRW(keyType, valueType);
+        self.surface = Array;
     } else {
         throw UnexpectedMapTypeAnnotation({
             mapType: type

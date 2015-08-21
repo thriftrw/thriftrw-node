@@ -79,6 +79,7 @@ function StructSpec(options) {
     self.fieldsByName = {};
     self.isArgument = null;
     self.Constructor = null;
+    self.surface = null;
     self.rw = new StructRW(self);
     self.linked = false;
 }
@@ -172,9 +173,10 @@ StructSpec.prototype.link = function link(spec) {
     self.Constructor.toBuffer = self.toBuffer;
     self.Constructor.toBufferResult = self.toBufferResult;
 
+    self.surface = self.Constructor;
+
     // Link field types later since they may depend on the constructor existing
     // first.
-    spec[self.name] = self.Constructor;
     for (index = 0; index < self.fields.length; index++) {
         self.fields[index].link(spec);
     }
