@@ -20,7 +20,7 @@
     Namespace.prototype.type = 'Namespace';
 
     function Typedef(type, id, annotations) {
-        this.typedefType = type;
+        this.valueType = type;
         this.id = id;
         this.annotations = annotations;
     }

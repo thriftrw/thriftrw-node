@@ -20,31 +20,31 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./specmap-entries');
-require('./thrift-idl');
-require('./specmap-obj');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./exception');
-require('./service');
-require('./spec');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var Spec = require('../spec');
+
+var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
+var spec = new Spec({source: source});
+
+test('follows references through typedefs', function t(assert) {
+    assert.strictEqual(spec.getType('Structure'), spec.getType('Tree'));
+    assert.end();
+});
+
+test('Typedef rw', testRW.cases(spec.Tree.rw, [
+
+    [new spec.Tree({value: 0, children: []}), [
+        0x08,                   // typeid:1  -- 8, i32
+        0x00, 0x01,             // id:2      -- 1, "value"
+        0x00, 0x00, 0x00, 0x00, // value:4   -- 0
+        0x0f,                   // typeid:1  -- 15, list
+        0x00, 0x02,             // id:2      -- 2, "children"
+        0x0c,                   // el_type:1 -- struct
+        0x00, 0x00, 0x00, 0x00, // length:4  -- 0
+        0x00                    // typeid:1  -- 0, stop
+    ]]
+
+]));
