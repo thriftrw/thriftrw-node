@@ -24,12 +24,7 @@
 
 var bufrw = require('bufrw');
 var inherits = require('util').inherits;
-var InvalidTypeidError = require('./errors').InvalidTypeidError;
-var InvalidSizeError = require('./errors').InvalidSizeError;
-
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
+var errors = require('./errors');
 
 function TPair(key, val) {
     if (!(this instanceof TPair)) {
@@ -61,14 +56,14 @@ TMapRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int8, bufrw.Int32BE]
 TMapRW.prototype.byteLength = function byteLength(map) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return LengthResult.error(InvalidTypeidError({
+        return new bufrw.LengthResult(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
         }));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return LengthResult.error(InvalidTypeidError({
+        return new bufrw.LengthResult(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
         }));
@@ -93,20 +88,20 @@ TMapRW.prototype.byteLength = function byteLength(map) {
         }
         length += t.length;
     }
-    return LengthResult.just(length);
+    return new bufrw.LengthResult(null, length);
 };
 
 TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return WriteResult.error(InvalidTypeidError({
+        return new bufrw.WriteResult(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
         }));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return WriteResult.error(InvalidTypeidError({
+        return new bufrw.WriteResult(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
         }));
@@ -137,7 +132,7 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
         }
         offset = t.offset;
     }
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -151,7 +146,7 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var vtypeid = t.value[1];
     var size = t.value[2];
     if (size < 0) {
-        return ReadResult.error(InvalidSizeError({
+        return new bufrw.ReadResult(errors.InvalidSizeError({
             size: size,
             what: 'map::size'
         }));
@@ -160,14 +155,14 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var map = new TMap(ktypeid, vtypeid);
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return ReadResult.error(InvalidTypeidError({
+        return new bufrw.ReadResult(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
         }));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return ReadResult.error(InvalidTypeidError({
+        return new bufrw.ReadResult(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
         }));
@@ -192,7 +187,7 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         map.pairs.push(TPair(key, val));
     }
-    return ReadResult.just(offset, map);
+    return new bufrw.ReadResult(null, offset, map);
 };
 
 module.exports.TPair = TPair;

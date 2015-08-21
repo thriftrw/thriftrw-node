@@ -25,10 +25,6 @@ var bufrw = require('bufrw');
 var inherits = require('util').inherits;
 var errors = require('./errors');
 
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
-
 // RW a thrift map to an Object
 
 // ktype:1 vtype:1 length:4 (k... v...){length}
@@ -63,7 +59,7 @@ SpecMapObjRW.prototype.byteLength = function mapVarVarByteLength(obj) {
         len += res.length;
     }
 
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapObjRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
@@ -79,7 +75,7 @@ SpecMapObjRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
         len += res.length;
     }
 
-    return LengthResult.just(len);
+    return new bufrw.LengthResult(null, len);
 };
 
 SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
@@ -122,7 +118,7 @@ SpecMapObjRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
         offset = res.offset;
     }
 
-    return WriteResult.just(offset);
+    return new bufrw.WriteResult(null, offset);
 };
 
 SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
@@ -136,7 +132,7 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
     var ktypeid = res.value;
 
     if (ktypeid !== self.ktype.typeid) {
-        return ReadResult.error(errors.MapKeyTypeIdMismatch({
+        return new bufrw.ReadResult(errors.MapKeyTypeIdMismatch({
             encoded: ktypeid,
             expected: self.ktype.name,
             expectedId: self.ktype.typeid
@@ -151,7 +147,7 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
     var vtypeid = res.value;
 
     if (vtypeid !== self.vtype.typeid) {
-        return ReadResult.error(errors.MapValTypeIdMismatch({
+        return new bufrw.ReadResult(errors.MapValTypeIdMismatch({
             encoded: vtypeid,
             expected: self.vtype.name,
             expectedId: self.vtype.typeid
@@ -186,7 +182,7 @@ SpecMapObjRW.prototype.readFrom = function readFrom(buffer, offset) {
         obj[key] = val;
     }
 
-    return ReadResult.just(offset, obj);
+    return new bufrw.ReadResult(null, offset, obj);
 };
 
 module.exports.SpecMapObjRW = SpecMapObjRW;

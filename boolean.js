@@ -21,7 +21,7 @@
 'use strict';
 
 var bufrw = require('bufrw');
-var expected = require('bufrw/errors').expected;
+var errors = require('bufrw/errors');
 var TYPE = require('./TYPE');
 
 var BooleanRW = bufrw.Base(
@@ -44,7 +44,7 @@ function readTBooleanFrom(buffer, offset) {
 
 function writeTBooleanInto(bool, buffer, offset) {
     if (typeof bool !== 'boolean') {
-        return bufrw.WriteResult.error(expected(bool, 'a boolean'), offset);
+        return new bufrw.WriteResult(errors.expected(bool, 'a boolean'), offset);
     }
     return bufrw.UInt8.writeInto(Number(bool), buffer, offset);
 }
