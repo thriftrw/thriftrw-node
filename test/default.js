@@ -28,12 +28,23 @@ var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'default.thrift'), 'ascii');
 var spec;
 
-test('default values on structs work', function t(assert) {
+test('parses default.thrift', function t(assert) {
     spec = new Thrift({source: source});
+    assert.end();
+});
+
+test('default values on structs work', function t(assert) {
     var health = new spec.Health({name: 'grand'});
     assert.equals(health.ok, true, 'default truth value passes through');
     assert.equals(health.notOk, false, 'default false value passes through');
     assert.equals(health.message, 'OK', 'default string passes through');
     assert.equals(health.name, 'grand', 'option overrides default');
+    assert.end();
+
+});
+
+test('default values through forward references', function t(assert) {
+    var healthArgs = new spec.Meta.health.Result({success: new spec.Health()});
+    assert.equals(healthArgs.success.ok, true, 'defaults through forward references');
     assert.end();
 });

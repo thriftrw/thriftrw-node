@@ -65,6 +65,9 @@ ThriftFunction.prototype.link = function link(spec) {
     var self = this;
     self.args.link(spec);
     self.result.link(spec);
+
+    self.Args = self.args.Constructor;
+    self.Result = self.result.Constructor;
 };
 
 function ThriftService(args) {
