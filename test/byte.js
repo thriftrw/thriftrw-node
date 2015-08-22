@@ -22,12 +22,12 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
 var thriftrw = require('../index');
 var ByteRW = thriftrw.ByteRW;
-var ByteSpec = thriftrw.ByteSpec;
+var ThriftByte = thriftrw.ThriftByte;
 var TYPE = require('../TYPE');
 
 var Buffer = require('buffer').Buffer;
@@ -82,4 +82,4 @@ var testCases = [].concat(
 );
 
 test('ByteRW', testRW.cases(ByteRW, testCases));
-test('ByteSpec', specTest(ByteSpec, ByteRW, TYPE.BYTE));
+test('ThriftByte', testThrift(ThriftByte, ByteRW, TYPE.BYTE));

@@ -26,14 +26,14 @@
 var tape = require('tape');
 var fs = require('fs');
 var path = require('path');
-var Spec = require('../').Spec;
-var spec;
+var Thrift = require('../').Thrift;
+var thrift;
 var MyStruct;
 
 tape('parse enum.thrift', function t(assert) {
     var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'ascii');
-    spec = new Spec({source: source});
-    MyStruct = spec.getType('MyStruct');
+    thrift = new Thrift({source: source});
+    MyStruct = thrift.getType('MyStruct');
     assert.end();
 });
 
@@ -99,7 +99,7 @@ tape('duplicate name returns in normal form', function t(assert) {
 tape('throws on name collision', function t(assert) {
     assert.throws(function throws() {
         var source = fs.readFileSync(path.join(__dirname, 'enum-collision.thrift'), 'ascii');
-        new Spec({source: source});
+        new Thrift({source: source});
     }, /duplicate name in enum MyEnum4 at 24:6/);
     assert.end();
 });
@@ -107,7 +107,7 @@ tape('throws on name collision', function t(assert) {
 tape('throws on overflow', function t(assert) {
     assert.throws(function throws() {
         var source = fs.readFileSync(path.join(__dirname, 'enum-overflow.thrift'), 'ascii');
-        new Spec({source: source});
+        new Thrift({source: source});
     }, /overflow in value in enum MyEnum4 at 24:6/);
     assert.end();
 });

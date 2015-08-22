@@ -22,14 +22,14 @@
 
 var test = require('tape');
 
-var Spec = require('../spec');
+var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
-var spec = new Spec({source: source, strict: false});
+var thrift = new Thrift({source: source, strict: false});
 
 test('has args', function t(assert) {
-    assert.ok(spec.getType('Foo::foo_args'), 'has args');
-    assert.ok(spec.Foo.foo.args, 'has args exposed on service object');
+    assert.ok(thrift.getType('Foo::foo_args'), 'has args');
+    assert.ok(thrift.Foo.foo.args, 'has args exposed on service object');
     assert.end();
 });

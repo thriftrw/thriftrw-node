@@ -23,14 +23,14 @@
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
 
-var ListSpec = require('../list').ListSpec;
-var StringSpec = require('../string').StringSpec;
-var ByteSpec = require('../byte').ByteSpec;
+var ThriftList = require('../list').ThriftList;
+var ThriftString = require('../string').ThriftString;
+var ThriftByte = require('../byte').ThriftByte;
 
-var byteList = new ListSpec(new ByteSpec());
-var stringList = new ListSpec(new StringSpec());
+var byteList = new ThriftList(new ThriftByte());
+var stringList = new ThriftList(new ThriftString());
 
-test('ListSpec.rw: list of bytes', testRW.cases(byteList.rw, [
+test('ThriftList.rw: list of bytes', testRW.cases(byteList.rw, [
 
     [[], [
         0x03,                  // type:1   -- 3, BYTE
@@ -76,7 +76,7 @@ test('ListSpec.rw: list of bytes', testRW.cases(byteList.rw, [
 
 ]));
 
-test('ListSpec.rw: list of strings', testRW.cases(stringList.rw, [
+test('ThriftList.rw: list of strings', testRW.cases(stringList.rw, [
 
     [[], [
         0x0b,                  // type:1   -- 11, STRING

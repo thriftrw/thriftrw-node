@@ -23,20 +23,20 @@
 var assert = require('assert');
 var inherits = require('util').inherits;
 var TypedError = require('error/typed');
-var StructSpec = require('./struct').StructSpec;
+var ThriftStruct = require('./struct').ThriftStruct;
 
-function ExceptionSpec() {
+function ThriftException() {
     var self = this;
-    StructSpec.call(self);
+    ThriftStruct.call(self);
     self.type = null;
     self.message = null;
 }
 
-inherits(ExceptionSpec, StructSpec);
+inherits(ThriftException, ThriftStruct);
 
-ExceptionSpec.prototype.compile = function compile(def) {
+ThriftException.prototype.compile = function compile(def) {
     var self = this;
-    StructSpec.prototype.compile.call(self, def);
+    ThriftStruct.prototype.compile.call(self, def);
     assert(def.annotations,
         'annotations required for exception: ' + self.name);
     assert(def.annotations.type,
@@ -49,7 +49,7 @@ ExceptionSpec.prototype.compile = function compile(def) {
     self.message = def.annotations.message;
 };
 
-ExceptionSpec.prototype.createConstructor =
+ThriftException.prototype.createConstructor =
 function createConstructor(name, fieldNames) {
     var self = this;
     var declaration = {
@@ -63,13 +63,13 @@ function createConstructor(name, fieldNames) {
     return TypedError(declaration);
 };
 
-ExceptionSpec.prototype.create = function create() {
+ThriftException.prototype.create = function create() {
     return {};
 };
 
-ExceptionSpec.prototype.finalize = function finalize(struct) {
+ThriftException.prototype.finalize = function finalize(struct) {
     var self = this;
     return self.Constructor(struct);
 };
 
-module.exports.ExceptionSpec = ExceptionSpec;
+module.exports.ThriftException = ThriftException;

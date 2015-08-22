@@ -26,27 +26,27 @@ var util = require('util');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
-var ServiceSpec = require('./service').ServiceSpec;
-var StructSpec = require('./struct').StructSpec;
-var ExceptionSpec = require('./exception').ExceptionSpec;
-var EnumSpec = require('./enum').EnumSpec;
+var ThriftService = require('./service').ThriftService;
+var ThriftStruct = require('./struct').ThriftStruct;
+var ThriftException = require('./exception').ThriftException;
+var ThriftEnum = require('./enum').ThriftEnum;
 
-var VoidSpec = require('./void').VoidSpec;
-var BooleanSpec = require('./boolean').BooleanSpec;
-var StringSpec = require('./string').StringSpec;
-var BinarySpec = require('./string').BinarySpec;
-var ByteSpec = require('./byte').ByteSpec;
-var I16Spec = require('./i16').I16Spec;
-var I32Spec = require('./i32').I32Spec;
-var I64Spec = require('./i64').I64Spec;
-var DoubleSpec = require('./double').DoubleSpec;
-var ListSpec = require('./list').ListSpec;
-var SetSpec = require('./set').SetSpec;
-var MapSpec = require('./map').MapSpec;
-var ConstSpec = require('./const').ConstSpec;
-var TypedefSpec = require('./typedef').TypedefSpec;
+var ThriftVoid = require('./void').ThriftVoid;
+var ThriftBoolean = require('./boolean').ThriftBoolean;
+var ThriftString = require('./string').ThriftString;
+var ThriftBinary = require('./string').ThriftBinary;
+var ThriftByte = require('./byte').ThriftByte;
+var ThriftI16 = require('./i16').ThriftI16;
+var ThriftI32 = require('./i32').ThriftI32;
+var ThriftI64 = require('./i64').ThriftI64;
+var ThriftDouble = require('./double').ThriftDouble;
+var ThriftList = require('./list').ThriftList;
+var ThriftSet = require('./set').ThriftSet;
+var ThriftMap = require('./map').ThriftMap;
+var ThriftConst = require('./const').ThriftConst;
+var ThriftTypedef = require('./typedef').ThriftTypedef;
 
-function Spec(options) {
+function Thrift(options) {
     var self = this;
 
     assert(options, 'options required');
@@ -57,9 +57,9 @@ function Spec(options) {
     self.strict = options.strict !== undefined ? options.strict : true;
 
     self.claims = Object.create(null);
-    self.typeSpecs = Object.create(null);
-    self.serviceSpecs = Object.create(null);
-    self.constSpecs = Object.create(null);
+    self.services = Object.create(null);
+    self.types = Object.create(null);
+    self.consts = Object.create(null);
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
@@ -68,46 +68,46 @@ function Spec(options) {
     self.link();
 }
 
-Spec.prototype.getType = function getType(name) {
+Thrift.prototype.getType = function getType(name) {
     var self = this;
     return self.getTypeResult(name).toValue();
 };
 
-Spec.prototype.getTypeResult = function getType(name) {
+Thrift.prototype.getTypeResult = function getType(name) {
     var self = this;
-    var type = self.typeSpecs[name];
+    var type = self.types[name];
     if (!type) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
     return new Result(null, type.link());
 };
 
-Spec.prototype.baseTypes = {
-    void: VoidSpec,
-    bool: BooleanSpec,
-    byte: ByteSpec,
-    i16: I16Spec,
-    i32: I32Spec,
-    i64: I64Spec,
-    double: DoubleSpec,
-    string: StringSpec,
-    binary: BinarySpec
+Thrift.prototype.baseTypes = {
+    void: ThriftVoid,
+    bool: ThriftBoolean,
+    byte: ThriftByte,
+    i16: ThriftI16,
+    i32: ThriftI32,
+    i64: ThriftI64,
+    double: ThriftDouble,
+    string: ThriftString,
+    binary: ThriftBinary
 };
 
-Spec.prototype.compile = function compile(source) {
+Thrift.prototype.compile = function compile(source) {
     var self = this;
     var syntax = idl.parse(source);
     assert.equal(syntax.type, 'Program', 'expected a program');
     self.compileDefinitions(syntax.definitions);
 };
 
-Spec.prototype.claim = function claim(name, def) {
+Thrift.prototype.claim = function claim(name, def) {
     var self = this;
     assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
     self.claims[name] = true;
 };
 
-Spec.prototype._definitionProcessors = {
+Thrift.prototype._definitionProcessors = {
     // sorted
     Const: 'compileConst',
     Enum: 'compileEnum',
@@ -118,7 +118,7 @@ Spec.prototype._definitionProcessors = {
     // TODO Union: 'compileUnion'
 };
 
-Spec.prototype.compileDefinitions = function compileDefinitions(defs) {
+Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
     var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
@@ -129,105 +129,106 @@ Spec.prototype.compileDefinitions = function compileDefinitions(defs) {
     }
 };
 
-Spec.prototype.compileStruct = function compileStruct(def) {
+Thrift.prototype.compileStruct = function compileStruct(def) {
     var self = this;
-    var spec = new StructSpec({strict: self.strict});
+    var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
-    self.typeSpecs[spec.fullName] = spec;
+    self.types[spec.fullName] = spec;
     return spec;
 };
 
-Spec.prototype.compileException = function compileException(def) {
+Thrift.prototype.compileException = function compileException(def) {
     var self = this;
-    var spec = new ExceptionSpec({strict: self.strict});
+    var spec = new ThriftException({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
-    self.typeSpecs[spec.fullName] = spec;
+    self.types[spec.fullName] = spec;
     return spec;
 };
 
-Spec.prototype.compileTypedef = function compileTypedef(def) {
+Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var self = this;
-    var spec = new TypedefSpec();
+    var spec = new ThriftTypedef();
     spec.compile(def, self);
     self.claim(spec.name, spec);
-    self.typeSpecs[spec.name] = spec;
+    self.types[spec.name] = spec;
     return spec;
 };
 
-Spec.prototype.compileService = function compileService(def) {
+Thrift.prototype.compileService = function compileService(def) {
     var self = this;
-    var service = new ServiceSpec({strict: self.strict});
+    var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
     self.claim(service.name, def.id);
-    self.serviceSpecs[service.name] = service;
+    self.services[service.name] = service;
 };
 
-Spec.prototype.compileConst = function compileConst(def, spec) {
+Thrift.prototype.compileConst = function compileConst(def, spec) {
     var self = this;
-    var constSpec = new ConstSpec(def);
+    var thriftConst = new ThriftConst(def);
     self.claim(def.id.name, def.id);
-    self.constSpecs[def.id.name] = constSpec;
+    self.consts[def.id.name] = thriftConst;
 };
 
-Spec.prototype.compileEnum = function compileEnum(def) {
+Thrift.prototype.compileEnum = function compileEnum(def) {
     var self = this;
-    var spec = new EnumSpec();
+    var spec = new ThriftEnum();
     spec.compile(def, self);
     self.claim(spec.name, def.id);
-    self.typeSpecs[spec.name] = spec;
+    self.types[spec.name] = spec;
 };
 
-Spec.prototype.link = function link() {
+Thrift.prototype.link = function link() {
     var self = this;
     var index;
 
-    var typeNames = Object.keys(self.typeSpecs);
+    var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
-        var type = self.typeSpecs[typeNames[index]];
+        var type = self.types[typeNames[index]];
         self[type.name] = type.link(self).surface;
     }
 
-    var serviceNames = Object.keys(self.serviceSpecs);
+    var serviceNames = Object.keys(self.services);
     for (index = 0; index < serviceNames.length; index++) {
-        var service = self.serviceSpecs[serviceNames[index]];
+        var service = self.services[serviceNames[index]];
         self[service.name] = service.link(self).surface;
     }
 
-    var constNames = Object.keys(self.constSpecs);
+    var constNames = Object.keys(self.consts);
     for (index = 0; index < constNames.length; index++) {
-        var constSpec = self.constSpecs[constNames[index]];
-        self[constSpec.name] = constSpec.link(self).surface;
+        var thriftConst = self.consts[constNames[index]];
+        self.consts[constNames[index]] = thriftConst.link(self);
+        self[thriftConst.name] = thriftConst.link(self).surface;
     }
 };
 
-Spec.prototype.resolve = function resolve(def) {
+Thrift.prototype.resolve = function resolve(def) {
     var self = this;
     var err;
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        if (!self.typeSpecs[def.name]) {
+        if (!self.types[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
             err.line = def.line;
             err.column = def.column;
             throw err;
         }
-        return self.typeSpecs[def.name].link(self);
+        return self.types[def.name].link(self);
     // istanbul ignore else
     } else if (def.type === 'List') {
-        return new ListSpec(self.resolve(def.valueType), def.annotations);
+        return new ThriftList(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
-        return new SetSpec(self.resolve(def.valueType), def.annotations);
+        return new ThriftSet(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Map') {
-        return new MapSpec(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
+        return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
         assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s', def.type));
     }
 };
 
-Spec.prototype.resolveValue = function resolveValue(def) {
+Thrift.prototype.resolveValue = function resolveValue(def) {
     var self = this;
     var err;
     if (!def) {
@@ -246,19 +247,19 @@ Spec.prototype.resolveValue = function resolveValue(def) {
             return false;
         }
         // istanbul ignore if
-        if (!self.constSpecs[def.name]) {
+        if (!self.consts[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
             err.line = def.line;
             err.column = def.column;
             throw err;
         }
-        return self.constSpecs[def.name].link(self).value;
+        return self.consts[def.name].link(self).surface;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }
 };
 
-Spec.prototype.resolveListConst = function resolveListConst(def) {
+Thrift.prototype.resolveListConst = function resolveListConst(def) {
     var self = this;
     var list = [];
     for (var index = 0; index < def.values.length; index++) {
@@ -267,7 +268,7 @@ Spec.prototype.resolveListConst = function resolveListConst(def) {
     return list;
 };
 
-Spec.prototype.resolveMapConst = function resolveMapConst(def) {
+Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
     var self = this;
     var map = {};
     for (var index = 0; index < def.entries.length; index++) {
@@ -277,4 +278,4 @@ Spec.prototype.resolveMapConst = function resolveMapConst(def) {
     return map;
 };
 
-module.exports = Spec;
+module.exports.Thrift = Thrift;

@@ -24,14 +24,14 @@ var assert = require('assert');
 var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var errors = require('./errors');
-var ConstSpec = require('./const').ConstSpec;
+var ThriftConst = require('./const').ThriftConst;
 var ast = require('./ast');
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
-function EnumSpec() {
+function ThriftEnum() {
     var self = this;
     self.namesToValues = Object.create(null);
     self.valuesToNames = Object.create(null);
@@ -41,9 +41,9 @@ function EnumSpec() {
     self.rw = new EnumRW(self);
 }
 
-EnumSpec.prototype.typeid = TYPE.I32;
+ThriftEnum.prototype.typeid = TYPE.I32;
 
-EnumSpec.prototype.compile = function compile(def, spec) {
+ThriftEnum.prototype.compile = function compile(def, spec) {
     var self = this;
 
     self.name = def.id.name;
@@ -67,7 +67,7 @@ EnumSpec.prototype.compile = function compile(def, spec) {
 
         var fullName = self.name + '.' + name;
         spec.claim(fullName, enumDef.id);
-        spec.constSpecs[fullName] = new ConstSpec(
+        spec.consts[fullName] = new ThriftConst(
             new ast.Const(
                 new ast.Identifier(name),
                 null, // TODO infer type for default value validation
@@ -81,7 +81,7 @@ EnumSpec.prototype.compile = function compile(def, spec) {
     }
 };
 
-EnumSpec.prototype.link = function link(spec) {
+ThriftEnum.prototype.link = function link(spec) {
     var self = this;
     return self;
 };
@@ -138,4 +138,4 @@ EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
     return new ReadResult(null, offset, name);
 };
 
-module.exports.EnumSpec = EnumSpec;
+module.exports.ThriftEnum = ThriftEnum;

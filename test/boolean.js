@@ -22,12 +22,12 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
 var thriftrw = require('../index');
 var BooleanRW = thriftrw.BooleanRW;
-var BooleanSpec = thriftrw.BooleanSpec;
+var ThriftBoolean = thriftrw.ThriftBoolean;
 var TYPE = require('../TYPE');
 
 var validTestCases = [
@@ -52,4 +52,4 @@ var testCases = [].concat(
 );
 
 test('BooleanRW', testRW.cases(BooleanRW, testCases));
-test('BooleanSpec', specTest(BooleanSpec, BooleanRW, TYPE.BOOL));
+test('ThriftBoolean', testThrift(ThriftBoolean, BooleanRW, TYPE.BOOL));

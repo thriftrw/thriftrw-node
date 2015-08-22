@@ -25,12 +25,12 @@ var TYPE = require('./TYPE');
 
 var DoubleRW = bufrw.DoubleBE;
 
-function DoubleSpec() { }
+function ThriftDouble() { }
 
-DoubleSpec.prototype.rw = DoubleRW;
-DoubleSpec.prototype.name = 'double';
-DoubleSpec.prototype.typeid = TYPE.DOUBLE;
-DoubleSpec.prototype.surface = Number;
+ThriftDouble.prototype.rw = DoubleRW;
+ThriftDouble.prototype.name = 'double';
+ThriftDouble.prototype.typeid = TYPE.DOUBLE;
+ThriftDouble.prototype.surface = Number;
 
 module.exports.DoubleRW = DoubleRW;
-module.exports.DoubleSpec = DoubleSpec;
+module.exports.ThriftDouble = ThriftDouble;

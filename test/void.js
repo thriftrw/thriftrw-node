@@ -22,11 +22,11 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 
 var thriftrw = require('../index');
 var VoidRW = thriftrw.VoidRW;
-var VoidSpec = thriftrw.VoidSpec;
+var ThriftVoid = thriftrw.ThriftVoid;
 var TYPE = require('../TYPE');
 
 var validTestCases = [
@@ -38,4 +38,4 @@ var testCases = [].concat(
 );
 
 test('VoidRW', testRW.cases(VoidRW, testCases));
-test('VoidSpec', specTest(VoidSpec, VoidRW, TYPE.VOID));
+test('ThriftVoid', testThrift(ThriftVoid, VoidRW, TYPE.VOID));

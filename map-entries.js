@@ -29,7 +29,7 @@ var errors = require('./errors');
 
 // ktype:1 vtype:1 length:4 (k... v...){length}
 
-function SpecMapEntriesRW(ktype, vtype) {
+function MapEntriesRW(ktype, vtype) {
     var self = this;
     self.ktype = ktype;
     self.vtype = vtype;
@@ -42,9 +42,9 @@ function SpecMapEntriesRW(ktype, vtype) {
         self.byteLength = self.mapVarFixbyteLength;
     }
 }
-inherits(SpecMapEntriesRW, bufrw.Base);
+inherits(MapEntriesRW, bufrw.Base);
 
-SpecMapEntriesRW.prototype.byteLength =
+MapEntriesRW.prototype.byteLength =
 function mapVarVarByteLength(entries) {
     var self = this;
     var len = 6; // static overhead
@@ -64,7 +64,7 @@ function mapVarVarByteLength(entries) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapEntriesRW.prototype.mapVarFixbyteLength =
+MapEntriesRW.prototype.mapVarFixbyteLength =
 function mapVarFixByteLength(entries) {
     var self = this;
     var len = 6 + entries.length * self.vtype.rw.width;
@@ -77,7 +77,7 @@ function mapVarFixByteLength(entries) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapEntriesRW.prototype.mapFixVarbyteLength =
+MapEntriesRW.prototype.mapFixVarbyteLength =
 function mapFixVarByteLength(entries) {
     var self = this;
     var len = 6 + entries.length * self.ktype.rw.width;
@@ -90,7 +90,7 @@ function mapFixVarByteLength(entries) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapEntriesRW.prototype.mapFixFixbyteLength =
+MapEntriesRW.prototype.mapFixFixbyteLength =
 function mapFixFixByteLength(entries) {
     var self = this;
     var len = 6 +
@@ -99,7 +99,7 @@ function mapFixFixByteLength(entries) {
     return new bufrw.LengthResult(null, len);
 };
 
-SpecMapEntriesRW.prototype.writeInto =
+MapEntriesRW.prototype.writeInto =
 function writeInto(entries, buffer, offset) {
     var self = this;
 
@@ -141,7 +141,7 @@ function writeInto(entries, buffer, offset) {
     return new bufrw.WriteResult(null, offset);
 };
 
-SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
+MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
 
     // ktype:1
@@ -205,4 +205,4 @@ SpecMapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     return new bufrw.ReadResult(null, offset, entries);
 };
 
-module.exports.SpecMapEntriesRW = SpecMapEntriesRW;
+module.exports.MapEntriesRW = MapEntriesRW;

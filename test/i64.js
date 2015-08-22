@@ -22,11 +22,11 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var specTest = require('./spec-test');
+var testThrift = require('./thrift-test');
 
 var thriftrw = require('../index');
 var I64RW = thriftrw.I64RW;
-var I64Spec = thriftrw.I64Spec;
+var ThriftI64 = thriftrw.ThriftI64;
 var TYPE = require('../TYPE');
 
 var Buffer = require('buffer').Buffer;
@@ -39,4 +39,4 @@ var testCases = [
 ];
 
 test('I64RW', testRW.cases(I64RW, testCases));
-test('I64Spec', specTest(I64Spec, I64RW, TYPE.I64));
+test('ThriftI64', testThrift(ThriftI64, I64RW, TYPE.I64));

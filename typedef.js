@@ -20,20 +20,20 @@
 
 'use strict';
 
-function TypedefSpec() {
+function ThriftTypedef() {
     var self = this;
     self.name = null;
     self.valueDefinition = null;
     self.to = null;
 }
 
-TypedefSpec.prototype.compile = function compile(def, spec) {
+ThriftTypedef.prototype.compile = function compile(def, spec) {
     var self = this;
     self.name = def.id.name;
     self.valueDefinition = def.valueType;
 };
 
-TypedefSpec.prototype.link = function link(spec) {
+ThriftTypedef.prototype.link = function link(spec) {
     var self = this;
     if (!self.to) {
         self.to = spec.resolve(self.valueDefinition);
@@ -41,4 +41,4 @@ TypedefSpec.prototype.link = function link(spec) {
     return self.to;
 };
 
-module.exports.TypedefSpec = TypedefSpec;
+module.exports.ThriftTypedef = ThriftTypedef;
