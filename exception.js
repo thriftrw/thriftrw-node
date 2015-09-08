@@ -20,9 +20,7 @@
 
 'use strict';
 
-var assert = require('assert');
 var inherits = require('util').inherits;
-var TypedError = require('error/typed');
 var ThriftStruct = require('./struct').ThriftStruct;
 
 function ThriftException() {
@@ -34,42 +32,34 @@ function ThriftException() {
 
 inherits(ThriftException, ThriftStruct);
 
-ThriftException.prototype.compile = function compile(def) {
+ThriftException.prototype.compile = function compile(def, thrift) {
     var self = this;
     ThriftStruct.prototype.compile.call(self, def);
-    assert(def.annotations,
-        'annotations required for exception: ' + self.name);
-    assert(def.annotations.type,
-        'exceptions must have a type annotation: ' + self.name);
-    assert(typeof def.annotations.type === 'string',
-        'type annotation must be a string: ' + self.name);
-    assert(typeof def.annotations.message === 'string',
-        'message annotation must be a string: ' + self.name);
-    self.type = def.annotations.type;
-    self.message = def.annotations.message;
-};
-
-ThriftException.prototype.createConstructor =
-function createConstructor(name, fieldNames) {
-    var self = this;
-    var declaration = {
-        type: self.type,
-        message: self.message
-    };
-    for (var index = 0; index < fieldNames.length; index++) {
-        var fieldName = fieldNames[index];
-        declaration[fieldName] = null;
-    }
-    return TypedError(declaration);
 };
 
 ThriftException.prototype.create = function create() {
-    return {};
+    var self = this;
+    var error = new Error('');
+
+    error.name = 'ThriftException';
+
+    self.Constructor.call(error);
+
+    return error;
 };
 
-ThriftException.prototype.finalize = function finalize(struct) {
-    var self = this;
-    return self.Constructor(struct);
+ThriftException.prototype.set = function set(error, key, value) {
+    if (key === 'type') {
+        // Re-define writable to work around v8ism
+        Object.defineProperty(error, 'type', {
+            value: value,
+            enumerable: true,
+            writable: true,
+            configurable: true
+        });
+    }
+
+    error[key] = value;
 };
 
 module.exports.ThriftException = ThriftException;
