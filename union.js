@@ -20,33 +20,45 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
+var util = require('util');
+var ThriftStruct = require('./struct').ThriftStruct;
+
+function ThriftUnion(options) {
+    var self = this;
+    ThriftStruct.call(self, options);
+}
+
+util.inherits(ThriftUnion, ThriftStruct);
+
+ThriftUnion.prototype.isUnion = true;
+
+ThriftUnion.prototype.createConstructor = function createConstructor(name, fields) {
+    function Union(options) {
+        var self = this;
+        self.type = null;
+        if (typeof options !== 'object') {
+            return;
+        }
+        for (var type in options) {
+            // istanbul ignore else
+            if (
+                hasOwnProperty.call(options, type) &&
+                options[type] !== null
+            ) {
+                self.type = type;
+                self[type] = options[type];
+            }
+            // TODO assert no further names
+        }
+    }
+
+    return Union;
+};
+
+ThriftUnion.prototype.set = function set(union, key, value) {
+    // TODO return error if multiple values
+    union.type = key;
+    union[key] = value;
+};
+
+module.exports.ThriftUnion = ThriftUnion;

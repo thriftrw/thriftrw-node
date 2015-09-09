@@ -20,6 +20,7 @@
 
 /* eslint max-len:[0, 120] */
 /* eslint max-statements:[0, 99] */
+/* eslint complexity:[0, 16] */
 'use strict';
 
 var assert = require('assert');
@@ -77,14 +78,17 @@ function ThriftStruct(options) {
     self.fieldsById = {};
     self.fieldsByName = {};
     self.isArgument = null;
+    self.isResult = null;
     self.Constructor = null;
     self.surface = null;
-    self.rw = new StructRW(self);
+    self.rw = new self.RW(self);
     self.linked = false;
 }
 
 ThriftStruct.prototype.name = 'struct';
 ThriftStruct.prototype.typeid = TYPE.STRUCT;
+ThriftStruct.prototype.RW = StructRW;
+ThriftStruct.prototype.isUnion = false;
 
 ThriftStruct.prototype.toBuffer = function toBuffer(struct) {
     var self = this;
@@ -150,7 +154,7 @@ ThriftStruct.prototype.link = function link(spec) {
             assert(
                 field.required || field.optional ||
                 field.defaultValue !== null && field.defaultValue !== undefined ||
-                self.isArgument || self.isResult,
+                self.isArgument || self.isResult || self.isUnion,
                 'every field must be marked optional, required, or have a default value on ' +
                     self.name + ' including "' + field.name + '" in strict mode'
             );
@@ -373,6 +377,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             return result;
         }
         offset = result.offset;
+        // TODO promote return error of set to a ReadResult error
         self.spec.set(struct, field.name, result.value);
     }
 

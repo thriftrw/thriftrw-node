@@ -29,6 +29,7 @@ var Result = require('bufrw/result');
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
 var ThriftException = require('./exception').ThriftException;
+var ThriftUnion = require('./union').ThriftUnion;
 var ThriftEnum = require('./enum').ThriftEnum;
 
 var ThriftVoid = require('./void').ThriftVoid;
@@ -114,8 +115,8 @@ Thrift.prototype._definitionProcessors = {
     Exception: 'compileException',
     Service: 'compileService',
     Struct: 'compileStruct',
-    Typedef: 'compileTypedef'
-    // TODO Union: 'compileUnion'
+    Typedef: 'compileTypedef',
+    Union: 'compileUnion'
 };
 
 Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
@@ -141,6 +142,15 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
 Thrift.prototype.compileException = function compileException(def) {
     var self = this;
     var spec = new ThriftException({strict: self.strict});
+    spec.compile(def, self);
+    self.claim(spec.fullName, def);
+    self.types[spec.fullName] = spec;
+    return spec;
+};
+
+Thrift.prototype.compileUnion = function compileUnion(def) {
+    var self = this;
+    var spec = new ThriftUnion({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
     self.types[spec.fullName] = spec;

@@ -171,7 +171,9 @@ test('ThriftMap: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
 
 test('invalid map type annotation', function t(assert) {
     try {
-        var thriftGraph = new Thrift({source: 'struct Graph { 1: required map<byte, byte> (js.type = "bogus") edges }'});
+        var thriftGraph = new Thrift({
+            source: 'struct Graph { 1: required map<byte, byte> (js.type = "bogus") edges }'
+        });
         assert.ok(!thriftGraph, 'should not parse');
     } catch (err) {
         assert.equals(err.message, 'unexpected map js.type annotation "bogus"', 'error message');
