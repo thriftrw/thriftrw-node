@@ -18,7 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint guard-for-in:[0] */
 'use strict';
 
 var util = require('util');
@@ -37,10 +36,18 @@ ThriftUnion.prototype.createConstructor = function createConstructor(name, field
     function Union(options) {
         var self = this;
         self.type = null;
+        if (typeof options !== 'object') {
+            return;
+        }
         for (var type in options) {
-            self.type = type;
-            self[type] = options[type];
-            break;
+            // istanbul ignore else
+            if (
+                hasOwnProperty.call(options, type) &&
+                options[type] !== null
+            ) {
+                self.type = type;
+                self[type] = options[type];
+            }
             // TODO assert no further names
         }
     }
