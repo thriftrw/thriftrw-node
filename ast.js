@@ -181,7 +181,7 @@ function Service(id, functions, annotations) {
 Service.prototype.type = 'Service';
 
 module.exports.FunctionDefinition = FunctionDefinition;
-function FunctionDefinition(id, fields, ft, _throws, annotations) {
+function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
     var self = this;
     self.id = id;
     self.returns = ft;
@@ -189,6 +189,7 @@ function FunctionDefinition(id, fields, ft, _throws, annotations) {
     self.fields.isArgument = true;
     self.throws = _throws;
     self.annotations = annotations;
+    self.oneway = oneway;
 }
 FunctionDefinition.prototype.type = 'function';
 

@@ -159,12 +159,13 @@ extends
   = 'extends' __ IdentifierName
 
 function
-  = __ oneway? ft:FunctionType id:Identifier '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
-    return new ast.FunctionDefinition(id, fs, ft, ts, ta);
+  = __ oneway:oneway ft:FunctionType id:Identifier '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
+    return new ast.FunctionDefinition(id, fs, ft, ts, ta, oneway);
   }
 
 oneway
-  = 'oneway' __
+  = 'oneway' __ { return true }
+  / { return false; }
 
 throwz
   = 'throws' __ '(' __ fs:Field* __ ')' __ {
