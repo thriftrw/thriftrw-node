@@ -80,17 +80,30 @@ test('HealthRW', testRW.cases(Health.rw, [
 
 ]));
 
+test('complains of missing required field', function t(assert) {
+    var res = Health.rw.readFrom(new Buffer([
+        0x00                      // typeid:1 -- 0 -- STOP
+    ]), 0);
+    assert.ok(res.err, 'required field error');
+    if (!res.err) return;
+    assert.equal(res.err.message, 'missing required field "ok" with id 1 on Health');
+    assert.end();
+});
+
 test('struct skips unknown void', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x02,               // id:2     -- 2 -- WHAT EVEN IS!?
         0x01,                     // typeid:1 -- 1 -- VOID
+        0x02,                     // type:1   -- 2 -- BOOL
+        0x00, 0x01,               // id:2     -- 1 -- ok
+        0x01,                     // ok:1     -- 1 -- true
         0x00                      // typeid:1 -- 0 -- STOP
     ]), 0);
     if (res.err) {
         return assert.end(res.err);
     }
-    assert.deepEqual(res.value, new Health());
+    assert.deepEqual(res.value, new Health({ok: true}));
     assert.end();
 });
 
@@ -112,6 +125,9 @@ test('fails to read unexpected typeid for known field', function t(assert) {
 
 test('struct skips unknown string', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
+        0x02,                     // type:1   -- 2 -- BOOL
+        0x00, 0x01,               // id:2     -- 1 -- ok
+        0x01,                     // ok:1     -- 1 -- true
         0x02,                     // type:1   -- 2  -- BOOL
         0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
         11,                       // typeid:1 -- 11 -- STRING
@@ -122,12 +138,15 @@ test('struct skips unknown string', function t(assert) {
     if (res.err) {
         return assert.end(res.err);
     }
-    assert.deepEqual(res.value, new Health());
+    assert.deepEqual(res.value, new Health({ok: true}));
     assert.end();
 });
 
 test('struct skips unknown struct', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
+        0x02,                     // type:1   -- 2 -- BOOL
+        0x00, 0x01,               // id:2     -- 1 -- ok
+        0x01,                     // ok:1     -- 1 -- true
         0x02,                     // type:1   -- 2  -- BOOL
         0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
         0x0c,                     // typeid:1 -- 12 -- STRUCT
@@ -143,15 +162,19 @@ test('struct skips unknown struct', function t(assert) {
     if (res.err) {
         return assert.end(res.err);
     }
-    assert.deepEqual(res.value, new Health());
+    assert.deepEqual(res.value, new Health({ok: true}));
     assert.end();
 });
 
 test('struct skips uknown map', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
-        0x02,                     // type:1           -- 2 BOOL
-        0x00, 0x02,               // id:2             -- 2 UNKNOWN
-        0x0d,                     // typeid:1           -- 13, map
+        0x02,                     // type:1   -- 2 BOOL
+        0x00, 0x01,               // id:2     -- 1 ok
+        0x01,                     // ok:1     -- 1 true
+
+        0x02,                     // type:1   -- 2 BOOL
+        0x00, 0x02,               // id:2     -- 2 UNKNOWN
+        0x0d,                     // typeid:1 -- 13, map
 
         // Thus begins a large map
         0x0b,                   // key_type:1         -- string    @ 4
@@ -198,12 +221,16 @@ test('struct skips uknown map', function t(assert) {
     if (res.err) {
         return assert.end(res.err);
     }
-    assert.deepEqual(res.value, new Health());
+    assert.deepEqual(res.value, new Health({ok: true}));
     assert.end();
 });
 
 test('struct skips unknown list', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
+        0x02,                     // type:1   -- 2 BOOL
+        0x00, 0x01,               // id:2     -- 1 ok
+        0x00,                     // ok:1     -- 0 false
+
         0x02,                     // type:1      -- 2 BOOL
         0x00, 0x02,               // id:2        -- 2 UNKNOWN
         0x0f,                     // typeid:1    -- 15, list
@@ -230,7 +257,7 @@ test('struct skips unknown list', function t(assert) {
     if (res.err) {
         return assert.end(res.err);
     }
-    assert.deepEqual(res.value, new Health());
+    assert.deepEqual(res.value, new Health({ok: false}));
     assert.end();
 });
 

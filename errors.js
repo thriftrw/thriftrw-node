@@ -84,8 +84,7 @@ module.exports.FieldRequiredError = TypedError({
     message: 'missing required field "{name}" with id {id} on {structName}',
     name: null,
     id: null,
-    structName: null,
-    what: null
+    structName: null
 });
 
 module.exports.UnexpectedMapTypeAnnotation = TypedError({
