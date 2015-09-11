@@ -187,6 +187,29 @@ ThriftStruct.prototype.link = function link(spec) {
     return self;
 };
 
+ThriftStruct.prototype.validateStruct = function validateStruct(struct) {
+    var self = this;
+
+    // Validate required fields
+    for (var index = 0; index < self.fields.length; index++) {
+        var field = self.fields[index];
+        if (!field.required || field.defaultValue != null) {
+            continue;
+        }
+        var value = struct && struct[field.name];
+        var available = value !== null && value !== undefined;
+        if (!available) {
+            return errors.FieldRequiredError({
+                name: field.name,
+                id: field.id,
+                structName: self.name
+            });
+        }
+    }
+
+    return null;
+};
+
 // The following methods have alternate implementations for Exception and Union.
 
 ThriftStruct.prototype.createConstructor = function createConstructor(name, fields) {
@@ -379,6 +402,12 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = result.offset;
         // TODO promote return error of set to a ReadResult error
         self.spec.set(struct, field.name, result.value);
+    }
+
+    // Validate required fields
+    var err = self.spec.validateStruct(struct);
+    if (err) {
+        return new ReadResult(err);
     }
 
     return new ReadResult(null, offset, self.spec.finalize(struct));
