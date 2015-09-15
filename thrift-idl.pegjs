@@ -195,7 +195,7 @@ FieldValue
   = '=' __ cv:ConstValue __ { return cv; }
 
 FunctionType
-  = 'void' __ { return 'void'; }
+  = 'void' __ { return new ast.BaseType('void'); }
   / FieldType
 
 FieldType

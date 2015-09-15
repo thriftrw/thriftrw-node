@@ -46,13 +46,16 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     argsStruct.isArgument = true;
     self.args = spec.compileStruct(argsStruct);
 
+    var returnType = def.returns;
     var resultFields = def.throws || [];
-    var successFieldId = new ast.FieldIdentifier(0);
-    var successField = new ast.Field(successFieldId, def.returns, 'success');
-    successField.required = false;
-    successField.optional = true;
-    successField.isResult = true;
-    resultFields.unshift(successField);
+    if (returnType.type === 'BaseType' && returnType.baseType !== 'void') {
+        var successFieldId = new ast.FieldIdentifier(0);
+        var successField = new ast.Field(successFieldId, def.returns, 'success');
+        successField.required = false;
+        successField.optional = true;
+        successField.isResult = true;
+        resultFields.unshift(successField);
+    }
 
     var resultId = new ast.Identifier(self.name + '_result');
     resultId.as = self.fullName + '_result';
