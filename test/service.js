@@ -33,3 +33,17 @@ test('has args', function t(assert) {
     assert.ok(thrift.Foo.foo.args, 'has args exposed on service object');
     assert.end();
 });
+
+test('void function has no success in result struct', function t(assert) {
+    var result = thrift.getType('Foo::bar_result');
+    assert.deepEqual(Object.keys(result.fieldsById), ['1'], 'only exception id');
+    assert.deepEquals(Object.keys(result.fieldsByName), ['barError'], 'only exception name');
+    assert.end();
+});
+
+test('non-void function has success in result struct', function t(assert) {
+    var result = thrift.getType('Foo::foo_result');
+    assert.deepEqual(Object.keys(result.fieldsById), ['0', '1'], 'success and error ids');
+    assert.deepEquals(Object.keys(result.fieldsByName), ['success', 'fail'], 'success and error field names');
+    assert.end();
+});
