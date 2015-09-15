@@ -48,7 +48,7 @@ ThriftFunction.prototype.compile = function process(def, spec) {
 
     var returnType = def.returns;
     var resultFields = def.throws || [];
-    if (returnType.type === 'BaseType' && returnType.baseType !== 'void') {
+    if (returnType.type !== 'BaseType' || returnType.baseType !== 'void') {
         var successFieldId = new ast.FieldIdentifier(0);
         var successField = new ast.Field(successFieldId, def.returns, 'success');
         successField.required = false;

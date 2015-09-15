@@ -47,3 +47,17 @@ test('non-void function has success in result struct', function t(assert) {
     assert.deepEquals(Object.keys(result.fieldsByName), ['success', 'fail'], 'success and error field names');
     assert.end();
 });
+
+test('returns base-type that is not void', function t(assert) {
+    var result = thrift.getType('Foo::returnsI32_result');
+    assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
+    assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
+    assert.end();
+});
+
+test('returns non-base-type', function t(assert) {
+    var result = thrift.getType('Foo::returnsStruct_result');
+    assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
+    assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
+    assert.end();
+});

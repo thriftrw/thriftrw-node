@@ -5,6 +5,11 @@ service Foo {
     void bar() throws (
         1: BarError barError
     )
+    i32 returnsI32()
+    Struct returnsStruct()
+}
+
+struct Struct {
 }
 
 exception BarError {
