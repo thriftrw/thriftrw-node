@@ -62,6 +62,9 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     var resultStruct = new ast.Struct(resultId, resultFields);
     resultStruct.isResult = true;
     self.result = spec.compileStruct(resultStruct);
+
+    self.annotations = def.annotations;
+    self.oneway = def.oneway;
 };
 
 ThriftFunction.prototype.link = function link(spec) {
