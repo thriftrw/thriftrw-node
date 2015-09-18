@@ -23,6 +23,7 @@
 var util = require('util');
 var assert = require('assert');
 var ThriftList = require('./list').ThriftList;
+var TYPE = require('./TYPE');
 
 function ThriftSet(valueType, annotations) {
     var self = this;
@@ -57,6 +58,7 @@ function ThriftSet(valueType, annotations) {
 util.inherits(ThriftSet, ThriftList);
 
 ThriftSet.prototype.name = 'set';
+ThriftSet.prototype.typeid = TYPE.SET;
 
 ThriftSet.prototype.arrayForm = {
     create: function create() {

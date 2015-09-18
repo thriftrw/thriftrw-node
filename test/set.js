@@ -126,7 +126,7 @@ var thrift = new Thrift({source: source});
 test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
 
     [new thrift.Bucket({asArray: [1, 2, 3]}), [
-        0x0f,                   // type:1      -- 15, struct
+        0x0e,                   // type:1      -- 14, set
         0x00, 0x01,             // field:2     -- 1, asArray
         0x08,                   // type:1      -- 8, i32
         0x00, 0x00, 0x00, 0x03, // len:4       -- 3
@@ -137,7 +137,7 @@ test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
     ]],
 
     [new thrift.Bucket({numbersAsObject: {1: true, 2: true, 3: true}}), [
-        0x0f,                   // type:1      -- 15, struct
+        0x0e,                   // type:1      -- 14, set
         0x00, 0x02,             // field:2     -- 1, numbersAsObject
         0x08,                   // type:1      -- 8, i32
         0x00, 0x00, 0x00, 0x03, // len:4       -- 3
@@ -148,7 +148,7 @@ test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
     ]],
 
     [new thrift.Bucket({stringsAsObject: {1: true, 2: true, 3: true}}), [
-        0x0f,                   // type:1       -- 15, struct
+        0x0e,                   // type:1       -- 14, set
         0x00, 0x03,             // field:2      -- 1, numbersAsObject
         0x0b,                   // type:1       -- 11, string
         0x00, 0x00, 0x00, 0x03, // length:4     -- 3
