@@ -39,4 +39,51 @@ var testCases = [
 ];
 
 test('I64RW', testRW.cases(I64RW, testCases));
+
+test('coerce string', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('0102030405060708', buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('0102030405060708', 'hex'), 'written value');
+    assert.end();
+});
+
+test('fail to coerce string of bad length', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('01020304050607', buffer, 0);
+    assert.equals(res.err.message, 'invalid argument, expected a string of 16 hex characters', 'string length error');
+    assert.end();
+});
+
+test('fail to coerce string of bad hi value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('--------05060708', buffer, 0);
+    assert.equals(res.err.message, 'invalid argument, expected a string of hex characters', 'string length error');
+    assert.end();
+});
+
+test('fail to coerce string of bad lo value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('01020304--------', buffer, 0);
+    assert.equals(res.err.message, 'invalid argument, expected a string of hex characters', 'string length error');
+    assert.end();
+});
+
+test('coerce number', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto(10, buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('000000000000000a', 'hex'), 'written value');
+    assert.end();
+});
+
+test('fail to coerce', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto({}, buffer, 0);
+    assert.equals(res.err.message, 'invalid argument, expected a buffer, a small number, or a string of 16 hex digits');
+    assert.end();
+});
+
 test('ThriftI64', testThrift(ThriftI64, I64RW, TYPE.I64));

@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 /* global Buffer */
+/* eslint no-self-compare: [0] */
 'use strict';
 
 var bufrw = require('bufrw');
@@ -32,12 +33,36 @@ var I64RW = bufrw.AtomRW(8,
         return new bufrw.ReadResult(null, offset + 8, value);
     },
     function writeTInt64Into(value, buffer, offset) {
-        // istanbul ignore if
-        if (!(value instanceof Buffer)) {
-            return bufrw.WriteResult.error(errors.expected(value, 'a buffer'));
+        if (value instanceof Buffer) {
+            value.copy(buffer, offset, 0, 8);
+            return new bufrw.WriteResult(null, offset + 8);
+
+        } else if (typeof value === 'number') {
+            buffer.writeInt32BE(0, offset, true);
+            buffer.writeInt32BE(value, offset + 4, true);
+            return new bufrw.WriteResult(null, offset + 8);
+
+        } else if (typeof value === 'string') {
+            if (value.length !== 16) {
+                return bufrw.WriteResult.error(errors.expected(value, 'a string of 16 hex characters'));
+            }
+
+            var hi = parseInt(value.slice(0, 8), 16);
+            if (hi !== hi) { // NaN
+                return bufrw.WriteResult.error(errors.expected(value, 'a string of hex characters'));
+            }
+            var lo = parseInt(value.slice(8, 16), 16);
+            if (lo !== lo) { // NaN
+                return bufrw.WriteResult.error(errors.expected(value, 'a string of hex characters'));
+            }
+
+            buffer.writeInt32BE(hi, offset);
+            buffer.writeInt32BE(lo, offset + 4);
+            return new bufrw.WriteResult(null, offset + 8);
+
+        } else {
+            return bufrw.WriteResult.error(errors.expected(value, 'a buffer, a small number, or a string of 16 hex digits'));
         }
-        value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
     });
 
 // TODO decide whether to do buffer or [hi, lo] based on annotations
