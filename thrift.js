@@ -61,6 +61,11 @@ function Thrift(options) {
     self.services = Object.create(null);
     self.types = Object.create(null);
     self.consts = Object.create(null);
+    self.enums = Object.create(null);
+    self.structs = Object.create(null);
+    self.exceptions = Object.create(null);
+    self.unions = Object.create(null);
+    self.typedefs = Object.create(null);
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
@@ -135,6 +140,7 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
+    self.structs[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
 };
@@ -144,6 +150,7 @@ Thrift.prototype.compileException = function compileException(def) {
     var spec = new ThriftException({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
+    self.exceptions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
 };
@@ -153,6 +160,7 @@ Thrift.prototype.compileUnion = function compileUnion(def) {
     var spec = new ThriftUnion({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
+    self.unions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
 };
@@ -162,6 +170,7 @@ Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var spec = new ThriftTypedef();
     spec.compile(def, self);
     self.claim(spec.name, spec);
+    self.typedefs[spec.name] = spec;
     self.types[spec.name] = spec;
     return spec;
 };
@@ -186,6 +195,7 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
     var spec = new ThriftEnum();
     spec.compile(def, self);
     self.claim(spec.name, def.id);
+    self.enums[spec.name] = spec;
     self.types[spec.name] = spec;
 };
 
