@@ -54,15 +54,15 @@ function ThriftField(def, struct) {
     self.constructDefaultValue = null;
 }
 
-ThriftField.prototype.link = function link(spec) {
+ThriftField.prototype.link = function link(thrift) {
     var self = this;
-    self.valueType = spec.resolve(self.valueDefinition);
+    self.valueType = thrift.resolve(self.valueDefinition);
     assert(self.valueType, 'value type was defined, as returned by resolve');
 };
 
-ThriftField.prototype.linkValue = function linkValue(spec) {
+ThriftField.prototype.linkValue = function linkValue(thrift) {
     var self = this;
-    self.defaultValue = spec.resolveValue(self.defaultValueDefinition);
+    self.defaultValue = thrift.resolveValue(self.defaultValueDefinition);
 };
 
 function ThriftStruct(options) {
@@ -134,7 +134,7 @@ ThriftStruct.prototype.compile = function compile(def) {
     }
 };
 
-ThriftStruct.prototype.link = function link(spec) {
+ThriftStruct.prototype.link = function link(thrift) {
     var self = this;
 
     if (self.linked) {
@@ -147,7 +147,7 @@ ThriftStruct.prototype.link = function link(spec) {
     // Link default values first since they're used by the constructor
     for (index = 0; index < self.fields.length; index++) {
         var field = self.fields[index];
-        field.linkValue(spec);
+        field.linkValue(thrift);
 
         // Validate field
         if (self.strict) {
@@ -181,7 +181,7 @@ ThriftStruct.prototype.link = function link(spec) {
     // Link field types later since they may depend on the constructor existing
     // first.
     for (index = 0; index < self.fields.length; index++) {
-        self.fields[index].link(spec);
+        self.fields[index].link(thrift);
     }
 
     return self;
@@ -247,18 +247,18 @@ ThriftStruct.prototype.finalize = function finalize(struct) {
     return struct;
 };
 
-function StructRW(spec) {
-    assert(spec, 'spec required');
+function StructRW(struct) {
+    assert(struct, 'struct required');
     var self = this;
-    self.spec = spec;
+    self.struct = struct;
 }
 
 StructRW.prototype.byteLength = function byteLength(struct) {
     var self = this;
     var length = 1; // stop:1
     var result;
-    for (var index = 0; index < self.spec.fields.length; index++) {
-        var field = self.spec.fields[index];
+    for (var index = 0; index < self.struct.fields.length; index++) {
+        var field = self.struct.fields[index];
         var value = struct && struct[field.name];
 
         var available = value !== null && value !== undefined;
@@ -267,7 +267,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.spec.name,
+                structName: self.struct.name,
                 what: struct
             }));
         }
@@ -294,8 +294,8 @@ StructRW.prototype.byteLength = function byteLength(struct) {
 StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
     var self = this;
     var result;
-    for (var index = 0; index < self.spec.fields.length; index++) {
-        var field = self.spec.fields[index];
+    for (var index = 0; index < self.struct.fields.length; index++) {
+        var field = self.struct.fields[index];
         var value = struct && struct[field.name];
         var available = value !== null && value !== undefined;
 
@@ -303,7 +303,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.spec.name,
+                structName: self.struct.name,
                 what: struct
             }));
         }
@@ -346,7 +346,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 
 StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
-    var struct = self.spec.create();
+    var struct = self.struct.create();
     var result;
 
     for (;;) {
@@ -371,7 +371,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         var id = result.value;
 
         // skip unrecognized fields from THE FUTURE
-        if (!self.spec.fieldsById[id]) {
+        if (!self.struct.fieldsById[id]) {
             result = skipField(buffer, offset);
             // istanbul ignore if
             if (result.err) {
@@ -381,12 +381,12 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             continue;
         }
 
-        var field = self.spec.fieldsById[id];
+        var field = self.struct.fieldsById[id];
         if (field.valueType.typeid !== typeid) {
             return new ReadResult(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
-                structName: self.spec.name,
+                structName: self.struct.name,
                 typeid: typeid,
                 typeName: NAMES[typeid],
                 expectedTypeid: field.valueType.typeid,
@@ -401,16 +401,16 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = result.offset;
         // TODO promote return error of set to a ReadResult error
-        self.spec.set(struct, field.name, result.value);
+        self.struct.set(struct, field.name, result.value);
     }
 
     // Validate required fields
-    var err = self.spec.validateStruct(struct);
+    var err = self.struct.validateStruct(struct);
     if (err) {
         return new ReadResult(err);
     }
 
-    return new ReadResult(null, offset, self.spec.finalize(struct));
+    return new ReadResult(null, offset, self.struct.finalize(struct));
 };
 
 module.exports.ThriftField = ThriftField;
