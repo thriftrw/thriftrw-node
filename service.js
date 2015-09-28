@@ -32,7 +32,33 @@ function ThriftFunction(args) {
     self.args = null;
     self.result = null;
     self.strict = args.strict;
+    self.handler = args.handler;
+    // For transport headers, gleaned from annotations
+    self.transport = {};
+
+    var bindHandler = self.createBinder(self.serviceName, self.name);
+    self.surface = bindHandler(self.handler);
 }
+
+ThriftFunction.prototype.createBinder = function createBinder(serviceName, functionName) {
+    var source = '';
+    source += '(function bindHandler(handler) {\n';
+    source += 'return function thriftrw_' + functionName + '(args, headers, callback) {\n';
+    source += 'var request = new handler.Request();\n';
+    source += 'request.serviceName = ' + JSON.stringify(serviceName) + ';\n';
+    source += 'request.functionName = ' + JSON.stringify(functionName) + ';\n';
+    source += 'request.args = args;\n';
+    source += 'request.headers = headers;\n';
+    source += 'return handler.invoke(request, callback);\n';
+    source += '};\n';
+    source += '})\n';
+    // eval is an operator that captures the lexical scope of the calling
+    // function and deoptimizes the lexical scope.
+    // By using eval in an expression context, it loses this second-class
+    // capability and becomes a first-class function.
+    // (0, eval) is one way to use eval in an expression context.
+    return (0, eval)(source);
+};
 
 ThriftFunction.prototype.compile = function process(def, spec) {
     var self = this;
@@ -71,6 +97,11 @@ ThriftFunction.prototype.link = function link(spec) {
     var self = this;
     self.args.link(spec);
     self.result.link(spec);
+
+    self.surface.Arguments = self.args.Constructor;
+    self.surface.args = self.args;
+    self.surface.Result = self.result.Constructor;
+    self.surface.result = self.result;
 };
 
 function ThriftService(args) {
@@ -80,6 +111,7 @@ function ThriftService(args) {
     self.functionsByName = Object.create(null);
     self.surface = self.functionsByName;
     self.strict = args.strict;
+    self.handler = args.handler;
 }
 
 ThriftService.prototype.compile = function process(def, spec) {
@@ -95,11 +127,12 @@ ThriftService.prototype.compileFunction = function processFunction(def, spec) {
     var thriftFunction = new ThriftFunction({
         name: def.id.name,
         service: self,
-        strict: self.strict
+        strict: self.strict,
+        handler: self.handler
     });
     thriftFunction.compile(def, spec);
     self.functions.push(thriftFunction);
-    self.functionsByName[thriftFunction.name] = thriftFunction;
+    self.functionsByName[thriftFunction.name] = thriftFunction.surface;
 };
 
 ThriftService.prototype.link = function link(spec) {

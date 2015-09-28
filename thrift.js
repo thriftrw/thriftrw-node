@@ -27,6 +27,7 @@ var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
 var ThriftService = require('./service').ThriftService;
+var ThriftClass = require('./class').ThriftClass;
 var ThriftStruct = require('./struct').ThriftStruct;
 var ThriftException = require('./exception').ThriftException;
 var ThriftUnion = require('./union').ThriftUnion;
@@ -56,6 +57,7 @@ function Thrift(options) {
     assert(typeof options.source === 'string', 'source must be string');
 
     self.strict = options.strict !== undefined ? options.strict : true;
+    self.handler = options.handler;
 
     self.claims = Object.create(null);
     self.services = Object.create(null);
@@ -114,6 +116,7 @@ Thrift.prototype._definitionProcessors = {
     Enum: 'compileEnum',
     Exception: 'compileException',
     Service: 'compileService',
+    Class: 'compileClass',
     Struct: 'compileStruct',
     Typedef: 'compileTypedef',
     Union: 'compileUnion'
@@ -168,10 +171,20 @@ Thrift.prototype.compileTypedef = function compileTypedef(def) {
 
 Thrift.prototype.compileService = function compileService(def) {
     var self = this;
-    var service = new ThriftService({strict: self.strict});
+    var service = new ThriftService({strict: self.strict, handler: self.handler});
     service.compile(def, self);
     self.claim(service.name, def.id);
     self.services[service.name] = service;
+};
+
+Thrift.prototype.compileClass = function compileClass(def) {
+    var self = this;
+    var klass = new ThriftClass({strict: self.strict});
+    klass.type.compile(def, self);
+    klass.service.compile(def, self);
+    self.claim(klass.name, def.id);
+    self.classes[klass.name] = klass;
+    self.types[klass.name] = klass;
 };
 
 Thrift.prototype.compileConst = function compileConst(def, spec) {

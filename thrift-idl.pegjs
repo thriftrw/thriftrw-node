@@ -62,6 +62,7 @@ Definition
   / Union
   / Exception
   / Service
+  / Class
 
 Typedef
   = TypedefToken __ dt:DefinitionType id:Identifier ta:TypeAnnotations? ListSeparator? {
@@ -153,6 +154,11 @@ Exception
 Service
   = 'service' __ id:Identifier extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
     return new ast.Service(id, fns, ta);
+  }
+
+Class
+  = 'class' __ id:Identifier extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
+    return new ast.Class(id, fns, ta);
   }
 
 extends

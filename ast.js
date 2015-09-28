@@ -180,6 +180,15 @@ function Service(id, functions, annotations) {
 }
 Service.prototype.type = 'Service';
 
+module.exports.Class = Class;
+function Class(id, functions, annotations) {
+    var self = this;
+    self.id = id;
+    self.functions = functions;
+    self.annotations = annotations;
+}
+Class.prototype.type = 'Class';
+
 module.exports.FunctionDefinition = FunctionDefinition;
 function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
     var self = this;
