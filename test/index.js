@@ -50,3 +50,5 @@ require('./typedef');
 require('./const');
 require('./default');
 require('./enum');
+require('./handler');
+require('./class');

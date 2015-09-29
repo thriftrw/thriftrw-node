@@ -189,6 +189,31 @@ function Class(id, functions, annotations) {
 }
 Class.prototype.type = 'Class';
 
+Class.prototype.toService = function toService() {
+    var self = this;
+
+    // All methods of a class have an implict `0: <Class> this` argument.
+    var classField = new Field(
+        0, // id
+        self.id, // class.id
+        'this', // name
+        'required',
+        null, // defaultValue
+        null // annotations
+    );
+    classField.isThis = true;
+
+    var methods = [];
+    for (var index = 0; index < self.functions.length; index++) {
+        methods[index] = self.functions[index].toMethod(classField);
+    }
+    return new Service(
+        self.id,
+        methods,
+        self.annotations
+    );
+};
+
 module.exports.FunctionDefinition = FunctionDefinition;
 function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
     var self = this;
@@ -202,6 +227,22 @@ function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
 }
 FunctionDefinition.prototype.type = 'function';
 
+FunctionDefinition.prototype.toMethod = function toMethod(classField) {
+    var self = this;
+    var fields = [classField];
+    for (var index = 0; index < self.fields.length; index++) {
+        fields[index + 1] = self.fields[index];
+    }
+    return new FunctionDefinition(
+        self.id,
+        fields,
+        self.returns,
+        self.throws,
+        self.annotations,
+        self.oneway
+    );
+};
+
 module.exports.Field = Field;
 function Field(id, ft, name, req, fv, annotations) {
     var self = this;
@@ -212,6 +253,7 @@ function Field(id, ft, name, req, fv, annotations) {
     self.optional = req === 'optional';
     self.defaultValue = fv;
     self.annotations = annotations;
+    self.isThis = false;
 }
 Field.prototype.type = 'Field';
 

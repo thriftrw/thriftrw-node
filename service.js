@@ -36,7 +36,7 @@ function ThriftFunction(args) {
     // For transport headers, gleaned from annotations
     self.transport = {};
 
-    var bindHandler = self.createBinder(self.serviceName, self.name);
+    var bindHandler = self.createBinder(self.service.name, self.name);
     self.surface = bindHandler(self.handler);
 }
 
@@ -47,9 +47,10 @@ ThriftFunction.prototype.createBinder = function createBinder(serviceName, funct
     source += 'var request = new handler.Request();\n';
     source += 'request.serviceName = ' + JSON.stringify(serviceName) + ';\n';
     source += 'request.functionName = ' + JSON.stringify(functionName) + ';\n';
+    source += 'request.fullName = ' + JSON.stringify(serviceName + '::' + functionName) + ';\n';
     source += 'request.args = args;\n';
     source += 'request.headers = headers;\n';
-    source += 'return handler.invoke(request, callback);\n';
+    source += 'return handler.handleRequest(request, callback);\n';
     source += '};\n';
     source += '})\n';
     // eval is an operator that captures the lexical scope of the calling
@@ -109,14 +110,20 @@ function ThriftService(args) {
     self.name = null;
     self.functions = [];
     self.functionsByName = Object.create(null);
-    self.surface = self.functionsByName;
+    self.surface = null;
     self.strict = args.strict;
     self.handler = args.handler;
 }
 
+// To be overridden by Class
+ThriftService.prototype.createSurface = function createSurface() {
+    return Object.create(null);
+};
+
 ThriftService.prototype.compile = function process(def, spec) {
     var self = this;
     self.name = def.id.name;
+    self.surface = self.createSurface();
     for (var index = 0; index < def.functions.length; index++) {
         self.compileFunction(def.functions[index], spec);
     }
@@ -133,6 +140,7 @@ ThriftService.prototype.compileFunction = function processFunction(def, spec) {
     thriftFunction.compile(def, spec);
     self.functions.push(thriftFunction);
     self.functionsByName[thriftFunction.name] = thriftFunction.surface;
+    self.surface[thriftFunction.name] = thriftFunction.surface;
 };
 
 ThriftService.prototype.link = function link(spec) {

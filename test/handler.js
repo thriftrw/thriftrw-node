@@ -33,24 +33,55 @@ test('can call a function', function t(assert) {
         this.thrift = thrift;
     }
 
-    Handler.prototype.invoke =
-    function invoke(request, callback) {
-        assert.deepEquals(request.args, {a: 2, b: 2}, 'arguments forwarded');
-        assert.deepEquals(request.headers, {}, 'headers forwarded');
+    Handler.prototype.handleRequest =
+    function handleRequest(req, callback) {
+        assert.deepEquals(req.args, {a: 2, b: 2}, 'arguments forwarded');
+        assert.deepEquals(req.headers, {}, 'headers forwarded');
         var result = new this.thrift.Index.add.Result({success: 4});
         return callback(null, result);
     };
+
+    Handler.prototype.Request = Object;
 
     var thrift = new Thrift({source: source});
     var handler = new Handler(thrift);
     var handledThrift = new Thrift({source: source, handler: handler});
 
-    handler.Request = Object;
     var args = new thrift.Index.add.Arguments({a: 2, b: 2});
     handledThrift.Index.add(args, {}, onAdd);
 
     function onAdd(err, result) {
         assert.deepEqual(result, {success: 4}, 'result forwarded through handler');
+        assert.end(err);
+    }
+});
+
+test('can obtain an instance of a class', function t(assert) {
+
+    function Handler() {
+    }
+
+    Handler.prototype.Request = Object;
+
+    Handler.prototype.handleRequest =
+    function handleRequest(req, callback) {
+        if (req.fullName === 'Index::number') {
+            return new thrift.Number(req.args.number);
+        } else if (req.fullName === 'Number::add') {
+            var res = new thrift.Number.add.Result();
+            res.success = +req.args.this.id + req.args.other;
+            callback(null, res);
+        }
+    };
+
+    var handler = new Handler();
+    var thrift = new Thrift({source: source, handler: handler});
+
+    var n = thrift.Index.number({number: 10});
+    n.add({other: 20}, null, onAdd);
+
+    function onAdd(err, result) {
+        assert.deepEqual(result, {success: 30}, 'result forwarded through handler');
         assert.end(err);
     }
 });

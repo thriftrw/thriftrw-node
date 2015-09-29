@@ -22,7 +22,7 @@
 
 var TYPE = Object.create(null);
 TYPE.STOP = 0;
-TYPE.VOID = 1;
+TYPE.VOID = 1; // does not exist on wire
 TYPE.BOOL = 2;
 TYPE.BYTE = 3;
 TYPE.I8 = 3;
@@ -30,10 +30,10 @@ TYPE.DOUBLE = 4;
 TYPE.I16 = 6;
 TYPE.I32 = 8;
 TYPE.I64 = 10;
-TYPE.STRING = 11;
-TYPE.STRUCT = 12;
+TYPE.STRING = 11; // binary
+TYPE.STRUCT = 12; // exception, union, arguments, result
 TYPE.MAP = 13;
-TYPE.SET = 14;
+TYPE.SET = 14; // structurally equivalent to list
 TYPE.LIST = 15;
 
 module.exports = TYPE;

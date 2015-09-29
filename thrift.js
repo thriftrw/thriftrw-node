@@ -61,6 +61,7 @@ function Thrift(options) {
 
     self.claims = Object.create(null);
     self.services = Object.create(null);
+    self.classes = Object.create(null);
     self.types = Object.create(null);
     self.consts = Object.create(null);
 
@@ -175,13 +176,13 @@ Thrift.prototype.compileService = function compileService(def) {
     service.compile(def, self);
     self.claim(service.name, def.id);
     self.services[service.name] = service;
+    return service;
 };
 
 Thrift.prototype.compileClass = function compileClass(def) {
     var self = this;
-    var klass = new ThriftClass({strict: self.strict});
-    klass.type.compile(def, self);
-    klass.service.compile(def, self);
+    var klass = new ThriftClass({strict: self.strict, handler: self.handler});
+    klass.compile(def, self);
     self.claim(klass.name, def.id);
     self.classes[klass.name] = klass;
     self.types[klass.name] = klass;

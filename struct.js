@@ -36,7 +36,7 @@ var ReadResult = bufrw.ReadResult;
 
 function ThriftField(def, struct) {
     var self = this;
-    assert(def.isResult || def.id.value > 0,
+    assert(def.isResult || def.isThis || def.id.value > 0,
         'field identifier must be greater than 0' +
         ' for ' + JSON.stringify(def.name) +
         ' on ' + JSON.stringify(struct.name) +
