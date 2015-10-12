@@ -45,6 +45,7 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     var argsStruct = new ast.Struct(argsId, def.fields);
     argsStruct.isArgument = true;
     self.args = spec.compileStruct(argsStruct);
+    self.Arguments = self.args.Constructor;
 
     var returnType = def.returns;
     var resultFields = def.throws || [];
@@ -62,6 +63,7 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     var resultStruct = new ast.Struct(resultId, resultFields);
     resultStruct.isResult = true;
     self.result = spec.compileStruct(resultStruct);
+    self.Result = self.result.Constructor;
 
     self.annotations = def.annotations;
     self.oneway = def.oneway;
