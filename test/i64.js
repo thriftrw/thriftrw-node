@@ -39,4 +39,102 @@ var testCases = [
 ];
 
 test('I64RW', testRW.cases(I64RW, testCases));
+
+test('coerce string', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('0102030405060708', buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('0102030405060708', 'hex'), 'written value');
+    assert.end();
+});
+
+test('fail to coerce string of bad length', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('01020304050607', buffer, 0);
+    assert.equals(res.err.message,
+        'invalid argument, expected a string of 16 hex characters, or other i64 representation', 'string length error');
+    assert.end();
+});
+
+test('fail to coerce string of bad hi value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('--------05060708', buffer, 0);
+    assert.equals(
+        res.err.message,
+        'invalid argument, expected a string of hex characters, or other i64 representation',
+        'validate hi string value');
+    assert.end();
+});
+
+test('fail to coerce string of bad lo value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto('01020304--------', buffer, 0);
+    assert.equals(res.err.message,
+        'invalid argument, expected a string of hex characters, or other i64 representation',
+        'validate lo string value');
+    assert.end();
+});
+
+test('coerce {hi, lo} object to i32 on wire', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto({hi: 1, lo: 2}, buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('0000000100000002', 'hex'), 'wrote hi, lo to buffer');
+    assert.end();
+});
+
+test('fail to coerce object bad hi value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto({hi: null, lo: 0}, buffer, 0);
+    assert.equals(res.err.message,
+        'invalid argument, expected {hi, lo} with hi number, or other i64 representation',
+        'validate hi type');
+    assert.end();
+});
+
+test('fail to coerce object bad lo value', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto({hi: 0, lo: null}, buffer, 0);
+    assert.equals(res.err.message,
+        'invalid argument, expected {hi, lo} with lo number, or other i64 representation',
+        'validate lo type');
+    assert.end();
+});
+
+test('coerce number', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto(10, buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('000000000000000a', 'hex'), 'written value');
+    assert.end();
+});
+
+test('coerce array of bytes', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto([1, 2, 3, 4, 5, 6, 7, 8], buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('0102030405060708', 'hex'), 'written value');
+    assert.end();
+});
+
+test('fail to coerce array with bad length', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto([1, 2, 3, 4, 5, 6, 7, 8, 9], buffer, 0);
+    assert.equals(res.err.message,
+        'invalid argument, expected an array of 8 bytes, or other i64 representation',
+        'validate buffer length');
+    assert.end();
+});
+
+test('fail to coerce', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = ThriftI64.prototype.rw.writeInto(null, buffer, 0);
+    assert.equals(res.err.message, 'invalid argument, expected i64 representation');
+    assert.end();
+});
+
 test('ThriftI64', testThrift(ThriftI64, I64RW, TYPE.I64));
