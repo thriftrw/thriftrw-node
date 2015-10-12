@@ -369,12 +369,14 @@ ThriftRW decodes 64 bit integers into a Buffer, but can coerce various types
 down to i64 for purposes of expressing them as JSON.
 
 - A number up to the maximum integer precision available in JavaScript.
+- A `{hi, lo}` pair of 32 bit precision integers.
 - A 16 digit hexadecimal string, like `0102030405060708`.
-- TODO an array of 8 byte values.
-- A buffer.
+- An array of 8 byte values. Ranges are not checked, but coerced.
+- An 8 byte buffer.
 
-This feature is likely to evolve to support annotations for various forms,
-possibly including a `{hi, lo}` duple, bigint, BCD, or others.
+In a future version, we are likely to expose `js.type` annotations to read any
+of these forms off the wire.
+Currently, they can only be written.
 
 ## Installation
 
