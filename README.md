@@ -378,6 +378,12 @@ In a future version, we are likely to expose `js.type` annotations to read any
 of these forms off the wire.
 Currently, they can only be written.
 
+## Releated
+
+[thriftrw-python] is the sister library for Python.
+
+[thriftrw-python]: https://github.com/uber/thriftrw-python
+
 ## Installation
 
 `npm install thriftrw`
