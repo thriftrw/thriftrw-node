@@ -28,7 +28,7 @@ var bufrw = require('bufrw');
 var TYPE = require('./TYPE');
 var NAMES = require('./names');
 var errors = require('./errors');
-var skipField = require('./skip').skipField;
+var skipType = require('./skip').skipType;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
@@ -372,7 +372,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         // skip unrecognized fields from THE FUTURE
         if (!self.spec.fieldsById[id]) {
-            result = skipField(buffer, offset);
+            result = skipType(buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
                 return result;

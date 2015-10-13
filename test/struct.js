@@ -94,10 +94,12 @@ test('struct skips unknown void', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x02,               // id:2     -- 2 -- WHAT EVEN IS!?
-        0x01,                     // typeid:1 -- 1 -- VOID
+        0x00,                     // bool:1
+
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x01,               // id:2     -- 1 -- ok
         0x01,                     // ok:1     -- 1 -- true
+
         0x00                      // typeid:1 -- 0 -- STOP
     ]), 0);
     if (res.err) {
@@ -128,11 +130,12 @@ test('struct skips unknown string', function t(assert) {
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x01,               // id:2     -- 1 -- ok
         0x01,                     // ok:1     -- 1 -- true
-        0x02,                     // type:1   -- 2  -- BOOL
-        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
+
         11,                       // typeid:1 -- 11 -- STRING
+        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
         0x00, 0x00, 0x00, 0x02,   // len~4
         0x20, 0x20,               // '  '
+
         0x00                      // typeid:1 -- 0  -- STOP
     ]), 0);
     if (res.err) {
@@ -147,9 +150,10 @@ test('struct skips unknown struct', function t(assert) {
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x01,               // id:2     -- 1 -- ok
         0x01,                     // ok:1     -- 1 -- true
-        0x02,                     // type:1   -- 2  -- BOOL
-        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
+
         0x0c,                     // typeid:1 -- 12 -- STRUCT
+        0x00, 0x02,               // id:2     -- 2  -- WHAT EVEN IS!?
+
         0x01,                     // typeid:1 -- 1  -- VOID
         0x01,                     // typeid:1 -- 1  -- VOID
         0x0b,                     // typeid:1 -- 11 -- STRING
@@ -157,6 +161,7 @@ test('struct skips unknown struct', function t(assert) {
         0x20, 0x20,               // '  '
         0x01,                     // typeid:1 -- 1  -- VOID
         0x00,                     // typeid:1 -- 0  -- STOP
+
         0x00                      // typeid:1 -- 0  -- STOP
     ]), 0);
     if (res.err) {
@@ -172,9 +177,8 @@ test('struct skips uknown map', function t(assert) {
         0x00, 0x01,               // id:2     -- 1 ok
         0x01,                     // ok:1     -- 1 true
 
-        0x02,                     // type:1   -- 2 BOOL
-        0x00, 0x02,               // id:2     -- 2 UNKNOWN
         0x0d,                     // typeid:1 -- 13, map
+        0x00, 0x02,               // id:2     -- 2 UNKNOWN
 
         // Thus begins a large map
         0x0b,                   // key_type:1         -- string    @ 4
@@ -231,9 +235,8 @@ test('struct skips unknown list', function t(assert) {
         0x00, 0x01,               // id:2     -- 1 ok
         0x00,                     // ok:1     -- 0 false
 
-        0x02,                     // type:1      -- 2 BOOL
-        0x00, 0x02,               // id:2        -- 2 UNKNOWN
         0x0f,                     // typeid:1    -- 15, list
+        0x00, 0x02,               // id:2        -- 2 UNKNOWN
 
         // Thus begins a list
         0x0c,                   // el_type:1     -- struct
