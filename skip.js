@@ -234,3 +234,4 @@ function skipList(buffer, offset) {
 }
 
 module.exports.skipField = skipField;
+module.exports.skipType = skipType;
