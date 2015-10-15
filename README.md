@@ -378,6 +378,28 @@ In a future version, we are likely to expose `js.type` annotations to read any
 of these forms off the wire.
 Currently, they can only be written.
 
+For users that need to operate on i64 as a numbers, use the [Long][] package.
+
+```js
+var Long = require('long');
+
+// From a buffer to a long
+var buf = new Buffer("0102030405060708", "hex");
+var num = Long.fromBits(buf.readInt32BE(4, true), buf.readInt32BE(0, true));
+
+// From a long to a buffer
+var buf = new Buffer(8);
+buf.writeUInt32BE(num.high, 0, 4, true);
+buf.writeUInt32BE(num.low, 4, 4, true);
+```
+
+[Long]: https://www.npmjs.com/package/long
+
+A future version of ThriftRW will support the `{high, low}` internal
+representation used by Long for writing, and a `js.type = 'Long'` annotation
+for reading.
+A backward-incompatible release may make this form the default for reading.
+
 ## Releated
 
 [thriftrw-python] is the sister library for Python.
