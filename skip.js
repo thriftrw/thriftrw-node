@@ -24,9 +24,11 @@
 var TYPE = require('./TYPE');
 var ReadResult = require('bufrw/base').ReadResult;
 var bufrwErrors = require('bufrw/errors');
+var bufrw = require('bufrw');
 var errors = require('./errors');
 var TMapHeaderRW = require('./tmap').TMapRW.prototype.headerRW;
 var TListHeaderRW = require('./tlist').TListRW.prototype.headerRW;
+var StringRW = require('./string').StringRW;
 
 var widths = Object.create(null);
 widths[TYPE.VOID] = 0;
@@ -94,13 +96,13 @@ function skipType(buffer, offset, typeid) {
         }));
     }
 
-    return new ReadResult(null, offset);
+    return new ReadResult(null, offset, result && result.value);
 }
 
 function skipStruct(buffer, offset) {
     var result;
+    var ret = {};
     for (;;) {
-
         // typeid
         // istanbul ignore if
         if (offset + 1 > buffer.length) {
@@ -115,22 +117,32 @@ function skipStruct(buffer, offset) {
         offset += 1;
 
         if (typeid === TYPE.STOP) {
-            return new ReadResult(null, offset);
+            return new ReadResult(null, offset, ret);
         }
 
-        // id
+        result = bufrw.Int16BE.readFrom(buffer, offset);
+        // result = buffer.readInt16BE(offset, true);
         // istanbul ignore if
-        if (offset + 2 > buffer.length) {
-            return new ReadResult(bufrwErrors.ShortBuffer({
-                expected: offset + 2,
-                actual: buffer.length,
-                buffer: buffer,
-                offset: offset
-            }));
+        if (result.err) {
+            return result;
         }
-        offset += 2;
+        offset = result.offset;
+        var id = result.value;
+
+        // // id
+        // // istanbul ignore if
+        // if (offset + 2 > buffer.length) {
+        //     return new ReadResult(bufrwErrors.ShortBuffer({
+        //         expected: offset + 2,
+        //         actual: buffer.length,
+        //         buffer: buffer,
+        //         offset: offset
+        //     }));
+        // }
+        // offset += 2;
 
         result = skipType(buffer, offset, typeid);
+        ret[id] = result.value;
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -141,7 +153,8 @@ function skipStruct(buffer, offset) {
 }
 
 function skipString(buffer, offset) {
-
+    var result;
+    result = StringRW.readFrom(buffer, offset);
     // istanbul ignore if
     if (offset + 4 > buffer.length) {
         return new ReadResult(bufrwErrors.ShortBuffer({
@@ -166,7 +179,7 @@ function skipString(buffer, offset) {
     }
     offset += length;
 
-    return new ReadResult(null, offset);
+    return new ReadResult(null, offset, result && result.value);
 }
 
 function skipMap(buffer, offset) {
@@ -202,7 +215,7 @@ function skipMap(buffer, offset) {
         offset = result.offset;
     }
 
-    return new ReadResult(null, offset);
+    return new ReadResult(null, offset, result && result.value);
 }
 
 function skipList(buffer, offset) {
@@ -230,7 +243,7 @@ function skipList(buffer, offset) {
         offset = result.offset;
     }
 
-    return new ReadResult(null, offset);
+    return new ReadResult(null, offset, result && result.value);
 }
 
 module.exports.skipField = skipField;

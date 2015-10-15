@@ -20,34 +20,18 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
+function ThriftUnrecognizedException(options) {
+    var self = this;
+
+    for (var index in options) {
+        // istanbul ignore else
+        if (
+            hasOwnProperty.call(options, index) &&
+            options[index] !== null
+        ) {
+            self[index] = options[index];
+        }
+    }
+}
+
+module.exports.ThriftUnrecognizedException = ThriftUnrecognizedException;

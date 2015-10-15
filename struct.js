@@ -29,6 +29,8 @@ var TYPE = require('./TYPE');
 var NAMES = require('./names');
 var errors = require('./errors');
 var skipType = require('./skip').skipType;
+var ThriftUnrecognizedException = require('./unrecognized-exception')
+    .ThriftUnrecognizedException;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
@@ -369,6 +371,21 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = result.offset;
         var id = result.value;
+
+        if (!self.spec.fieldsById[id] && self.spec.isResult) {
+            result = skipType(buffer, offset, typeid);
+            // istanbul ignore if
+            if (result.err) {
+                return result;
+            }
+            offset = result.offset;
+            self.spec.set(
+                struct,
+                'failure',
+                new ThriftUnrecognizedException(result.value)
+            );
+            continue;
+        }
 
         // skip unrecognized fields from THE FUTURE
         if (!self.spec.fieldsById[id]) {
