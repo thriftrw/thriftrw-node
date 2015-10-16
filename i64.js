@@ -22,51 +22,61 @@
 /* eslint no-self-compare: [0] */
 'use strict';
 
+var util = require('util');
 var bufrw = require('bufrw');
+var Long = require('long');
 var TYPE = require('./TYPE');
 var errors = require('bufrw/errors');
 
-var I64RW = bufrw.AtomRW(8,
-    function readTInt64From(buffer, offset) {
-        var value = new Buffer(8);
-        buffer.copy(value, 0, offset, offset + 8);
-        return new bufrw.ReadResult(null, offset + 8, value);
-    },
-    function writeTInt64Into(value, buffer, offset) {
-        if (value instanceof Buffer) {
-            value.copy(buffer, offset, 0, 8);
-            return new bufrw.WriteResult(null, offset + 8);
-        } else if (typeof value === 'number') {
-            buffer.writeInt32BE(0, offset, true);
-            buffer.writeInt32BE(value, offset + 4, true);
-            return new bufrw.WriteResult(null, offset + 8);
-        } else if (Array.isArray(value)) {
-            return writeArrayInt64Into(value, buffer, offset);
-        } else if (typeof value === 'string') {
-            return writeStringInt64Into(value, buffer, offset);
-        } else if (value && typeof value === 'object') {
-            return writeObjectInt64Into(value, buffer, offset);
-        } else {
-            return bufrw.WriteResult.error(errors.expected(value,
-                'i64 representation'));
-        }
-    });
-
-function writeObjectInt64Into(value, buffer, offset) {
-    if (typeof value.hi !== 'number') {
-        return bufrw.WriteResult.error(errors.expected(value,
-            '{hi, lo} with hi number, or other i64 representation'));
-    }
-    if (typeof value.lo !== 'number') {
-        return bufrw.WriteResult.error(errors.expected(value,
-            '{hi, lo} with lo number, or other i64 representation'));
-    }
-    // Does not validate range of hi or lo value
-    buffer.writeInt32BE(value.hi, offset, true);
-    buffer.writeInt32BE(value.lo, offset + 4, true);
-    return new bufrw.WriteResult(null, offset + 8);
+// istanbul ignore next
+function I64RW() {
 }
 
+I64RW.prototype.lengthResult = bufrw.LengthResult.just(8);
+
+I64RW.prototype.byteLength = function byteLength(value) {
+    var self = this;
+    return self.lengthResult;
+};
+
+I64RW.prototype.writeInto = function writeInto(value, buffer, offset) {
+    var self = this;
+    if (value instanceof Buffer) {
+        value.copy(buffer, offset, 0, 8);
+        return new bufrw.WriteResult(null, offset + 8);
+    } else if (typeof value === 'number') {
+        buffer.writeInt32BE(value / Math.pow(32), offset, true);
+        buffer.writeInt32BE(value, offset + 4, true);
+        return new bufrw.WriteResult(null, offset + 8);
+    } else if (Array.isArray(value)) {
+        return self.writeArrayInt64Into(value, buffer, offset);
+    } else if (typeof value === 'string') {
+        return self.writeStringInt64Into(value, buffer, offset);
+    } else if (value && typeof value === 'object') {
+        return self.writeObjectInt64Into(value, buffer, offset);
+    } else {
+        return bufrw.WriteResult.error(errors.expected(value,
+            'i64 representation'));
+    }
+};
+
+I64RW.prototype.writeObjectInt64Into =
+function writeObjectInt64Into(value, buffer, offset) {
+    if (typeof value.high !== 'number' && typeof value.hi !== 'number') {
+        return bufrw.WriteResult.error(errors.expected(value,
+            '{hi[gh], lo[w]} with high bits, or other i64 representation'));
+    }
+    if (typeof value.low !== 'number' && typeof value.lo !== 'number') {
+        return bufrw.WriteResult.error(errors.expected(value,
+            '{hi[gh], lo[w]} with low bits, or other i64 representation'));
+    }
+    // Does not validate range of hi or lo value
+    buffer.writeInt32BE(value.high || value.hi, offset, true);
+    buffer.writeInt32BE(value.low || value.lo, offset + 4, true);
+    return new bufrw.WriteResult(null, offset + 8);
+};
+
+I64RW.prototype.writeArrayInt64Into =
 function writeArrayInt64Into(value, buffer, offset) {
     if (value.length !== 8) {
         return new bufrw.WriteResult(errors.expected(value,
@@ -78,8 +88,9 @@ function writeArrayInt64Into(value, buffer, offset) {
         buffer[offset + index] = value[index] & 0xFF;
     }
     return new bufrw.WriteResult(null, offset + 8);
-}
+};
 
+I64RW.prototype.writeStringInt64Into =
 function writeStringInt64Into(value, buffer, offset) {
     if (value.length !== 16) {
         return new bufrw.WriteResult(errors.expected(value,
@@ -100,16 +111,51 @@ function writeStringInt64Into(value, buffer, offset) {
     buffer.writeInt32BE(hi, offset);
     buffer.writeInt32BE(lo, offset + 4);
     return new bufrw.WriteResult(null, offset + 8);
+};
+
+function I64LongRW() {
 }
 
-// TODO support for reading other supported i64 representations off buffers
-// with specified js.type annotation.
-function ThriftI64() { }
+util.inherits(I64LongRW, I64RW);
 
-ThriftI64.prototype.rw = I64RW;
+I64LongRW.prototype.readFrom = function readFrom(buffer, offset) {
+    var value = Long.fromBits(
+        buffer.readInt32BE(offset + 4, 4, true),
+        buffer.readInt32BE(offset, 4, true)
+    );
+    return new bufrw.ReadResult(null, offset + 8, value);
+};
+
+var i64LongRW = new I64LongRW();
+
+function I64BufferRW() {
+}
+
+util.inherits(I64BufferRW, I64RW);
+
+I64BufferRW.prototype.readFrom = function readTInt64From(buffer, offset) {
+    var value = new Buffer(8);
+    buffer.copy(value, 0, offset, offset + 8);
+    return new bufrw.ReadResult(null, offset + 8, value);
+};
+
+var i64BufferRW = new I64BufferRW();
+
+function ThriftI64(annotations) {
+    var self = this;
+    if (annotations && annotations['js.type'] === 'Long') {
+        self.rw = i64LongRW;
+        self.surface = Long;
+    } else {
+        self.rw = i64BufferRW;
+        self.surface = Buffer;
+    }
+}
+
 ThriftI64.prototype.name = 'i64';
 ThriftI64.prototype.typeid = TYPE.I64;
-ThriftI64.prototype.surface = Buffer;
 
 module.exports.I64RW = I64RW;
+module.exports.I64BufferRW = I64BufferRW;
+module.exports.I64LongRW = I64LongRW;
 module.exports.ThriftI64 = ThriftI64;
