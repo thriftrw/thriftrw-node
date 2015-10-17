@@ -20,18 +20,9 @@
 
 'use strict';
 
-function ThriftUnrecognizedException(options) {
+function ThriftUnrecognizedException(value) {
     var self = this;
-
-    for (var index in options) {
-        // istanbul ignore else
-        if (
-            hasOwnProperty.call(options, index) &&
-            options[index] !== null
-        ) {
-            self[index] = options[index];
-        }
-    }
+    self.thrift = value;
 }
 
 module.exports.ThriftUnrecognizedException = ThriftUnrecognizedException;

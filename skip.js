@@ -99,7 +99,6 @@ function skipType(buffer, offset, typeid) {
 
 function skipStruct(buffer, offset) {
     var result;
-
     for (;;) {
         // typeid
         // istanbul ignore if
