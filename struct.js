@@ -36,6 +36,8 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
+var readType = require('./read').readType;
+
 function ThriftField(def, struct) {
     var self = this;
     assert(def.isResult || def.id.value > 0,
@@ -372,8 +374,11 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = result.offset;
         var id = result.value;
 
+        // keep unrecognized files from the future if it could be an
+        // unrecognized exception.
         if (!self.spec.fieldsById[id] && self.spec.isResult) {
-            result = skipType(buffer, offset, typeid);
+            result = readType(buffer, offset, typeid);
+            // result = skipType(buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
                 return result;

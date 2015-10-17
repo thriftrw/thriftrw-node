@@ -23,6 +23,8 @@
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
+var Buffer = require('buffer').Buffer;
+
 var Thrift = require('../thrift').Thrift;
 var ThriftUnrecognizedException = require('../unrecognized-exception')
     .ThriftUnrecognizedException;
@@ -34,12 +36,27 @@ var thriftV2 = new Thrift({source: sourceV2});
 
 test('Exception RW', function t(assert) {
 
-    var err = new Error('Bogus name: Voldemort');
-    err.name = 'ThriftException';
-    err.bogusName = 'Voldemort';
+    var err = new Error('Bogus Error: Voldemort');
+    err.string = 'ThriftException';
+    err.bool = true;
+    err.byte = 0x00;
+    err.i16 = 0x1234;
+    err.i32 = 0x12345678;
+    err.i64 = Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+    err.double = 1;
+    err.binary = Buffer('binary');
+    err.struct = {
+        edges: {
+            'abc': 1,
+            'def': 2,
+            'ghi': 3
+        },
+        stringset: ['a', 'b', 'c'],
+        boollist: [true, true, false]
+    };
 
     var v2Result = new thriftV2.BogusService.bogus.result.Constructor({
-        bogusName: err
+        bogusErr: err
     });
 
     var v2Buf = thriftV2.BogusService.bogus.result.toBuffer(v2Result);
@@ -49,9 +66,20 @@ test('Exception RW', function t(assert) {
     assert.deepEqual(v1Result, {
         success: null,
         failure: new ThriftUnrecognizedException({
-            1: 'Voldemort',
-            2: 'Bogus name: Voldemort'
+            1: err.string,
+            2: err.bool,
+            3: err.byte,
+            4: err.i16,
+            5: err.i32,
+            6: err.i64,
+            7: err.double,
+            8: 'binary',
+            9: {
+                1: err.struct.edges,
+                2: err.struct.stringset,
+                3: err.struct.boollist
+            }
         })
-    });
+    }, 'Expected ThriftUnrecognizedException on result failure property');
     assert.end();
 });

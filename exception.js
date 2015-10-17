@@ -23,7 +23,7 @@
 var inherits = require('util').inherits;
 var ThriftStruct = require('./struct').ThriftStruct;
 
-function ThriftException() {
+function ThriftException(spec) {
     var self = this;
     ThriftStruct.call(self);
     self.type = null;

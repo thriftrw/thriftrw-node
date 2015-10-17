@@ -41,6 +41,8 @@ ttypes[TYPE.LIST] = tlist.TListRW({ttypes: ttypes});
 ttypes[TYPE.SET] = tlist.TListRW({ttypes: ttypes});
 ttypes[TYPE.STRUCT] = tstruct.TStructRW({ttypes: ttypes});
 
+module.exports.ttypes = ttypes;
+
 module.exports.TPair = tmap.TPair;
 module.exports.TMap = tmap.TMap;
 module.exports.TMapRW = ttypes[TYPE.MAP];
