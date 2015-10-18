@@ -37,6 +37,7 @@ var thrift = new thriftrw.Thrift({
 
 var bufferRW = thrift.getType('bufnum').rw;
 var longRW = thrift.getType('long').rw;
+var dateRW = thrift.getType('timestamp').rw;
 
 var bufferCases = [
     [
@@ -45,7 +46,7 @@ var bufferCases = [
     ]
 ];
 
-test('I64RW', testRW.cases(bufferRW, bufferCases));
+test('I64BufferRW', testRW.cases(bufferRW, bufferCases));
 
 var longCases = [
     [
@@ -54,7 +55,21 @@ var longCases = [
     ]
 ];
 
-test('I64RW', testRW.cases(longRW, longCases));
+test('I64LongRW', testRW.cases(longRW, longCases));
+
+var dateCases = [
+    [
+        new Date(0),
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]
+    ],
+    // ensure that resolution is scaled up to miliseconds
+    [
+        new Date(1),
+        [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0xe8] // 1000
+    ]
+];
+
+test('I64DateRW', testRW.cases(dateRW, dateCases));
 
 test('coerce string', function t(assert) {
     var buffer = new Buffer(8);
@@ -150,6 +165,21 @@ test('fail to coerce', function t(assert) {
     var buffer = new Buffer(8);
     var res = bufferRW.writeInto(null, buffer, 0);
     assert.equals(res.err.message, 'invalid argument, expected i64 representation');
+    assert.end();
+});
+
+test('coerce date string', function t(assert) {
+    var buffer = new Buffer(8);
+    buffer.fill(0xff);
+    dateRW.writeInto('1970-01-01T00:00:00.000', buffer, 0);
+    assert.deepEquals(buffer, new Buffer([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces date string');
+    assert.end();
+});
+
+test('coerce number to date', function t(assert) {
+    var buffer = new Buffer(8);
+    dateRW.writeInto(0, buffer, 0);
+    assert.deepEquals(buffer, new Buffer([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces number to date');
     assert.end();
 });
 
