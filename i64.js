@@ -136,8 +136,8 @@ I64DateRW.prototype.readFrom = function readFrom(buffer, offset) {
         buffer.readInt32BE(offset + 4, 4, true),
         buffer.readInt32BE(offset + 0, 4, true)
     );
-    var seconds = long.divide(1000).toNumber();
-    var value = new Date(seconds);
+    var ms = long.toNumber();
+    var value = new Date(ms);
     return new bufrw.ReadResult(null, offset + 8, value);
 };
 
@@ -146,7 +146,7 @@ I64DateRW.prototype.writeInto = function writeInto(value, buffer, offset) {
     if (typeof value === 'string') {
         value = Date.parse(value);
     }
-    value = Long.fromNumber(+value).multiply(1000);
+    value = Long.fromNumber(+value);
     return self.writeObjectInt64Into(value, buffer, offset);
 };
 
