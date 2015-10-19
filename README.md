@@ -365,20 +365,29 @@ typedef map<Struct, Struct> (js.type = 'entries') StructsByStructs
 
 JavaScript numbers lack sufficient precision to represent all possible 64 bit
 integers.
-ThriftRW decodes 64 bit integers into a Buffer, but can coerce various types
-down to i64 for purposes of expressing them as JSON.
+ThriftRW decodes 64 bit integers into a Buffer by default, and can coerce
+various types down to i64 for purposes of expressing them as JSON or plain
+JavaScript objects.
 
 - A number up to the maximum integer precision available in JavaScript.
-- A `{hi, lo}` pair of 32 bit precision integers.
+- A `{hi, lo}` or `{high, low}` pair of 32 bit precision integers.
 - A 16 digit hexadecimal string, like `0102030405060708`.
 - An array of 8 byte values. Ranges are not checked, but coerced.
 - An 8 byte buffer.
 
-In a future version, we are likely to expose `js.type` annotations to read any
-of these forms off the wire.
-Currently, they can only be written.
+ThriftRW supports a type annotation for i64 that reifies i64 as an instance of
+[Long][], an object that models a 64 bit number as a `{high, low}` pair of 32
+bit numbers and implements methods for common mathematical operators.
 
-For users that need to operate on i64 as a numbers, use the [Long][] package.
+```thrift
+typedef i64 (js.type = 'Long') long
+```
+
+Please use the [Long][] package for operating with such numbers.
+A backward-incompatible release may make this form the default for reading.
+
+With the Long type annotation, ThriftRW performs the following conversions on
+your behalf.
 
 ```js
 var Long = require('long');
@@ -395,10 +404,26 @@ buf.writeUInt32BE(num.low, 4, 4, true);
 
 [Long]: https://www.npmjs.com/package/long
 
-A future version of ThriftRW will support the `{high, low}` internal
-representation used by Long for writing, and a `js.type = 'Long'` annotation
-for reading.
-A backward-incompatible release may make this form the default for reading.
+### Timestamps
+
+The convention for expressing timestamps at Uber is to use an i64 for
+UTC milliseconds since the UNIX epoch.
+Previously, some services were found spending an unreasonable amount of time
+parsing timestamp strings.
+ThriftRW supports a `(js.type = 'Date')` annotation on i64.
+
+```thrift
+typedef i64 (js.type = 'Date') timestamp
+```
+
+This will reify timestamps as a JavaScript Date and ThriftRW will accept an
+ISO-8601 timestamp or milliseconds since the epoch (as returned by
+`Date.now()`) in place of a Date.
+
+For [TCurl][], this means that you can both read and write ISO-8601 for
+timestamps.
+
+[TCurl]: https://github.com/uber/tcurl
 
 ## Releated
 

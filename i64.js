@@ -113,8 +113,7 @@ function writeStringInt64Into(value, buffer, offset) {
     return new bufrw.WriteResult(null, offset + 8);
 };
 
-function I64LongRW() {
-}
+function I64LongRW() {}
 
 util.inherits(I64LongRW, I64RW);
 
@@ -128,8 +127,32 @@ I64LongRW.prototype.readFrom = function readFrom(buffer, offset) {
 
 var i64LongRW = new I64LongRW();
 
-function I64BufferRW() {
-}
+function I64DateRW() {}
+
+util.inherits(I64DateRW, I64RW);
+
+I64DateRW.prototype.readFrom = function readFrom(buffer, offset) {
+    var long = Long.fromBits(
+        buffer.readInt32BE(offset + 4, 4, true),
+        buffer.readInt32BE(offset + 0, 4, true)
+    );
+    var ms = long.toNumber();
+    var value = new Date(ms);
+    return new bufrw.ReadResult(null, offset + 8, value);
+};
+
+I64DateRW.prototype.writeInto = function writeInto(value, buffer, offset) {
+    var self = this;
+    if (typeof value === 'string') {
+        value = Date.parse(value);
+    }
+    value = Long.fromNumber(+value);
+    return self.writeObjectInt64Into(value, buffer, offset);
+};
+
+var i64DateRW = new I64DateRW();
+
+function I64BufferRW() {}
 
 util.inherits(I64BufferRW, I64RW);
 
@@ -146,6 +169,9 @@ function ThriftI64(annotations) {
     if (annotations && annotations['js.type'] === 'Long') {
         self.rw = i64LongRW;
         self.surface = Long;
+    } else if (annotations && annotations['js.type'] === 'Date') {
+        self.rw = i64DateRW;
+        self.surface = Date;
     } else {
         self.rw = i64BufferRW;
         self.surface = Buffer;
@@ -158,4 +184,5 @@ ThriftI64.prototype.typeid = TYPE.I64;
 module.exports.I64RW = I64RW;
 module.exports.I64BufferRW = I64BufferRW;
 module.exports.I64LongRW = I64LongRW;
+module.exports.I64DateRW = I64DateRW;
 module.exports.ThriftI64 = ThriftI64;
