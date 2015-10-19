@@ -29,10 +29,14 @@ var TYPE = require('./TYPE');
 var NAMES = require('./names');
 var errors = require('./errors');
 var skipType = require('./skip').skipType;
+var ThriftUnrecognizedException = require('./unrecognized-exception')
+    .ThriftUnrecognizedException;
 
 var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
+
+var readType = require('./read').readType;
 
 function ThriftField(def, struct) {
     var self = this;
@@ -369,6 +373,24 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = result.offset;
         var id = result.value;
+
+        // keep unrecognized files from the future if it could be an
+        // unrecognized exception.
+        if (!self.spec.fieldsById[id] && self.spec.isResult) {
+            result = readType(buffer, offset, typeid);
+            // result = skipType(buffer, offset, typeid);
+            // istanbul ignore if
+            if (result.err) {
+                return result;
+            }
+            offset = result.offset;
+            self.spec.set(
+                struct,
+                'failure',
+                new ThriftUnrecognizedException(result.value)
+            );
+            continue;
+        }
 
         // skip unrecognized fields from THE FUTURE
         if (!self.spec.fieldsById[id]) {
