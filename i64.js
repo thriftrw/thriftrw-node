@@ -132,10 +132,12 @@ function I64DateRW() {}
 util.inherits(I64DateRW, I64RW);
 
 I64DateRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var value = new Date(Long.fromBits(
+    var long = Long.fromBits(
         buffer.readInt32BE(offset + 4, 4, true),
         buffer.readInt32BE(offset + 0, 4, true)
-    ).divide(1000).toNumber());
+    );
+    var seconds = long.divide(1000).toNumber();
+    var value = new Date(seconds);
     return new bufrw.ReadResult(null, offset + 8, value);
 };
 
