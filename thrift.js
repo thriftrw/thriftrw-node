@@ -28,7 +28,6 @@ var Result = require('bufrw/result');
 
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
-var ThriftException = require('./exception').ThriftException;
 var ThriftUnion = require('./union').ThriftUnion;
 var ThriftEnum = require('./enum').ThriftEnum;
 
@@ -147,7 +146,7 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
 
 Thrift.prototype.compileException = function compileException(def) {
     var self = this;
-    var spec = new ThriftException({strict: self.strict});
+    var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
     self.claim(spec.fullName, def);
     self.exceptions[spec.fullName] = spec;

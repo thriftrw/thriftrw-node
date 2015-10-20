@@ -29,9 +29,7 @@ var Thrift = require('../thrift').Thrift;
 var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
 var thrift = new Thrift({source: source});
 
-var err = new Error('Bogus name: Voldemort');
-err.name = 'ThriftException';
-err.bogusName = 'Voldemort';
+var err = new thrift.BogusNameError({message: 'Bogus name: Voldemort', bogusName: 'Voldemort'});
 
 test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
 
@@ -54,14 +52,7 @@ test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
 
 ]));
 
-var err2 = new Error('Bogus name: Voldemort');
-err2.name = 'ThriftException';
-Object.defineProperty(err2, 'type', {
-    value: 'Voldemort',
-    configurable: true,
-    enumerable: true,
-    writable: true
-});
+var err2 = new thrift.BogusWithType({message: 'Bogus name: Voldemort', type: 'Voldemort'});
 
 test('Exception RW with type', testRW.cases(thrift.BogusWithType.rw, [
 
