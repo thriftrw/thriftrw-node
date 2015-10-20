@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* global Buffer */
+
 'use strict';
 
 var test = require('tape');
@@ -162,3 +164,28 @@ test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
     ]]
 
 ]));
+
+test('Tolerance for lists on the wire', function t(assert) {
+    var buf = new Buffer([
+        0x0f,                   // type:1      -- 15, list
+        0x00, 0x01,             // field:2     -- 1, asArray
+        0x08,                   // type:1      -- 8, i32
+        0x00, 0x00, 0x00, 0x03, // len:4       -- 3
+        0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
+        0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
+        0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
+        0x00                    // type:1      -- 0, stop
+    ]);
+
+    var res = thrift.Bucket.rw.readFrom(buf, 0);
+
+    if (res.err) {
+        return assert.end(res.err);
+    }
+
+    assert.deepEqual(res.value, new thrift.Bucket({
+        asArray: [1, 2, 3]
+    }));
+
+    assert.end();
+});

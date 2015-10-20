@@ -59,6 +59,10 @@ util.inherits(ThriftSet, ThriftList);
 
 ThriftSet.prototype.name = 'set';
 ThriftSet.prototype.typeid = TYPE.SET;
+// Lists are indistinguishable on the wire apart from the typeid.
+// A prior version of thriftrw was writing sets with the list typeid.
+// Allowing an alternate typeid eases migration temporarily.
+ThriftSet.prototype.altTypeid = TYPE.LIST;
 
 ThriftSet.prototype.arrayForm = {
     create: function create() {

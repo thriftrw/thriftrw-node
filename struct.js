@@ -404,7 +404,10 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
 
         var field = self.spec.fieldsById[id];
-        if (field.valueType.typeid !== typeid) {
+        if (
+            field.valueType.typeid !== typeid &&
+            field.valueType.altTypeid !== typeid // deprecated, see set.js
+        ) {
             return new ReadResult(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
