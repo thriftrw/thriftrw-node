@@ -137,12 +137,21 @@ test('fail to coerce object bad lo value', function t(assert) {
     assert.end();
 });
 
-test('coerce number', function t(assert) {
+test('coerce small number', function t(assert) {
     var buffer = new Buffer(8);
     var res = bufferRW.writeInto(10, buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
     assert.deepEquals(buffer, new Buffer('000000000000000a', 'hex'), 'written value');
+    assert.end();
+});
+
+test('coerce large number', function t(assert) {
+    var buffer = new Buffer(8);
+    var res = bufferRW.writeInto(Math.pow(2, 50), buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('0004000000000000', 'hex'), 'written value');
     assert.end();
 });
 

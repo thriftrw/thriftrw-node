@@ -45,7 +45,7 @@ I64RW.prototype.writeInto = function writeInto(value, buffer, offset) {
         value.copy(buffer, offset, 0, 8);
         return new bufrw.WriteResult(null, offset + 8);
     } else if (typeof value === 'number') {
-        buffer.writeInt32BE(value / Math.pow(32), offset, true);
+        buffer.writeInt32BE(value / Math.pow(2, 32), offset, true);
         buffer.writeInt32BE(value, offset + 4, true);
         return new bufrw.WriteResult(null, offset + 8);
     } else if (Array.isArray(value)) {
