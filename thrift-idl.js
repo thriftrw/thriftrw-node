@@ -54,3 +54,4 @@ function parse(source) {
 }
 
 module.exports.parse = parse;
+module.exports.__parser = parser;

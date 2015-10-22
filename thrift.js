@@ -22,8 +22,9 @@
 'use strict';
 
 var assert = require('assert');
+var fs = require('fs');
+var path = require('path');
 var util = require('util');
-var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
 var ThriftService = require('./service').ThriftService;
@@ -45,6 +46,15 @@ var ThriftSet = require('./set').ThriftSet;
 var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
+
+var idlPrebuildPath = path.join(__dirname, 'thrift-idl.prebuild.js');
+var idl;
+
+if (fs.existsSync(idlPrebuildPath)) {
+    idl = require(idlPrebuildPath);
+} else {
+    idl = require('./thrift-idl');
+}
 
 function Thrift(options) {
     var self = this;
