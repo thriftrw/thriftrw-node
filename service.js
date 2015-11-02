@@ -21,7 +21,6 @@
 'use strict';
 
 var ast = require('./ast');
-var ThriftStruct = require('./struct').ThriftStruct;
 
 function ThriftFunction(args) {
     var self = this;
@@ -39,7 +38,6 @@ ThriftFunction.prototype.compile = function process(def, spec) {
 
     self.name = def.id.name;
 
-    self.args = new ThriftStruct({strict: self.strict});
     var argsId = new ast.Identifier(self.name + '_args');
     argsId.as = self.fullName + '_args';
     var argsStruct = new ast.Struct(argsId, def.fields);
