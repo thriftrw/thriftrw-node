@@ -21,10 +21,12 @@ Header
   / 'csharp_namespace' Identifier
 
 Include
-  = IncludeToken Literal
+  = IncludeToken namespace:Identifier? __ id:Literal {
+    return new ast.Include(id, namespace);
+  }
 
 CppInclude
-  = CppIncludeToken Literal
+  = CppIncludeToken Literal 
 
 Namespace
   = NamespaceToken scope:NamespaceScope __ id:Identifier { return new ast.Namespace(id, scope); }

@@ -68,6 +68,14 @@ function ReferenceIdentifier(name, line, column) {
 }
 ReferenceIdentifier.prototype.type = 'ReferenceIdentifier';
 
+module.exports.Include = Include;
+function Include(id, namespace) {
+    var self = this;
+    self.id = id;
+    self.namespace = namespace;
+}
+Include.prototype.type = 'Include';
+
 module.exports.Namespace = Namespace;
 function Namespace(id, scope) {
     var self = this;

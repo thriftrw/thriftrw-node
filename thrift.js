@@ -23,6 +23,9 @@
 
 var assert = require('assert');
 var util = require('util');
+var fs = require('fs');
+var path = require('path');
+var crypto = require('crypto');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
@@ -46,6 +49,10 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
+var casThriftCache = {};
+var filepathThriftCache = {};
+var validThriftIdentifierRE = /^[a-zA-Z0-9_][a-zA-Z0-9_\.]+$/;
+
 function Thrift(options) {
     var self = this;
 
@@ -65,6 +72,13 @@ function Thrift(options) {
     self.exceptions = Object.create(null);
     self.unions = Object.create(null);
     self.typedefs = Object.create(null);
+    self.modulesByName = Object.create(null);
+    self.modulesByPath = options.modulesByPath || Object.create(null);
+    self.thriftFile = options.thriftFile || null;
+
+    if (self.thriftFile) {
+        self.dirname = path.dirname(self.thriftFile);
+    }
 
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
@@ -72,6 +86,25 @@ function Thrift(options) {
     // Second pass links field references of structs.
     self.link();
 }
+
+Thrift.loadSync = function loadSync(options) {
+    var filepath = path.resolve(options.thriftFile);
+
+    if (filepathThriftCache[filepath]) {
+        return filepathThriftCache[filepath];
+    }
+
+    options.source = fs.readFileSync(options.thriftFile, 'ascii');
+
+    var hash = crypto.createHash('md5')
+        .update(options.source)
+        .digest('hex');
+
+    var thrift = casThriftCache[hash] = filepathThriftCache[filepath] =
+        casThriftCache[hash] || new Thrift(options);
+
+    return thrift;
+};
 
 Thrift.prototype.getType = function getType(name) {
     var self = this;
@@ -103,6 +136,7 @@ Thrift.prototype.compile = function compile(source) {
     var self = this;
     var syntax = idl.parse(source);
     assert.equal(syntax.type, 'Program', 'expected a program');
+    self.compileHeaders(syntax.headers);
     self.compileDefinitions(syntax.definitions);
 };
 
@@ -110,6 +144,11 @@ Thrift.prototype.claim = function claim(name, def) {
     var self = this;
     assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
     self.claims[name] = true;
+};
+
+Thrift.prototype._headerProcessors = {
+    // sorted
+    Include: 'compileInclude'
 };
 
 Thrift.prototype._definitionProcessors = {
@@ -123,14 +162,55 @@ Thrift.prototype._definitionProcessors = {
     Union: 'compileUnion'
 };
 
+Thrift.prototype.compileHeaders = function compileHeaders(defs) {
+    var self = this;
+    for (var index = 0; index < defs.length; index++) {
+        var def = defs[index];
+        var headerProcessor = self._headerProcessors[def.type];
+        // istanbul ignore else
+        if (headerProcessor) {
+            self[headerProcessor](def);
+        }
+    }
+};
+
 Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
     var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
+        var definitionProcessor = self._definitionProcessors[def.type];
         // istanbul ignore else
-        if (self._definitionProcessors[def.type]) {
-            self[self._definitionProcessors[def.type]](def);
+        if (definitionProcessor) {
+            self[definitionProcessor](def);
         }
+    }
+};
+
+Thrift.prototype.compileInclude = function compileInclude(def) {
+    var self = this;
+
+    if (def.id.indexOf('./') === 0 || def.id.indexOf('../') === 0) {
+        var thriftFile = path.resolve(self.dirname, def.id);
+        var ns = def.namespace && def.namespace.name;
+
+        // If include isn't name, get filename sans *.thrift file extension.
+        if (!ns) {
+            var basename = path.basename(def.id);
+            ns = basename.slice(0, basename.length - 7);
+            if (!validThriftIdentifierRE.test(ns)) {
+                throw Error(
+                    'Thrift include filename is not valid thrift identifier'
+                );
+            }
+        }
+
+        self.modulesByName[ns] = self.modulesByPath[thriftFile] =
+            Thrift.loadSync({
+                thriftFile: thriftFile,
+                strict: self.strict
+            });
+    } else {
+        throw Error('Include path string must start with either ./ or ../');
     }
 };
 
@@ -228,13 +308,30 @@ Thrift.prototype.resolve = function resolve(def) {
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        if (!self.types[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
+        var nameParts = def.name.split('.');
+        var types = self.types;
+
+        for (var i = 0, len = nameParts.length; i < len; i++) {
+            var id = nameParts.shift();
+            if (nameParts.length === 0) {
+                if (!types[id]) {
+                    err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+                    err.line = def.line;
+                    err.column = def.column;
+                    throw err;
+                }
+                return types[id].link(self);
+            } else {
+                if (!self.modulesByName[id]) {
+                    err = new Error('cannot resolve module reference ' + id + ' for ' + def.name + ' at ' + def.line + ':' + def.column);
+                    err.line = def.line;
+                    err.column = def.column;
+                    throw err;
+                }
+                types = self.modulesByName[id].types;
+            }
         }
-        return self.types[def.name].link(self);
+
     // istanbul ignore else
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
