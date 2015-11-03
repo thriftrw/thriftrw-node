@@ -26,8 +26,8 @@ var Thrift = require('../thrift').Thrift;
 var path = require('path');
 
 test('loads a thrift file with imports synchronously', function t(assert) {
-    var mainThrift = makeThriftLoader('include-service.thrift')();
-    var importedThrift = makeThriftLoader('include-types.thrift')();
+    var mainThrift = makeThriftLoader('include-parent.thrift')();
+    var importedThrift = makeThriftLoader('include-child.thrift')();
 
     var typeImportedByMainThrift = mainThrift
         .types
@@ -42,6 +42,16 @@ test('loads a thrift file with imports synchronously', function t(assert) {
 
     assert.equal(typeImportedByMainThrift, typeFromImportedThrift,
         'Type imported correctly');
+
+    var keyValueServiceFunctions = Object.keys(
+        mainThrift.services.KeyValue.functionsByName
+    );
+
+    assert.deepEqual(
+        keyValueServiceFunctions,
+        ['get', 'put', 'serviceName', 'healthy'],
+        'KeyValue Service has functions inherited from service it extends'
+    );
 
     assert.end();
 });

@@ -258,6 +258,15 @@ Thrift.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
+
+    if (def.baseService) {
+        var baseService = self.resolveInclude(def, 'baseService', 'services');
+        for (var index = 0; index < baseService.functions.length; index++) {
+            var thriftFunction = baseService.functions[index];
+            service.addFunction(thriftFunction);
+        }
+    }
+
     self.claim(service.name, def.id);
     self.services[service.name] = service;
 };
@@ -304,34 +313,10 @@ Thrift.prototype.link = function link() {
 
 Thrift.prototype.resolve = function resolve(def) {
     var self = this;
-    var err;
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        var nameParts = def.name.split('.');
-        var types = self.types;
-
-        for (var i = 0, len = nameParts.length; i < len; i++) {
-            var id = nameParts.shift();
-            if (nameParts.length === 0) {
-                if (!types[id]) {
-                    err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-                    err.line = def.line;
-                    err.column = def.column;
-                    throw err;
-                }
-                return types[id].link(self);
-            } else {
-                if (!self.modulesByName[id]) {
-                    err = new Error('cannot resolve module reference ' + id + ' for ' + def.name + ' at ' + def.line + ':' + def.column);
-                    err.line = def.line;
-                    err.column = def.column;
-                    throw err;
-                }
-                types = self.modulesByName[id].types;
-            }
-        }
-
+        return self.resolveInclude(def, 'name', 'types');
     // istanbul ignore else
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
@@ -400,6 +385,35 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
             self.resolveValue(def.entries[index].value);
     }
     return map;
+};
+
+Thrift.prototype.resolveInclude = function resolveInclude(def, prop, defType) {
+    var self = this;
+    var identifier = def[prop];
+    var parts = identifier.split('.');
+    var definitions = self[defType];
+    var err;
+
+    for (var index = 0; index < parts.length; index++) {
+        var id = parts[index];
+        if (index === (parts.length - 1)) {
+            if (!definitions[id]) {
+                err = new Error('cannot resolve reference to ' + identifier + ' at ' + def.line + ':' + def.column);
+                err.line = def.line;
+                err.column = def.column;
+                throw err;
+            }
+            return definitions[id].link(self);
+        } else {
+            if (!self.modulesByName[id]) {
+                err = new Error('cannot resolve module reference ' + id + ' for ' + def.name + ' at ' + def.line + ':' + def.column);
+                err.line = def.line;
+                err.column = def.column;
+                throw err;
+            }
+            definitions = self.modulesByName[id][defType];
+        }
+    }
 };
 
 module.exports.Thrift = Thrift;
