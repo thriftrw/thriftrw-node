@@ -59,6 +59,12 @@ test('loads a thrift file with imports synchronously', function t(assert) {
         'Resolve values to included consts'
     );
 
+    assert.equal(
+        mainThrift.consts.DEFAULT_ROLE.value,
+        'USER',
+        'Constant defined from imported enum'
+    );
+
     assert.end();
 });
 
