@@ -74,6 +74,7 @@ ThriftEnum.prototype.compile = function compile(def, spec) {
                 new ast.Literal(name)
             )
         );
+        spec.define(fullName, spec.consts[fullName]);
         self.namesToValues[name] = value;
         self.namesToNames[name] = name;
         self.valuesToNames[value] = name;

@@ -53,6 +53,12 @@ test('loads a thrift file with imports synchronously', function t(assert) {
         'KeyValue Service has functions inherited from service it extends'
     );
 
+    assert.deepEqual(
+        mainThrift.consts.nums.value,
+        [1, 42, 2],
+        'Resolve values to included consts'
+    );
+
     assert.end();
 });
 
@@ -68,7 +74,7 @@ test('bad include paths', function t(assert) {
 test('unknown thrift module name', function t(assert) {
     assert.throws(
         makeThriftLoader('include-error-unknown-module.thrift'),
-        /cannot resolve module reference common for common.Item at 2:22/,
+        /cannot resolve reference to common.Item/,
         'throws on unknown module'
     );
     assert.end();

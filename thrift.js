@@ -64,6 +64,7 @@ function Thrift(options) {
     self.strict = options.strict !== undefined ? options.strict : true;
 
     self.claims = Object.create(null);
+    self.definitions = Object.create(null);
     self.services = Object.create(null);
     self.types = Object.create(null);
     self.consts = Object.create(null);
@@ -140,10 +141,18 @@ Thrift.prototype.compile = function compile(source) {
     self.compileDefinitions(syntax.definitions);
 };
 
-Thrift.prototype.claim = function claim(name, def) {
+Thrift.prototype.claim = function claim(name, def, spec) {
     var self = this;
     assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
     self.claims[name] = true;
+    if (spec) {
+        self.define(name, spec);
+    }
+};
+
+Thrift.prototype.define = function define(name, spec) {
+    var self = this;
+    self.definitions[name] = spec;
 };
 
 Thrift.prototype._headerProcessors = {
@@ -204,11 +213,14 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             }
         }
 
-        self.modulesByName[ns] = self.modulesByPath[thriftFile] =
-            Thrift.loadSync({
-                thriftFile: thriftFile,
-                strict: self.strict
-            });
+        var spec = Thrift.loadSync({
+            thriftFile: thriftFile,
+            strict: self.strict
+        });
+
+        self.claim(ns, def, spec);
+        self.modulesByName[ns] = spec;
+        self.modulesByPath[thriftFile] = spec;
     } else {
         throw Error('Include path string must start with either ./ or ../');
     }
@@ -218,7 +230,7 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.claim(spec.fullName, def, spec);
     self.structs[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -228,7 +240,7 @@ Thrift.prototype.compileException = function compileException(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.claim(spec.fullName, def, spec);
     self.exceptions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -238,7 +250,7 @@ Thrift.prototype.compileUnion = function compileUnion(def) {
     var self = this;
     var spec = new ThriftUnion({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.claim(spec.fullName, def, spec);
     self.unions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -248,7 +260,7 @@ Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var self = this;
     var spec = new ThriftTypedef();
     spec.compile(def, self);
-    self.claim(spec.name, spec);
+    self.claim(spec.name, spec, spec);
     self.typedefs[spec.name] = spec;
     self.types[spec.name] = spec;
     return spec;
@@ -260,21 +272,21 @@ Thrift.prototype.compileService = function compileService(def) {
     service.compile(def, self);
 
     if (def.baseService) {
-        var baseService = self.resolveInclude(def, 'baseService', 'services');
+        var baseService = self.resolveIdentifier(def, def.baseService);
         for (var index = 0; index < baseService.functions.length; index++) {
             var thriftFunction = baseService.functions[index];
             service.addFunction(thriftFunction);
         }
     }
 
-    self.claim(service.name, def.id);
+    self.claim(service.name, def.id, service);
     self.services[service.name] = service;
 };
 
 Thrift.prototype.compileConst = function compileConst(def, spec) {
     var self = this;
     var thriftConst = new ThriftConst(def);
-    self.claim(def.id.name, def.id);
+    self.claim(def.id.name, def.id, thriftConst);
     self.consts[def.id.name] = thriftConst;
 };
 
@@ -282,7 +294,7 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
     var self = this;
     var spec = new ThriftEnum();
     spec.compile(def, self);
-    self.claim(spec.name, def.id);
+    self.claim(spec.name, def.id, spec);
     self.enums[spec.name] = spec;
     self.types[spec.name] = spec;
 };
@@ -316,7 +328,7 @@ Thrift.prototype.resolve = function resolve(def) {
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        return self.resolveInclude(def, 'name', 'types');
+        return self.resolveIdentifier(def, def.name);
     // istanbul ignore else
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
@@ -339,7 +351,7 @@ Thrift.prototype.resolve = function resolve(def) {
 
 Thrift.prototype.resolveValue = function resolveValue(def) {
     var self = this;
-    var err;
+    // var err;
     if (!def) {
         return null;
     } else if (def.type === 'Literal') {
@@ -355,14 +367,7 @@ Thrift.prototype.resolveValue = function resolveValue(def) {
         } else if (def.name === 'false') {
             return false;
         }
-        // istanbul ignore if
-        if (!self.consts[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-        return self.consts[def.name].link(self).surface;
+        return self.resolveIdentifier(def, def.name).surface;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }
@@ -387,32 +392,41 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
     return map;
 };
 
-Thrift.prototype.resolveInclude = function resolveInclude(def, prop, defType) {
+Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier) {
     var self = this;
-    var identifier = def[prop];
+    var definitions = self.definitions;
+
+    // short circuit if in global namespace.
+    if (definitions[identifier]) {
+        return definitions[identifier].link(self);
+    }
+
     var parts = identifier.split('.');
-    var definitions = self[defType];
     var err;
 
     for (var index = 0; index < parts.length; index++) {
         var id = parts[index];
-        if (index === (parts.length - 1)) {
-            if (!definitions[id]) {
-                err = new Error('cannot resolve reference to ' + identifier + ' at ' + def.line + ':' + def.column);
-                err.line = def.line;
-                err.column = def.column;
-                throw err;
-            }
-            return definitions[id].link(self);
-        } else {
-            if (!self.modulesByName[id]) {
-                err = new Error('cannot resolve module reference ' + id + ' for ' + def.name + ' at ' + def.line + ':' + def.column);
-                err.line = def.line;
-                err.column = def.column;
-                throw err;
-            }
-            definitions = self.modulesByName[id][defType];
+
+        if (!definitions[id]) {
+            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+            err.line = def.line;
+            err.column = def.column;
+            throw err;
         }
+
+        // if (index === (parts.length - 1)) {
+        //     return definitions[id].link(self);
+        // } else {
+        definitions = definitions[id].definitions;
+        identifier = identifier
+            .substr(identifier.indexOf('.') + 1, identifier.length);
+
+        // short circuit if in submodule global namespace.
+        // istanbul ignore else
+        if (definitions[identifier]) {
+            return definitions[identifier].link(self);
+        }
+        // }
     }
 };
 
