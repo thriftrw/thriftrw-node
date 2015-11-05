@@ -26,8 +26,14 @@ var Thrift = require('../thrift').Thrift;
 var path = require('path');
 
 test('loads a thrift file with imports synchronously', function t(assert) {
-    var mainThrift = makeThriftLoader('include-parent.thrift')();
-    var importedThrift = makeThriftLoader('include-child.thrift')();
+    var mainThrift = Thrift.loadSync({
+        thriftFile: path.join(__dirname, 'include-parent.thrift'),
+        strict: false
+    });
+    var importedThrift = Thrift.loadSync({
+        thriftFile: path.join(__dirname, 'include-child.thrift'),
+        strict: false
+    });
 
     var typeImportedByMainThrift = mainThrift
         .types
@@ -68,45 +74,72 @@ test('loads a thrift file with imports synchronously', function t(assert) {
     assert.end();
 });
 
-test('bad include paths', function t(assert) {
-    assert.throws(
-        makeThriftLoader('include-error-not-path.thrift'),
-        /Include path string must start with either .\/ or ..\//,
-        'include throws without ./ or ../'
-    );
-    assert.end();
-});
-
-test('unknown thrift module name', function t(assert) {
-    assert.throws(
-        makeThriftLoader('include-error-unknown-module.thrift'),
-        /cannot resolve reference to common.Item/,
-        'throws on unknown module'
-    );
-    assert.end();
-});
-
 test('include without explicitly defined namespace', function t(assert) {
-    var thrift = makeThriftLoader('include-filename-namespace.thrift')();
+    var thrift = Thrift.loadSync({
+        thriftFile: path.join(
+            __dirname,
+            'include-filename-namespace.thrift'
+        ),
+        strict: false
+    });
     assert.ok(thrift.modulesByName.typedef,
         'modulesByName includes typedef thrift instance');
     assert.end();
 });
 
+test('bad include paths', function t(assert) {
+    assert.throws(
+        badIncludePaths,
+        /Include path string must start with either .\/ or ..\//,
+        'include throws without ./ or ../'
+    );
+    assert.end();
+
+    function badIncludePaths() {
+        Thrift.loadSync({
+            thriftFile: path.join(
+                __dirname,
+                'include-error-not-path.thrift'
+            ),
+            strict: false
+        });
+    }
+});
+
+test('unknown thrift module name', function t(assert) {
+    assert.throws(
+        unknownThriftModule,
+        /cannot resolve reference to common.Item/,
+        'throws on unknown module'
+    );
+    assert.end();
+
+    function unknownThriftModule() {
+        Thrift.loadSync({
+            thriftFile: path.join(
+                __dirname,
+                'include-error-unknown-module.thrift'
+            ),
+            strict: false
+        });
+    }
+});
+
 test('bad thrift module name', function t(assert) {
     assert.throws(
-        makeThriftLoader('include-error-invalid-filename-as-namespace.thrift'),
+        badThriftModuleName,
         /Thrift include filename is not valid thrift identifier/,
         'throws when module name from filename is an invalid thrift identifier'
     );
     assert.end();
-});
 
-function makeThriftLoader(filename) {
-    return function thriftLoader() {
-        return Thrift.loadSync({
-            thriftFile: path.join(__dirname, filename),
+    function badThriftModuleName() {
+        Thrift.loadSync({
+            thriftFile: path.join(
+                __dirname,
+                'include-error-invalid-filename-as-namespace.thrift'
+            ),
             strict: false
         });
-    };
-}
+    }
+});
