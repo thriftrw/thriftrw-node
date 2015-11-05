@@ -100,6 +100,11 @@ ThriftService.prototype.compileFunction = function processFunction(def, spec) {
         strict: self.strict
     });
     thriftFunction.compile(def, spec);
+    self.addFunction(thriftFunction);
+};
+
+ThriftService.prototype.addFunction = function addFunction(thriftFunction) {
+    var self = this;
     self.functions.push(thriftFunction);
     self.functionsByName[thriftFunction.name] = thriftFunction;
 };

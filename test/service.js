@@ -61,3 +61,19 @@ test('returns non-base-type', function t(assert) {
     assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
     assert.end();
 });
+
+test('service extends from another service', function t(assert) {
+    assert.deepEqual(
+        Object.keys(thrift.services.Qux.functionsByName),
+        ['quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+        'Service contains function from BaseService'
+    );
+
+    assert.equal(
+        thrift.services.Qux.functionsByName.foo,
+        thrift.services.Foo.functionsByName.foo,
+        'Function Qux.foo is the same as Foo.foo by reference'
+    );
+
+    assert.end();
+});

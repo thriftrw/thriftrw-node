@@ -9,8 +9,13 @@ service Foo {
     Struct returnsStruct()
 }
 
+service Qux extends Foo {
+    void quux()
+}
+
 struct Struct {
 }
 
 exception BarError {
 }
+

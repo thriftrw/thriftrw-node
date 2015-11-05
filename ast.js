@@ -59,6 +59,15 @@ function Identifier(name, line, column) {
 }
 Identifier.prototype.type = 'Identifier';
 
+module.exports.ServiceIdentifier = ServiceIdentifier;
+function ServiceIdentifier(name, line, column) {
+    var self = this;
+    self.name = name;
+    self.line = line;
+    self.column = column;
+}
+ServiceIdentifier.prototype.type = 'ServiceIdentifier';
+
 module.exports.Namespace = Namespace;
 function Namespace(id, scope) {
     var self = this;
@@ -172,11 +181,12 @@ function Exception(id, fields, annotations) {
 Exception.prototype.type = 'Exception';
 
 module.exports.Service = Service;
-function Service(id, functions, annotations) {
+function Service(id, functions, annotations, baseService) {
     var self = this;
     self.id = id;
     self.functions = functions;
     self.annotations = annotations;
+    self.baseService = baseService;
 }
 Service.prototype.type = 'Service';
 
