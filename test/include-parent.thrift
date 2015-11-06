@@ -9,7 +9,9 @@ struct BatchGetResponse {
 }
 
 service ItemStore {
-    BatchGetResponse batchGetItems(1: list<string> keys)
+    BatchGetResponse batchGetItems(
+        1: list<string> keys
+    )
 }
 
 service KeyValue extends common.BaseService {

@@ -27,12 +27,10 @@ var path = require('path');
 
 test('loads a thrift file with imports synchronously', function t(assert) {
     var mainThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-parent.thrift'),
-        strict: false
+        thriftFile: path.join(__dirname, 'include-parent.thrift')
     });
     var importedThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-child.thrift'),
-        strict: false
+        thriftFile: path.join(__dirname, 'include-child.thrift')
     });
 
     var typeImportedByMainThrift = mainThrift
@@ -79,8 +77,7 @@ test('include without explicitly defined namespace', function t(assert) {
         thriftFile: path.join(
             __dirname,
             'include-filename-namespace.thrift'
-        ),
-        strict: false
+        )
     });
     assert.ok(thrift.modulesByName.typedef,
         'modulesByName includes typedef thrift instance');
@@ -100,8 +97,7 @@ test('bad include paths', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-not-path.thrift'
-            ),
-            strict: false
+            )
         });
     }
 });
@@ -119,8 +115,7 @@ test('unknown thrift module name', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-unknown-module.thrift'
-            ),
-            strict: false
+            )
         });
     }
 });
@@ -138,8 +133,7 @@ test('bad thrift module name', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-invalid-filename-as-namespace.thrift'
-            ),
-            strict: false
+            )
         });
     }
 });
