@@ -196,7 +196,8 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
         'Must set opts.thriftFile on instantiation to resolve include paths'
     );
 
-    if (def.id.indexOf('./') === 0 || def.id.indexOf('../') === 0) {
+    if (def.id.lastIndexOf('./', 0) === 0 ||
+        def.id.lastIndexOf('../', 0) === 0) {
         var thriftFile = path.resolve(self.dirname, def.id);
         var ns = def.namespace && def.namespace.name;
 
