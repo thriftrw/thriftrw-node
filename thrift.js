@@ -25,7 +25,6 @@ var assert = require('assert');
 var util = require('util');
 var fs = require('fs');
 var path = require('path');
-var crypto = require('crypto');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
@@ -49,8 +48,7 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
-var casThriftCache = {};
-var filepathThriftCache = {};
+var filepathThriftMemo = {};
 var validThriftIdentifierRE = /^[a-zA-Z0-9_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
@@ -91,18 +89,13 @@ function Thrift(options) {
 Thrift.loadSync = function loadSync(options) {
     var filepath = path.resolve(options.thriftFile);
 
-    if (filepathThriftCache[filepath]) {
-        return filepathThriftCache[filepath];
+    if (filepathThriftMemo[filepath]) {
+        return filepathThriftMemo[filepath];
     }
 
     options.source = fs.readFileSync(options.thriftFile, 'ascii');
 
-    var hash = crypto.createHash('md5')
-        .update(options.source)
-        .digest('hex');
-
-    var thrift = casThriftCache[hash] = filepathThriftCache[filepath] =
-        casThriftCache[hash] || new Thrift(options);
+    var thrift = filepathThriftMemo[filepath] = new Thrift(options);
 
     return thrift;
 };
@@ -197,6 +190,11 @@ Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
     var self = this;
+
+    assert(
+        self.dirname,
+        'Must set opts.thriftFile on instantiation to resolve include paths'
+    );
 
     if (def.id.indexOf('./') === 0 || def.id.indexOf('../') === 0) {
         var thriftFile = path.resolve(self.dirname, def.id);

@@ -143,3 +143,18 @@ test('bad thrift module name', function t(assert) {
         });
     }
 });
+
+test('includes from opts.source throws', function t(assert) {
+    assert.throws(
+        includesViaSource,
+        /Must set opts.thriftFile on instantiation to resolve include paths/,
+        'throws when instantiated via opts.source without opts.thriftFile set'
+    );
+    assert.end();
+
+    function includesViaSource() {
+        return new Thrift({
+            source: 'include "./foo.thrift"'
+        });
+    }
+});
