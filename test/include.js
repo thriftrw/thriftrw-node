@@ -79,8 +79,39 @@ test('include without explicitly defined namespace', function t(assert) {
             'include-filename-namespace.thrift'
         )
     });
+
     assert.ok(thrift.modulesByName.typedef,
         'modulesByName includes typedef thrift instance');
+    assert.end();
+});
+
+test('cyclic dependencies', function t(assert) {
+    var thriftA = Thrift.loadSync({
+        thriftFile: path.join(
+            __dirname,
+            'include-cyclic-a.thrift'
+        )
+    });
+
+    var thriftB = Thrift.loadSync({
+        thriftFile: path.join(
+            __dirname,
+            'include-cyclic-b.thrift'
+        )
+    });
+
+    assert.equal(
+        thriftA.structs.Node.fieldsByName.value.valueType,
+        thriftB.structs.Value,
+        'Value imported correctly from include-cyclic-b thrift file'
+    );
+
+    assert.equal(
+        thriftB.structs.Value.fieldsByName.nodes.valueType.rw.valueType,
+        thriftA.structs.Node,
+        'Node imported correctly from include-cyclic-a thrift file'
+    );
+
     assert.end();
 });
 

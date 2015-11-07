@@ -48,7 +48,7 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
-var filepathThriftMemo = {};
+var globalFilepathThriftMemo = {};
 var validThriftIdentifierRE = /^[a-zA-Z0-9_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
@@ -56,8 +56,20 @@ function Thrift(options) {
 
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
-    assert(options.source, 'source required');
-    assert(typeof options.source === 'string', 'source must be string');
+    assert(options.source || options.thriftFile,
+        'opts.source or opts.thriftFile required');
+
+    self.thriftFile = options.thriftFile ?
+        path.resolve(options.thriftFile) : null;
+
+    if (options.source) {
+        assert(typeof options.source === 'string', 'source must be string');
+        self.source = options.source;
+    }
+
+    if (self.thriftFile && !self.source) {
+        self.source = fs.readFileSync(self.thriftFile, 'ascii');
+    }
 
     self.strict = options.strict !== undefined ? options.strict : true;
 
@@ -73,31 +85,61 @@ function Thrift(options) {
     self.typedefs = Object.create(null);
     self.modulesByName = Object.create(null);
     self.modulesByPath = options.modulesByPath || Object.create(null);
-    self.thriftFile = options.thriftFile || null;
+    self.compiled = false;
+    self.linked = false;
+    self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
 
     if (self.thriftFile) {
         self.dirname = path.dirname(self.thriftFile);
     }
 
-    // Two passes permits forward references and cyclic references.
-    // First pass constructs objects.
-    self.compile(options.source);
-    // Second pass links field references of structs.
-    self.link();
+    self.build();
 }
 
 Thrift.loadSync = function loadSync(options) {
     var filepath = path.resolve(options.thriftFile);
 
-    if (filepathThriftMemo[filepath]) {
-        return filepathThriftMemo[filepath];
+    if (globalFilepathThriftMemo[filepath]) {
+        return globalFilepathThriftMemo[filepath];
     }
 
-    options.source = fs.readFileSync(options.thriftFile, 'ascii');
-
-    var thrift = filepathThriftMemo[filepath] = new Thrift(options);
+    var thrift = globalFilepathThriftMemo[filepath] = new Thrift(options);
 
     return thrift;
+};
+
+Thrift.prototype.build = function build() {
+    var self = this;
+    // istanbul ignore else
+    if (!self.filepathThriftMemo[self.thriftFile]) {
+        globalFilepathThriftMemo[self.thriftFile] = self;
+        self.filepathThriftMemo[self.thriftFile] = self;
+        // Two passes permits forward references and cyclic references.
+        // First pass constructs objects.
+        self.compile(self.source);
+        // Second pass links field references of structs.
+        // self.link();
+        // parent module links child modules.
+        var moduleNames = Object.keys(self.modulesByName);
+        var allCompiled = [];
+        var allLinked = [];
+        for (var index = 0; index < moduleNames.length; index++) {
+            var thriftModule = self.modulesByName[moduleNames[index]];
+            if (thriftModule.compiled) {
+                thriftModule.link(self);
+            }
+            allCompiled.push(thriftModule.compiled);
+            allLinked.push(thriftModule.linked);
+        }
+
+        if (allCompiled.every(identity) && allLinked.every(identity)) {
+            self.link();
+        }
+    }
+
+    function identity(x) {
+        return x;
+    }
 };
 
 Thrift.prototype.getType = function getType(name) {
@@ -132,6 +174,7 @@ Thrift.prototype.compile = function compile(source) {
     assert.equal(syntax.type, 'Program', 'expected a program');
     self.compileHeaders(syntax.headers);
     self.compileDefinitions(syntax.definitions);
+    self.compiled = true;
 };
 
 Thrift.prototype.claim = function claim(name, def, spec) {
@@ -212,10 +255,19 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             }
         }
 
-        var spec = Thrift.loadSync({
-            thriftFile: thriftFile,
-            strict: self.strict
-        });
+        var spec;
+
+        if (self.filepathThriftMemo[thriftFile]) {
+            spec = self.filepathThriftMemo[thriftFile];
+        } else {
+            spec = Thrift.loadSync({
+                thriftFile: thriftFile,
+                strict: self.strict,
+                filepathThriftMemo: self.filepathThriftMemo
+            });
+            self.filepathThriftMemo[thriftFile] = spec;
+            globalFilepathThriftMemo[thriftFile] = spec;
+        }
 
         self.claim(ns, def, spec);
         self.modulesByName[ns] = spec;
@@ -302,24 +354,36 @@ Thrift.prototype.link = function link() {
     var self = this;
     var index;
 
-    var typeNames = Object.keys(self.types);
-    for (index = 0; index < typeNames.length; index++) {
-        var type = self.types[typeNames[index]];
-        self[type.name] = type.link(self).surface;
-    }
+    if (!self.linked) {
+        self.linked = true;
 
-    var serviceNames = Object.keys(self.services);
-    for (index = 0; index < serviceNames.length; index++) {
-        var service = self.services[serviceNames[index]];
-        self[service.name] = service.link(self).surface;
-    }
+        var moduleNames = Object.keys(self.modulesByName);
+        for (index = 0; index < moduleNames.length; index++) {
+            var thriftModule = self.modulesByName[moduleNames[index]];
+            self.modulesByName[moduleNames[index]] = thriftModule.link(self);
+            self[moduleNames[index]] = thriftModule.link(self);
+        }
 
-    var constNames = Object.keys(self.consts);
-    for (index = 0; index < constNames.length; index++) {
-        var thriftConst = self.consts[constNames[index]];
-        self.consts[constNames[index]] = thriftConst.link(self);
-        self[thriftConst.name] = thriftConst.link(self).surface;
+        var typeNames = Object.keys(self.types);
+        for (index = 0; index < typeNames.length; index++) {
+            var type = self.types[typeNames[index]];
+            self[type.name] = type.link(self).surface;
+        }
+
+        var serviceNames = Object.keys(self.services);
+        for (index = 0; index < serviceNames.length; index++) {
+            var service = self.services[serviceNames[index]];
+            self[service.name] = service.link(self).surface;
+        }
+
+        var constNames = Object.keys(self.consts);
+        for (index = 0; index < constNames.length; index++) {
+            var thriftConst = self.consts[constNames[index]];
+            self.consts[constNames[index]] = thriftConst.link(self);
+            self[thriftConst.name] = thriftConst.link(self).surface;
+        }
     }
+    return self;
 };
 
 Thrift.prototype.resolve = function resolve(def) {
@@ -393,39 +457,23 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
 
 Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier) {
     var self = this;
-    var definitions = self.definitions;
 
-    // short circuit if in global namespace.
-    if (definitions[identifier]) {
-        return definitions[identifier].link(self);
+    // short circuit if in global namespace of this thrift.
+    if (self.definitions[identifier]) {
+        return self.definitions[identifier].link(self);
     }
 
     var parts = identifier.split('.');
     var err;
 
-    for (var index = 0; index < parts.length; index++) {
-        var id = parts[index];
-
-        if (!definitions[id]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-
-        // if (index === (parts.length - 1)) {
-        //     return definitions[id].link(self);
-        // } else {
-        definitions = definitions[id].definitions;
-        identifier = identifier
-            .substr(identifier.indexOf('.') + 1, identifier.length);
-
-        // short circuit if in submodule global namespace.
-        // istanbul ignore else
-        if (definitions[identifier]) {
-            return definitions[identifier].link(self);
-        }
-        // }
+    var currentModule = self.modulesByName[parts.shift()];
+    if (currentModule) {
+        return currentModule.resolveIdentifier(def, parts.join('.'));
+    } else {
+        err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+        err.line = def.line;
+        err.column = def.column;
+        throw err;
     }
 };
 
