@@ -1,4 +1,4 @@
-service Garply extends Corge {
+service Garply extends Qux {
     void waldo()
 }
 

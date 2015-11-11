@@ -77,7 +77,7 @@ test('service extends from another service', function t(assert) {
 
     assert.deepEqual(
         Object.keys(thrift.services.Garply.functionsByName),
-        ['waldo', 'grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+        ['waldo', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
         'Service contains function from BaseService'
     );
 

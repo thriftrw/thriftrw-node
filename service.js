@@ -121,7 +121,6 @@ ThriftService.prototype.link = function link(spec) {
     var self = this;
     var index = 0;
 
-    // istanbul ignore if
     if (self.linked) {
         return self;
     }

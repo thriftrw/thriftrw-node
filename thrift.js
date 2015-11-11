@@ -66,8 +66,6 @@ function Thrift(options) {
     self.unions = Object.create(null);
     self.typedefs = Object.create(null);
 
-    self.linked = false;
-
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
     self.compile(options.source);
@@ -203,12 +201,6 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
 Thrift.prototype.link = function link() {
     var self = this;
     var index;
-
-    // istanbul ignore if
-    if (self.linked) {
-        return self;
-    }
-    self.linked = true;
 
     var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
