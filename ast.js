@@ -59,14 +59,14 @@ function Identifier(name, line, column) {
 }
 Identifier.prototype.type = 'Identifier';
 
-module.exports.ServiceIdentifier = ServiceIdentifier;
-function ServiceIdentifier(name, line, column) {
+module.exports.ReferenceIdentifier = ReferenceIdentifier;
+function ReferenceIdentifier(name, line, column) {
     var self = this;
     self.name = name;
     self.line = line;
     self.column = column;
 }
-ServiceIdentifier.prototype.type = 'ServiceIdentifier';
+ReferenceIdentifier.prototype.type = 'ReferenceIdentifier';
 
 module.exports.Namespace = Namespace;
 function Namespace(id, scope) {

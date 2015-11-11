@@ -156,7 +156,7 @@ Service
   }
 
 extends
-  = 'extends' __ baseService:ServiceIdentifier {
+  = 'extends' __ baseService:ReferenceIdentifier {
     return baseService;
   }
 
@@ -283,9 +283,9 @@ Identifier
     return new ast.Identifier(name, line(), column());
   }
 
-ServiceIdentifier
+ReferenceIdentifier
   = name:IdentifierName __ {
-    return new ast.ServiceIdentifier(name, line(), column());
+    return new ast.ReferenceIdentifier(name, line(), column());
   }
 
 IdentifierName 'identifier'

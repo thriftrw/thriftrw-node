@@ -1,3 +1,15 @@
+service Garply extends Corge {
+    void waldo()
+}
+
+service Corge extends Qux {
+    void grault()
+}
+
+service Qux extends Foo {
+    void quux()
+}
+
 service Foo {
     byte foo(1: byte number) throws (
         1: string fail
@@ -9,13 +21,8 @@ service Foo {
     Struct returnsStruct()
 }
 
-service Qux extends Foo {
-    void quux()
-}
-
 struct Struct {
 }
 
 exception BarError {
 }
-

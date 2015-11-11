@@ -66,6 +66,8 @@ function Thrift(options) {
     self.unions = Object.create(null);
     self.typedefs = Object.create(null);
 
+    self.linked = false;
+
     // Two passes permits forward references and cyclic references.
     // First pass constructs objects.
     self.compile(options.source);
@@ -178,15 +180,6 @@ Thrift.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
-
-    if (def.baseService) {
-        var baseService = self.resolve(def.baseService);
-        for (var index = 0; index < baseService.functions.length; index++) {
-            var thriftFunction = baseService.functions[index];
-            service.addFunction(thriftFunction);
-        }
-    }
-
     self.claim(service.name, def.id);
     self.services[service.name] = service;
 };
@@ -210,6 +203,12 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
 Thrift.prototype.link = function link() {
     var self = this;
     var index;
+
+    // istanbul ignore if
+    if (self.linked) {
+        return self;
+    }
+    self.linked = true;
 
     var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
@@ -251,7 +250,7 @@ Thrift.prototype.resolve = function resolve(def) {
         return new ThriftSet(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
-    } else if (def.type === 'ServiceIdentifier') {
+    } else if (def.type === 'ReferenceIdentifier') {
         if (!self.services[def.name]) {
             err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
             err.line = def.line;

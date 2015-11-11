@@ -69,11 +69,43 @@ test('service extends from another service', function t(assert) {
         'Service contains function from BaseService'
     );
 
+    assert.deepEqual(
+        Object.keys(thrift.services.Corge.functionsByName),
+        ['grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+        'Service contains function from BaseService'
+    );
+
+    assert.deepEqual(
+        Object.keys(thrift.services.Garply.functionsByName),
+        ['waldo', 'grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+        'Service contains function from BaseService'
+    );
+
     assert.equal(
         thrift.services.Qux.functionsByName.foo,
         thrift.services.Foo.functionsByName.foo,
         'Function Qux.foo is the same as Foo.foo by reference'
     );
+
+    assert.end();
+});
+
+test('service extends throws on duplicate function name', function t(assert) {
+    assert.throws(
+        duplicateFunction,
+        /Foo.bar already inherited from baseService/,
+        'Service extends throws if function with same name already exists'
+    );
+
+    function duplicateFunction() {
+        var thriftFilePath = path.join(
+            __dirname,
+            'service-duplicate-function-error.thrift'
+        );
+        return new Thrift({
+            source: fs.readFileSync(thriftFilePath, 'ascii')
+        });
+    }
 
     assert.end();
 });
