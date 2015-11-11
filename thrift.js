@@ -321,15 +321,6 @@ Thrift.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
-
-    if (def.baseService) {
-        var baseService = self.resolveIdentifier(def, def.baseService);
-        for (var index = 0; index < baseService.functions.length; index++) {
-            var thriftFunction = baseService.functions[index];
-            service.addFunction(thriftFunction);
-        }
-    }
-
     self.claim(service.name, def.id, service);
     self.services[service.name] = service;
 };
@@ -354,35 +345,38 @@ Thrift.prototype.link = function link() {
     var self = this;
     var index;
 
-    if (!self.linked) {
-        self.linked = true;
-
-        var moduleNames = Object.keys(self.modulesByName);
-        for (index = 0; index < moduleNames.length; index++) {
-            var thriftModule = self.modulesByName[moduleNames[index]];
-            self.modulesByName[moduleNames[index]] = thriftModule.link(self);
-            self[moduleNames[index]] = thriftModule.link(self);
-        }
-
-        var typeNames = Object.keys(self.types);
-        for (index = 0; index < typeNames.length; index++) {
-            var type = self.types[typeNames[index]];
-            self[type.name] = type.link(self).surface;
-        }
-
-        var serviceNames = Object.keys(self.services);
-        for (index = 0; index < serviceNames.length; index++) {
-            var service = self.services[serviceNames[index]];
-            self[service.name] = service.link(self).surface;
-        }
-
-        var constNames = Object.keys(self.consts);
-        for (index = 0; index < constNames.length; index++) {
-            var thriftConst = self.consts[constNames[index]];
-            self.consts[constNames[index]] = thriftConst.link(self);
-            self[thriftConst.name] = thriftConst.link(self).surface;
-        }
+    if (self.linked) {
+        return self;
     }
+    self.linked = true;
+
+    var moduleNames = Object.keys(self.modulesByName);
+    for (index = 0; index < moduleNames.length; index++) {
+        var thriftModule = self.modulesByName[moduleNames[index]];
+        thriftModule.link(self);
+        self.modulesByName[moduleNames[index]] = thriftModule;
+        self[moduleNames[index]] = thriftModule;
+    }
+
+    var typeNames = Object.keys(self.types);
+    for (index = 0; index < typeNames.length; index++) {
+        var type = self.types[typeNames[index]];
+        self[type.name] = type.link(self).surface;
+    }
+
+    var serviceNames = Object.keys(self.services);
+    for (index = 0; index < serviceNames.length; index++) {
+        var service = self.services[serviceNames[index]];
+        self[service.name] = service.link(self).surface;
+    }
+
+    var constNames = Object.keys(self.consts);
+    for (index = 0; index < constNames.length; index++) {
+        var thriftConst = self.consts[constNames[index]];
+        self.consts[constNames[index]] = thriftConst.link(self);
+        self[thriftConst.name] = thriftConst.link(self).surface;
+    }
+
     return self;
 };
 
@@ -400,13 +394,7 @@ Thrift.prototype.resolve = function resolve(def) {
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'ReferenceIdentifier') {
-        if (!self.services[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-        return self.services[def.name];
+        return self.resolveIdentifier(def, def.name);
     } else {
         assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s at %s:%s', def.type, def.line, def.column));
     }
