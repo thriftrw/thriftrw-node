@@ -1,3 +1,15 @@
+service Garply extends Qux {
+    void waldo()
+}
+
+service Corge extends Qux {
+    void grault()
+}
+
+service Qux extends Foo {
+    void quux()
+}
+
 service Foo {
     byte foo(1: byte number) throws (
         1: string fail

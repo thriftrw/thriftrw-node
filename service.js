@@ -32,6 +32,7 @@ function ThriftFunction(args) {
     self.args = null;
     self.result = null;
     self.strict = args.strict;
+    self.linked = false;
 }
 
 ThriftFunction.prototype.compile = function process(def, spec) {
@@ -82,6 +83,8 @@ function ThriftService(args) {
     self.functionsByName = Object.create(null);
     self.surface = self.functionsByName;
     self.strict = args.strict;
+    self.baseService = null;
+    self.linked = false;
 }
 
 ThriftService.prototype.compile = function process(def, spec) {
@@ -90,6 +93,7 @@ ThriftService.prototype.compile = function process(def, spec) {
     for (var index = 0; index < def.functions.length; index++) {
         self.compileFunction(def.functions[index], spec);
     }
+    self.baseService = def.baseService;
 };
 
 ThriftService.prototype.compileFunction = function processFunction(def, spec) {
@@ -100,15 +104,41 @@ ThriftService.prototype.compileFunction = function processFunction(def, spec) {
         strict: self.strict
     });
     thriftFunction.compile(def, spec);
+    self.addFunction(thriftFunction);
+};
+
+ThriftService.prototype.addFunction = function addFunction(thriftFunction) {
+    var self = this;
     self.functions.push(thriftFunction);
-    self.functionsByName[thriftFunction.name] = thriftFunction;
+    if (!self.functionsByName[thriftFunction.name]) {
+        self.functionsByName[thriftFunction.name] = thriftFunction;
+    } else {
+        throw new Error(self.name + '.' + thriftFunction.name + ' already inherited from baseService');
+    }
 };
 
 ThriftService.prototype.link = function link(spec) {
     var self = this;
-    for (var index = 0; index < self.functions.length; index++) {
+    var index = 0;
+
+    if (self.linked) {
+        return self;
+    }
+    self.linked = true;
+
+    if (self.baseService) {
+        var baseService = spec.resolve(self.baseService);
+        baseService.link(spec);
+        for (index = 0; index < baseService.functions.length; index++) {
+            var thriftFunction = baseService.functions[index];
+            self.addFunction(thriftFunction);
+        }
+    }
+
+    for (index = 0; index < self.functions.length; index++) {
         self.functions[index].link(spec);
     }
+
     return self;
 };
 

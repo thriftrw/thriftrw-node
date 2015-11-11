@@ -151,12 +151,14 @@ Exception
   }
 
 Service
-  = 'service' __ id:Identifier extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
-    return new ast.Service(id, fns, ta);
+  = 'service' __ id:Identifier bs:extends? '{' __ fns:function* __ '}' __ ta:TypeAnnotations? {
+    return new ast.Service(id, fns, ta, bs);
   }
 
 extends
-  = 'extends' __ IdentifierName
+  = 'extends' __ baseService:ReferenceIdentifier {
+    return baseService;
+  }
 
 function
   = __ oneway:oneway ft:FunctionType id:Identifier '(' __ fs:Field* __ ')' __ ts:throwz? ta:TypeAnnotations? ListSeparator? _ {
@@ -186,7 +188,9 @@ Recursive
   }
 
 FieldIdentifier
-  = id:IntConstant ':' _ { return new ast.FieldIdentifier(id.value, line(), column()); }
+  = id:IntConstant ':' _ {
+    return new ast.FieldIdentifier(id.value, line(), column());
+  }
 
 FieldRequiredness
   = 'required' __ { return 'required'; }
@@ -275,12 +279,19 @@ word
   = w:[a-zA-Z0-9_\.]+
 
 Identifier
-  = name:IdentifierName __ { return new ast.Identifier(name, line(), column()); }
+  = name:IdentifierName __ {
+    return new ast.Identifier(name, line(), column());
+  }
+
+ReferenceIdentifier
+  = name:IdentifierName __ {
+    return new ast.ReferenceIdentifier(name, line(), column());
+  }
 
 IdentifierName 'identifier'
   = !ReservedWord first:IdentifierStart rest:IdentifierPart* __ {
-      return first + rest.join('');
-    }
+    return first + rest.join('');
+  }
 
 IdentifierStart
   = UnicodeLetter
