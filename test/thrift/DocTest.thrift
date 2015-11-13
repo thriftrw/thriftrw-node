@@ -222,8 +222,8 @@ typedef i32 Flush
     */
 typedef i32 NoStars
 
-/** Trailing whitespace   
-Sloppy trailing whitespace   
+/** Trailing whitespace
+Sloppy trailing whitespace
 is truncated.   */
 typedef i32 TrailingWhitespace
 
@@ -231,7 +231,7 @@ typedef i32 TrailingWhitespace
  * This is a big one.
  *
  * We'll have some blank lines in it.
- * 
+ *
  * void as_well_as(some code) {
  *   puts("YEEHAW!");
  * }
