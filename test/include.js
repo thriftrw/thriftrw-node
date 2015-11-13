@@ -30,7 +30,7 @@ test('loads a thrift file that imports synchronously', function t(assert) {
         thriftFile: path.join(__dirname, 'include-parent.thrift'),
         allowIncludeAlias: true
     });
-    var importedThrift = mainThrift.modulesByName.common;
+    var importedThrift = mainThrift.modules.common;
 
     var typeImportedByMainThrift = mainThrift
         .types
@@ -80,8 +80,8 @@ test('include without explicitly defined namespace', function t(assert) {
         allowIncludeAlias: true
     });
 
-    assert.ok(thrift.modulesByName.typedef,
-        'modulesByName includes typedef thrift instance');
+    assert.ok(thrift.modules.typedef,
+        'modules includes typedef thrift instance');
     assert.end();
 });
 
@@ -94,7 +94,7 @@ test('cyclic dependencies', function t(assert) {
         allowIncludeAlias: true
     });
 
-    var thriftB = thriftA.modulesByName.value;
+    var thriftB = thriftA.modules.value;
 
     assert.equal(
         thriftA.structs.Node.fieldsByName.value.valueType,

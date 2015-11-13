@@ -72,7 +72,6 @@ function Thrift(options) {
 
     self.strict = options.strict !== undefined ? options.strict : true;
 
-    self.claims = Object.create(null);
     self.definitions = Object.create(null);
     self.services = Object.create(null);
     self.types = Object.create(null);
@@ -82,8 +81,7 @@ function Thrift(options) {
     self.exceptions = Object.create(null);
     self.unions = Object.create(null);
     self.typedefs = Object.create(null);
-    self.modulesByName = Object.create(null);
-    self.modulesByPath = options.modulesByPath || Object.create(null);
+    self.modules = Object.create(null);
     self.linked = false;
     self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
     self.allowIncludeAlias = options.allowIncludeAlias || false;
@@ -139,15 +137,15 @@ Thrift.prototype.compile = function compile() {
     assert.equal(syntax.type, 'Program', 'expected a program');
     self.compileHeaders(syntax.headers);
     self.compileDefinitions(syntax.definitions);
-    self.compiled = true;
 };
 
 Thrift.prototype.claim = function claim(name, def, spec) {
     var self = this;
-    assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    self.claims[name] = true;
+    assert(!self.definitions[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
     if (spec) {
         self.define(name, spec);
+    } else {
+        self.definitions[name] = true;
     }
 };
 
@@ -235,8 +233,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
         }
 
         self.claim(ns, def, spec);
-        self.modulesByName[ns] = spec;
-        self.modulesByPath[thriftFile] = spec;
+        self.modules[ns] = spec;
     } else {
         throw Error('Include path string must start with either ./ or ../');
     }
@@ -315,12 +312,11 @@ Thrift.prototype.link = function link() {
     }
     self.linked = true;
 
-    var moduleNames = Object.keys(self.modulesByName);
+    var moduleNames = Object.keys(self.modules);
     for (index = 0; index < moduleNames.length; index++) {
-        var thriftModule = self.modulesByName[moduleNames[index]];
+        var thriftModule = self.modules[moduleNames[index]];
         thriftModule.link(self);
-        self.modulesByName[moduleNames[index]] = thriftModule;
-        self[moduleNames[index]] = thriftModule;
+        self.modules[moduleNames[index]] = thriftModule;
     }
 
     var typeNames = Object.keys(self.types);
@@ -418,7 +414,7 @@ Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier)
     var parts = identifier.split('.');
     var err;
 
-    var currentModule = self.modulesByName[parts.shift()];
+    var currentModule = self.modules[parts.shift()];
     if (currentModule) {
         return currentModule.resolveIdentifier(def, parts.join('.'));
     } else {
