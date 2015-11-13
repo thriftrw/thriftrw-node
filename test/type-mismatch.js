@@ -20,18 +20,23 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
-var TYPE = require('./TYPE');
+var test = require('tape');
 
-var ByteRW = bufrw.Int8;
+var Thrift = require('..').Thrift;
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
 
-function ThriftByte() { }
+test('consts parse', function t(assert) {
+    assert.throws(
+        typeMismatch,
+        /type mismatch.*expects value, got service/,
+        'throws if service identified for value'
+    );
+    assert.end();
 
-ThriftByte.prototype.rw = ByteRW;
-ThriftByte.prototype.name = 'byte';
-ThriftByte.prototype.typeid = TYPE.BYTE;
-ThriftByte.prototype.surface = Boolean;
-ThriftByte.prototype.models = 'type';
+    function typeMismatch() {
+        return new Thrift({source: source});
+    }
+});
 
-module.exports.ByteRW = ByteRW;
-module.exports.ThriftByte = ThriftByte;

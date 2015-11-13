@@ -21,10 +21,12 @@ Header
   / 'csharp_namespace' Identifier
 
 Include
-  = IncludeToken Literal
+  = IncludeToken namespace:Identifier? __ id:Literal {
+    return new ast.Include(id, namespace);
+  }
 
 CppInclude
-  = CppIncludeToken Literal
+  = CppIncludeToken Literal 
 
 Namespace
   = NamespaceToken scope:NamespaceScope __ id:Identifier { return new ast.Namespace(id, scope); }
@@ -156,7 +158,7 @@ Service
   }
 
 extends
-  = 'extends' __ baseService:ReferenceIdentifier {
+  = 'extends' __ baseService:Identifier {
     return baseService;
   }
 
@@ -281,11 +283,6 @@ word
 Identifier
   = name:IdentifierName __ {
     return new ast.Identifier(name, line(), column());
-  }
-
-ReferenceIdentifier
-  = name:IdentifierName __ {
-    return new ast.ReferenceIdentifier(name, line(), column());
   }
 
 IdentifierName 'identifier'

@@ -63,6 +63,7 @@ ThriftSet.prototype.typeid = TYPE.SET;
 // A prior version of thriftrw was writing sets with the list typeid.
 // Allowing an alternate typeid eases migration temporarily.
 ThriftSet.prototype.altTypeid = TYPE.LIST;
+ThriftSet.prototype.models = 'type';
 
 ThriftSet.prototype.arrayForm = {
     create: function create() {

@@ -42,6 +42,7 @@ function ThriftEnum() {
 }
 
 ThriftEnum.prototype.typeid = TYPE.I32;
+ThriftEnum.prototype.models = 'type';
 
 ThriftEnum.prototype.compile = function compile(def, spec) {
     var self = this;
@@ -66,14 +67,14 @@ ThriftEnum.prototype.compile = function compile(def, spec) {
             ' at ' + def.id.line + ':' + def.id.column);
 
         var fullName = self.name + '.' + name;
-        spec.claim(fullName, enumDef.id);
-        spec.consts[fullName] = new ThriftConst(
-            new ast.Const(
-                new ast.Identifier(name),
-                null, // TODO infer type for default value validation
-                new ast.Literal(name)
-            )
+        var constDef = new ast.Const(
+            new ast.Identifier(name),
+            null, // TODO infer type for default value validation
+            new ast.Literal(name)
         );
+        var constModel = new ThriftConst(constDef);
+        spec.consts[fullName] = constModel;
+        spec.define(fullName, enumDef.id, constModel);
         self.namesToValues[name] = value;
         self.namesToNames[name] = name;
         self.valuesToNames[value] = name;

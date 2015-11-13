@@ -31,6 +31,7 @@ ThriftI16.prototype.rw = I16RW;
 ThriftI16.prototype.name = 'i16';
 ThriftI16.prototype.typeid = TYPE.I16;
 ThriftI16.prototype.surface = Number;
+ThriftI16.prototype.models = 'type';
 
 module.exports.I16RW = I16RW;
 module.exports.ThriftI16 = ThriftI16;

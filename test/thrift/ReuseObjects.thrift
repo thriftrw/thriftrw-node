@@ -21,7 +21,7 @@
 
 namespace java thrift.test
 
-include "ThriftTest.thrift"
+include "./ThriftTest.thrift"
 
 struct Reuse {
   1: i32 val1;

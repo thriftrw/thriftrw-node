@@ -27,6 +27,8 @@ function ThriftTypedef() {
     self.to = null;
 }
 
+ThriftTypedef.prototype.models = 'type';
+
 ThriftTypedef.prototype.compile = function compile(def, spec) {
     var self = this;
     self.name = def.id.name;

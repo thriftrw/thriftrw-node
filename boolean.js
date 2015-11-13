@@ -54,6 +54,7 @@ ThriftBoolean.prototype.rw = BooleanRW;
 ThriftBoolean.prototype.name = 'boolean';
 ThriftBoolean.prototype.typeid = TYPE.BOOL;
 ThriftBoolean.prototype.surface = Boolean;
+ThriftBoolean.prototype.models = 'type';
 
 module.exports.BooleanRW = BooleanRW;
 module.exports.ThriftBoolean = ThriftBoolean;

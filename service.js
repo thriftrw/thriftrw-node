@@ -87,6 +87,8 @@ function ThriftService(args) {
     self.linked = false;
 }
 
+ThriftService.prototype.models = 'service';
+
 ThriftService.prototype.compile = function process(def, spec) {
     var self = this;
     self.name = def.id.name;
@@ -127,7 +129,7 @@ ThriftService.prototype.link = function link(spec) {
     self.linked = true;
 
     if (self.baseService) {
-        var baseService = spec.resolve(self.baseService);
+        var baseService = spec.resolveIdentifier(self.baseService, self.baseService.name, 'service');
         baseService.link(spec);
         for (index = 0; index < baseService.functions.length; index++) {
             var thriftFunction = baseService.functions[index];

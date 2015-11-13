@@ -51,3 +51,5 @@ require('./const');
 require('./default');
 require('./enum');
 require('./unrecognized-exception');
+require('./include.js');
+require('./type-mismatch');

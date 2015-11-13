@@ -34,6 +34,7 @@ ThriftString.prototype.rw = StringRW;
 ThriftString.prototype.name = 'string';
 ThriftString.prototype.typeid = TYPE.STRING;
 ThriftString.prototype.surface = String;
+ThriftString.prototype.models = 'type';
 
 module.exports.StringRW = StringRW;
 module.exports.ThriftString = ThriftString;

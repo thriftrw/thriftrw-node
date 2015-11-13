@@ -59,14 +59,13 @@ function Identifier(name, line, column) {
 }
 Identifier.prototype.type = 'Identifier';
 
-module.exports.ReferenceIdentifier = ReferenceIdentifier;
-function ReferenceIdentifier(name, line, column) {
+module.exports.Include = Include;
+function Include(id, namespace) {
     var self = this;
-    self.name = name;
-    self.line = line;
-    self.column = column;
+    self.id = id;
+    self.namespace = namespace;
 }
-ReferenceIdentifier.prototype.type = 'ReferenceIdentifier';
+Include.prototype.type = 'Include';
 
 module.exports.Namespace = Namespace;
 function Namespace(id, scope) {

@@ -35,6 +35,7 @@ function ThriftList(valueType, annotations) {
 ThriftList.prototype.name = 'list';
 ThriftList.prototype.typeid = TYPE.LIST;
 ThriftList.prototype.surface = Array;
+ThriftList.prototype.models = 'type';
 
 function ListRW(valueType, spec) {
     var self = this;

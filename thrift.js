@@ -23,6 +23,8 @@
 
 var assert = require('assert');
 var util = require('util');
+var fs = require('fs');
+var path = require('path');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 
@@ -46,17 +48,31 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
+var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
+
 function Thrift(options) {
     var self = this;
 
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
-    assert(options.source, 'source required');
-    assert(typeof options.source === 'string', 'source must be string');
+    assert(options.source || options.thriftFile,
+        'opts.source or opts.thriftFile required');
+
+    self.thriftFile = options.thriftFile ?
+        path.resolve(options.thriftFile) : null;
+
+    if (options.source) {
+        assert(typeof options.source === 'string', 'source must be string');
+        self.source = options.source;
+    }
+
+    if (self.thriftFile && !self.source) {
+        self.source = fs.readFileSync(self.thriftFile, 'ascii');
+    }
 
     self.strict = options.strict !== undefined ? options.strict : true;
 
-    self.claims = Object.create(null);
+    self.definitions = Object.create(null);
     self.services = Object.create(null);
     self.types = Object.create(null);
     self.consts = Object.create(null);
@@ -65,13 +81,31 @@ function Thrift(options) {
     self.exceptions = Object.create(null);
     self.unions = Object.create(null);
     self.typedefs = Object.create(null);
+    self.modules = Object.create(null);
+    self.linked = false;
+    self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
+    self.allowIncludeAlias = options.allowIncludeAlias || false;
 
-    // Two passes permits forward references and cyclic references.
-    // First pass constructs objects.
-    self.compile(options.source);
-    // Second pass links field references of structs.
-    self.link();
+    if (self.thriftFile) {
+        self.dirname = path.dirname(self.thriftFile);
+        self.filepathThriftMemo[self.thriftFile] = self;
+    }
+
+    if (options.source) {
+        // Two passes permits forward references and cyclic references.
+        self.compile();
+        self.link();
+    }
 }
+
+Thrift.loadSync = function loadSync(options) {
+    var thrift = new Thrift(options);
+    thrift.compile();
+    thrift.link();
+    return thrift;
+};
+
+Thrift.prototype.models = 'module';
 
 Thrift.prototype.getType = function getType(name) {
     var self = this;
@@ -99,17 +133,23 @@ Thrift.prototype.baseTypes = {
     binary: ThriftBinary
 };
 
-Thrift.prototype.compile = function compile(source) {
+Thrift.prototype.compile = function compile() {
     var self = this;
-    var syntax = idl.parse(source);
+    var syntax = idl.parse(self.source);
     assert.equal(syntax.type, 'Program', 'expected a program');
+    self.compileHeaders(syntax.headers);
     self.compileDefinitions(syntax.definitions);
 };
 
-Thrift.prototype.claim = function claim(name, def) {
+Thrift.prototype.define = function define(name, def, spec) {
     var self = this;
-    assert(!self.claims[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    self.claims[name] = true;
+    assert(!self.definitions[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
+    self.definitions[name] = spec;
+};
+
+Thrift.prototype._headerProcessors = {
+    // sorted
+    Include: 'compileInclude'
 };
 
 Thrift.prototype._definitionProcessors = {
@@ -123,14 +163,72 @@ Thrift.prototype._definitionProcessors = {
     Union: 'compileUnion'
 };
 
+Thrift.prototype.compileHeaders = function compileHeaders(defs) {
+    var self = this;
+    for (var index = 0; index < defs.length; index++) {
+        var def = defs[index];
+        var headerProcessor = self._headerProcessors[def.type];
+        // istanbul ignore else
+        if (headerProcessor) {
+            self[headerProcessor](def);
+        }
+    }
+};
+
 Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
     var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
+        var definitionProcessor = self._definitionProcessors[def.type];
         // istanbul ignore else
-        if (self._definitionProcessors[def.type]) {
-            self[self._definitionProcessors[def.type]](def);
+        if (definitionProcessor) {
+            self[definitionProcessor](def);
         }
+    }
+};
+
+Thrift.prototype.compileInclude = function compileInclude(def) {
+    var self = this;
+
+    assert(
+        self.dirname,
+        'Must set opts.thriftFile on instantiation to resolve include paths'
+    );
+
+    if (def.id.lastIndexOf('./', 0) === 0 ||
+        def.id.lastIndexOf('../', 0) === 0) {
+        var thriftFile = path.resolve(self.dirname, def.id);
+        var ns = def.namespace && def.namespace.name;
+
+        // If include isn't name, get filename sans *.thrift file extension.
+        if (!self.allowIncludeAlias || !ns) {
+            var basename = path.basename(def.id);
+            ns = basename.slice(0, basename.length - 7);
+            if (!validThriftIdentifierRE.test(ns)) {
+                throw Error(
+                    'Thrift include filename is not valid thrift identifier'
+                );
+            }
+        }
+
+        var spec;
+
+        if (self.filepathThriftMemo[thriftFile]) {
+            spec = self.filepathThriftMemo[thriftFile];
+        } else {
+            spec = new Thrift({
+                thriftFile: thriftFile,
+                strict: self.strict,
+                filepathThriftMemo: self.filepathThriftMemo,
+                allowIncludeAlias: true
+            });
+            spec.compile();
+        }
+
+        self.define(ns, def, spec);
+        self.modules[ns] = spec;
+    } else {
+        throw Error('Include path string must start with either ./ or ../');
     }
 };
 
@@ -138,7 +236,7 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.define(spec.fullName, def, spec);
     self.structs[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -148,7 +246,7 @@ Thrift.prototype.compileException = function compileException(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.define(spec.fullName, def, spec);
     self.exceptions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -158,7 +256,7 @@ Thrift.prototype.compileUnion = function compileUnion(def) {
     var self = this;
     var spec = new ThriftUnion({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def);
+    self.define(spec.fullName, def, spec);
     self.unions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -168,7 +266,7 @@ Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var self = this;
     var spec = new ThriftTypedef();
     spec.compile(def, self);
-    self.claim(spec.name, spec);
+    self.define(spec.name, spec, spec);
     self.typedefs[spec.name] = spec;
     self.types[spec.name] = spec;
     return spec;
@@ -178,14 +276,14 @@ Thrift.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
-    self.claim(service.name, def.id);
+    self.define(service.name, def.id, service);
     self.services[service.name] = service;
 };
 
 Thrift.prototype.compileConst = function compileConst(def, spec) {
     var self = this;
     var thriftConst = new ThriftConst(def);
-    self.claim(def.id.name, def.id);
+    self.define(def.id.name, def.id, thriftConst);
     self.consts[def.id.name] = thriftConst;
 };
 
@@ -193,7 +291,7 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
     var self = this;
     var spec = new ThriftEnum();
     spec.compile(def, self);
-    self.claim(spec.name, def.id);
+    self.define(spec.name, def.id, spec);
     self.enums[spec.name] = spec;
     self.types[spec.name] = spec;
 };
@@ -201,6 +299,18 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
 Thrift.prototype.link = function link() {
     var self = this;
     var index;
+
+    if (self.linked) {
+        return self;
+    }
+    self.linked = true;
+
+    var moduleNames = Object.keys(self.modules);
+    for (index = 0; index < moduleNames.length; index++) {
+        var thriftModule = self.modules[moduleNames[index]];
+        thriftModule.link(self);
+        self.modules[moduleNames[index]] = thriftModule;
+    }
 
     var typeNames = Object.keys(self.types);
     for (index = 0; index < typeNames.length; index++) {
@@ -220,36 +330,23 @@ Thrift.prototype.link = function link() {
         self.consts[constNames[index]] = thriftConst.link(self);
         self[thriftConst.name] = thriftConst.link(self).surface;
     }
+
+    return self;
 };
 
 Thrift.prototype.resolve = function resolve(def) {
     var self = this;
-    var err;
+    // istanbul ignore else
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        if (!self.types[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-        return self.types[def.name].link(self);
-    // istanbul ignore else
+        return self.resolveIdentifier(def, def.name, 'type');
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
         return new ThriftSet(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
-    } else if (def.type === 'ReferenceIdentifier') {
-        if (!self.services[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-        return self.services[def.name];
     } else {
         assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s at %s:%s', def.type, def.line, def.column));
     }
@@ -257,7 +354,7 @@ Thrift.prototype.resolve = function resolve(def) {
 
 Thrift.prototype.resolveValue = function resolveValue(def) {
     var self = this;
-    var err;
+    // istanbul ignore else
     if (!def) {
         return null;
     } else if (def.type === 'Literal') {
@@ -266,21 +363,13 @@ Thrift.prototype.resolveValue = function resolveValue(def) {
         return self.resolveListConst(def);
     } else if (def.type === 'ConstMap') {
         return self.resolveMapConst(def);
-    // istanbul ignore else
     } else if (def.type === 'Identifier') {
         if (def.name === 'true') {
             return true;
         } else if (def.name === 'false') {
             return false;
         }
-        // istanbul ignore if
-        if (!self.consts[def.name]) {
-            err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
-            err.line = def.line;
-            err.column = def.column;
-            throw err;
-        }
-        return self.consts[def.name].link(self).surface;
+        return self.resolveIdentifier(def, def.name, 'value').value;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }
@@ -303,6 +392,39 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
             self.resolveValue(def.entries[index].value);
     }
     return map;
+};
+
+Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier, models) {
+    var self = this;
+    var model;
+
+    // short circuit if in global namespace of this thrift.
+    if (self.definitions[identifier]) {
+        model = self.definitions[identifier].link(self);
+        if (model.models !== models) {
+            err = new Error(
+                'type mismatch for ' + def.name + ' at ' + def.line + ':' + def.column +
+                ', expects ' + models + ', got ' + model.models
+            );
+            err.line = def.line;
+            err.column = def.column;
+            throw err;
+        }
+        return model;
+    }
+
+    var parts = identifier.split('.');
+    var err;
+
+    var module = self.modules[parts.shift()];
+    if (module) {
+        return module.resolveIdentifier(def, parts.join('.'), models);
+    } else {
+        err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
+        err.line = def.line;
+        err.column = def.column;
+        throw err;
+    }
 };
 
 module.exports.Thrift = Thrift;

@@ -31,6 +31,8 @@ function ThriftVoid() {
 ThriftVoid.prototype.rw = VoidRW;
 ThriftVoid.prototype.name = 'void';
 ThriftVoid.prototype.typeid = TYPE.VOID;
+ThriftVoid.prototype.models = 'type';
+
 // istanbul ignore next
 ThriftVoid.prototype.surface = function Void() {
     return null;
