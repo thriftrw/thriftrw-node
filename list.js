@@ -37,10 +37,10 @@ ThriftList.prototype.typeid = TYPE.LIST;
 ThriftList.prototype.surface = Array;
 ThriftList.prototype.models = 'type';
 
-function ListRW(valueType, spec) {
+function ListRW(valueType, model) {
     var self = this;
     self.valueType = valueType;
-    self.spec = spec;
+    self.model = model;
 }
 
 ListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
@@ -120,13 +120,13 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
             encoded: valueTypeid,
             expectedId: valueType.typeid,
             expected: valueType.name,
-            what: self.spec.name
+            what: self.model.name
         }));
     }
     if (size < 0) {
         return new bufrw.ReadResult(errors.InvalidSizeError({
             size: size,
-            what: self.spec.name
+            what: self.model.name
         }));
     }
 

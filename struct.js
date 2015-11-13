@@ -58,15 +58,15 @@ function ThriftField(def, struct) {
     self.constructDefaultValue = null;
 }
 
-ThriftField.prototype.link = function link(spec) {
+ThriftField.prototype.link = function link(model) {
     var self = this;
-    self.valueType = spec.resolve(self.valueDefinition);
+    self.valueType = model.resolve(self.valueDefinition);
     assert(self.valueType, 'value type was defined, as returned by resolve');
 };
 
-ThriftField.prototype.linkValue = function linkValue(spec) {
+ThriftField.prototype.linkValue = function linkValue(model) {
     var self = this;
-    self.defaultValue = spec.resolveValue(self.defaultValueDefinition);
+    self.defaultValue = model.resolveValue(self.defaultValueDefinition);
 };
 
 function ThriftStruct(options) {
@@ -139,7 +139,7 @@ ThriftStruct.prototype.compile = function compile(def) {
     }
 };
 
-ThriftStruct.prototype.link = function link(spec) {
+ThriftStruct.prototype.link = function link(model) {
     var self = this;
 
     if (self.linked) {
@@ -152,7 +152,7 @@ ThriftStruct.prototype.link = function link(spec) {
     // Link default values first since they're used by the constructor
     for (index = 0; index < self.fields.length; index++) {
         var field = self.fields[index];
-        field.linkValue(spec);
+        field.linkValue(model);
 
         // Validate field
         if (self.strict) {
@@ -186,7 +186,7 @@ ThriftStruct.prototype.link = function link(spec) {
     // Link field types later since they may depend on the constructor existing
     // first.
     for (index = 0; index < self.fields.length; index++) {
-        self.fields[index].link(spec);
+        self.fields[index].link(model);
     }
 
     return self;
@@ -252,18 +252,18 @@ ThriftStruct.prototype.finalize = function finalize(struct) {
     return struct;
 };
 
-function StructRW(spec) {
-    assert(spec, 'spec required');
+function StructRW(model) {
+    assert(model, 'model required');
     var self = this;
-    self.spec = spec;
+    self.model = model;
 }
 
 StructRW.prototype.byteLength = function byteLength(struct) {
     var self = this;
     var length = 1; // stop:1
     var result;
-    for (var index = 0; index < self.spec.fields.length; index++) {
-        var field = self.spec.fields[index];
+    for (var index = 0; index < self.model.fields.length; index++) {
+        var field = self.model.fields[index];
         var value = struct && struct[field.name];
 
         var available = value !== null && value !== undefined;
@@ -272,7 +272,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.spec.name,
+                structName: self.model.name,
                 what: struct
             }));
         }
@@ -299,8 +299,8 @@ StructRW.prototype.byteLength = function byteLength(struct) {
 StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
     var self = this;
     var result;
-    for (var index = 0; index < self.spec.fields.length; index++) {
-        var field = self.spec.fields[index];
+    for (var index = 0; index < self.model.fields.length; index++) {
+        var field = self.model.fields[index];
         var value = struct && struct[field.name];
         var available = value !== null && value !== undefined;
 
@@ -308,7 +308,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.spec.name,
+                structName: self.model.name,
                 what: struct
             }));
         }
@@ -351,7 +351,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 
 StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var self = this;
-    var struct = self.spec.create();
+    var struct = self.model.create();
     var result;
 
     for (;;) {
@@ -377,7 +377,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         // keep unrecognized files from the future if it could be an
         // unrecognized exception.
-        if (!self.spec.fieldsById[id] && self.spec.isResult) {
+        if (!self.model.fieldsById[id] && self.model.isResult) {
             result = readType(buffer, offset, typeid);
             // result = skipType(buffer, offset, typeid);
             // istanbul ignore if
@@ -385,7 +385,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
                 return result;
             }
             offset = result.offset;
-            self.spec.set(
+            self.model.set(
                 struct,
                 'failure',
                 new ThriftUnrecognizedException(result.value)
@@ -394,7 +394,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
 
         // skip unrecognized fields from THE FUTURE
-        if (!self.spec.fieldsById[id]) {
+        if (!self.model.fieldsById[id]) {
             result = skipType(buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
@@ -404,7 +404,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             continue;
         }
 
-        var field = self.spec.fieldsById[id];
+        var field = self.model.fieldsById[id];
         if (
             field.valueType.typeid !== typeid &&
             field.valueType.altTypeid !== typeid // deprecated, see set.js
@@ -412,7 +412,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             return new ReadResult(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
-                structName: self.spec.name,
+                structName: self.model.name,
                 typeid: typeid,
                 typeName: NAMES[typeid],
                 expectedTypeid: field.valueType.typeid,
@@ -427,16 +427,16 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = result.offset;
         // TODO promote return error of set to a ReadResult error
-        self.spec.set(struct, field.name, result.value);
+        self.model.set(struct, field.name, result.value);
     }
 
     // Validate required fields
-    var err = self.spec.validateStruct(struct);
+    var err = self.model.validateStruct(struct);
     if (err) {
         return new ReadResult(err);
     }
 
-    return new ReadResult(null, offset, self.spec.finalize(struct));
+    return new ReadResult(null, offset, self.model.finalize(struct));
 };
 
 module.exports.ThriftField = ThriftField;

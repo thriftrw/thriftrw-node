@@ -26,11 +26,11 @@ var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'default.thrift'), 'ascii');
-var spec;
+var model;
 
 test('default values on structs work', function t(assert) {
-    spec = new Thrift({source: source});
-    var health = new spec.Health({name: 'grand'});
+    model = new Thrift({source: source});
+    var health = new model.Health({name: 'grand'});
     assert.equals(health.ok, true, 'default truth value passes through');
     assert.equals(health.notOk, false, 'default false value passes through');
     assert.equals(health.message, 'OK', 'default string passes through');

@@ -29,16 +29,16 @@ function ThriftTypedef() {
 
 ThriftTypedef.prototype.models = 'type';
 
-ThriftTypedef.prototype.compile = function compile(def, spec) {
+ThriftTypedef.prototype.compile = function compile(def, model) {
     var self = this;
     self.name = def.id.name;
     self.valueDefinition = def.valueType;
 };
 
-ThriftTypedef.prototype.link = function link(spec) {
+ThriftTypedef.prototype.link = function link(model) {
     var self = this;
     if (!self.to) {
-        self.to = spec.resolve(self.valueDefinition);
+        self.to = model.resolve(self.valueDefinition);
     }
     return self.to;
 };
