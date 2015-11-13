@@ -141,18 +141,9 @@ Thrift.prototype.compile = function compile() {
     self.compileDefinitions(syntax.definitions);
 };
 
-Thrift.prototype.claim = function claim(name, def, spec) {
+Thrift.prototype.define = function define(name, def, spec) {
     var self = this;
     assert(!self.definitions[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    if (spec) {
-        self.define(name, spec);
-    } else {
-        self.definitions[name] = true;
-    }
-};
-
-Thrift.prototype.define = function define(name, spec) {
-    var self = this;
     self.definitions[name] = spec;
 };
 
@@ -234,7 +225,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             spec.compile();
         }
 
-        self.claim(ns, def, spec);
+        self.define(ns, def, spec);
         self.modules[ns] = spec;
     } else {
         throw Error('Include path string must start with either ./ or ../');
@@ -245,7 +236,7 @@ Thrift.prototype.compileStruct = function compileStruct(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def, spec);
+    self.define(spec.fullName, def, spec);
     self.structs[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -255,7 +246,7 @@ Thrift.prototype.compileException = function compileException(def) {
     var self = this;
     var spec = new ThriftStruct({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def, spec);
+    self.define(spec.fullName, def, spec);
     self.exceptions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -265,7 +256,7 @@ Thrift.prototype.compileUnion = function compileUnion(def) {
     var self = this;
     var spec = new ThriftUnion({strict: self.strict});
     spec.compile(def, self);
-    self.claim(spec.fullName, def, spec);
+    self.define(spec.fullName, def, spec);
     self.unions[spec.fullName] = spec;
     self.types[spec.fullName] = spec;
     return spec;
@@ -275,7 +266,7 @@ Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var self = this;
     var spec = new ThriftTypedef();
     spec.compile(def, self);
-    self.claim(spec.name, spec, spec);
+    self.define(spec.name, spec, spec);
     self.typedefs[spec.name] = spec;
     self.types[spec.name] = spec;
     return spec;
@@ -285,14 +276,14 @@ Thrift.prototype.compileService = function compileService(def) {
     var self = this;
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
-    self.claim(service.name, def.id, service);
+    self.define(service.name, def.id, service);
     self.services[service.name] = service;
 };
 
 Thrift.prototype.compileConst = function compileConst(def, spec) {
     var self = this;
     var thriftConst = new ThriftConst(def);
-    self.claim(def.id.name, def.id, thriftConst);
+    self.define(def.id.name, def.id, thriftConst);
     self.consts[def.id.name] = thriftConst;
 };
 
@@ -300,7 +291,7 @@ Thrift.prototype.compileEnum = function compileEnum(def) {
     var self = this;
     var spec = new ThriftEnum();
     spec.compile(def, self);
-    self.claim(spec.name, def.id, spec);
+    self.define(spec.name, def.id, spec);
     self.enums[spec.name] = spec;
     self.types[spec.name] = spec;
 };
