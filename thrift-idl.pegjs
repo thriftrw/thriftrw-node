@@ -158,7 +158,7 @@ Service
   }
 
 extends
-  = 'extends' __ baseService:ReferenceIdentifier {
+  = 'extends' __ baseService:Identifier {
     return baseService;
   }
 
@@ -283,11 +283,6 @@ word
 Identifier
   = name:IdentifierName __ {
     return new ast.Identifier(name, line(), column());
-  }
-
-ReferenceIdentifier
-  = name:IdentifierName __ {
-    return new ast.ReferenceIdentifier(name, line(), column());
   }
 
 IdentifierName 'identifier'

@@ -349,15 +349,13 @@ Thrift.prototype.resolve = function resolve(def) {
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        return self.resolveIdentifier(def, def.name);
+        return self.resolveIdentifier(def, def.name, 'type');
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
         return new ThriftSet(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
-    } else if (def.type === 'ReferenceIdentifier') {
-        return self.resolveIdentifier(def, def.name);
     } else {
         assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s at %s:%s', def.type, def.line, def.column));
     }

@@ -59,15 +59,6 @@ function Identifier(name, line, column) {
 }
 Identifier.prototype.type = 'Identifier';
 
-module.exports.ReferenceIdentifier = ReferenceIdentifier;
-function ReferenceIdentifier(name, line, column) {
-    var self = this;
-    self.name = name;
-    self.line = line;
-    self.column = column;
-}
-ReferenceIdentifier.prototype.type = 'ReferenceIdentifier';
-
 module.exports.Include = Include;
 function Include(id, namespace) {
     var self = this;
