@@ -105,6 +105,8 @@ Thrift.loadSync = function loadSync(options) {
     return thrift;
 };
 
+Thrift.prototype.models = 'module';
+
 Thrift.prototype.getType = function getType(name) {
     var self = this;
     return self.getTypeResult(name).toValue();

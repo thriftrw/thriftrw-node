@@ -31,6 +31,7 @@ ThriftI32.prototype.rw = I32RW;
 ThriftI32.prototype.name = 'i32';
 ThriftI32.prototype.typeid = TYPE.I32;
 ThriftI32.prototype.surface = Number;
+ThriftI32.prototype.models = 'type';
 
 module.exports.I32RW = I32RW;
 module.exports.ThriftI32 = ThriftI32;

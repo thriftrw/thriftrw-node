@@ -87,6 +87,8 @@ function ThriftService(args) {
     self.linked = false;
 }
 
+ThriftService.prototype.models = 'service';
+
 ThriftService.prototype.compile = function process(def, spec) {
     var self = this;
     self.name = def.id.name;

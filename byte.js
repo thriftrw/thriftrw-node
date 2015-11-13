@@ -31,6 +31,7 @@ ThriftByte.prototype.rw = ByteRW;
 ThriftByte.prototype.name = 'byte';
 ThriftByte.prototype.typeid = TYPE.BYTE;
 ThriftByte.prototype.surface = Boolean;
+ThriftByte.prototype.models = 'type';
 
 module.exports.ByteRW = ByteRW;
 module.exports.ThriftByte = ThriftByte;

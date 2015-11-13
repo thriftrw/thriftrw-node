@@ -42,6 +42,7 @@ function ThriftEnum() {
 }
 
 ThriftEnum.prototype.typeid = TYPE.I32;
+ThriftEnum.prototype.models = 'type';
 
 ThriftEnum.prototype.compile = function compile(def, spec) {
     var self = this;

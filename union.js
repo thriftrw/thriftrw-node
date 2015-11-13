@@ -31,6 +31,7 @@ function ThriftUnion(options) {
 util.inherits(ThriftUnion, ThriftStruct);
 
 ThriftUnion.prototype.isUnion = true;
+ThriftUnion.prototype.models = 'type';
 
 ThriftUnion.prototype.createConstructor = function createConstructor(name, fields) {
     function Union(options) {

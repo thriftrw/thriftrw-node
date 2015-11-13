@@ -180,6 +180,7 @@ function ThriftI64(annotations) {
 
 ThriftI64.prototype.name = 'i64';
 ThriftI64.prototype.typeid = TYPE.I64;
+ThriftI64.prototype.models = 'type';
 
 module.exports.I64RW = I64RW;
 module.exports.I64BufferRW = I64BufferRW;

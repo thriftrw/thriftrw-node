@@ -50,5 +50,6 @@ function ThriftMap(keyType, valueType, annotations) {
 
 ThriftMap.prototype.name = 'map';
 ThriftMap.prototype.typeid = TYPE.MAP;
+ThriftMap.prototype.models = 'type';
 
 module.exports.ThriftMap = ThriftMap;

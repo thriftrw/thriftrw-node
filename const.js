@@ -29,6 +29,8 @@ function ThriftConst(def) {
     self.surface = null;
 }
 
+ThriftConst.prototype.models = 'value';
+
 ThriftConst.prototype.link = function link(spec) {
     var self = this;
     if (!self.defined) {

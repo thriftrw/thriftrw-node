@@ -32,6 +32,7 @@ ThriftBinary.prototype.rw = BinaryRW;
 ThriftBinary.prototype.name = 'binary';
 ThriftBinary.prototype.typeid = TYPE.STRING;
 ThriftBinary.prototype.surface = Buffer;
+ThriftBinary.prototype.models = 'type';
 
 module.exports.BinaryRW = BinaryRW;
 module.exports.ThriftBinary = ThriftBinary;

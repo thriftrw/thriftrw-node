@@ -31,6 +31,7 @@ ThriftDouble.prototype.rw = DoubleRW;
 ThriftDouble.prototype.name = 'double';
 ThriftDouble.prototype.typeid = TYPE.DOUBLE;
 ThriftDouble.prototype.surface = Number;
+ThriftDouble.prototype.models = 'type';
 
 module.exports.DoubleRW = DoubleRW;
 module.exports.ThriftDouble = ThriftDouble;

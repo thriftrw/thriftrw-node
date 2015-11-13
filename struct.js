@@ -93,6 +93,7 @@ ThriftStruct.prototype.name = 'struct';
 ThriftStruct.prototype.typeid = TYPE.STRUCT;
 ThriftStruct.prototype.RW = StructRW;
 ThriftStruct.prototype.isUnion = false;
+ThriftStruct.prototype.models = 'type';
 
 ThriftStruct.prototype.toBuffer = function toBuffer(struct) {
     var self = this;
