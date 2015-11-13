@@ -1,6 +1,6 @@
-include value "./include-cyclic-b.thrift"
+include B "./include-cyclic-b.thrift"
         
 struct Node {
     1: required string name
-    2: required value.Value value
+    2: required B.Value value
 }

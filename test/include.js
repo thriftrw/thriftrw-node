@@ -94,7 +94,7 @@ test('cyclic dependencies', function t(assert) {
         allowIncludeAlias: true
     });
 
-    var thriftB = thriftA.modules.value;
+    var thriftB = thriftA.modules.B;
 
     assert.equal(
         thriftA.structs.Node.fieldsByName.value.valueType,
