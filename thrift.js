@@ -86,6 +86,7 @@ function Thrift(options) {
     self.modulesByPath = options.modulesByPath || Object.create(null);
     self.linked = false;
     self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
+    self.allowIncludeAlias = options.allowIncludeAlias || false;
 
     if (self.thriftFile) {
         self.dirname = path.dirname(self.thriftFile);
@@ -209,7 +210,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
         var ns = def.namespace && def.namespace.name;
 
         // If include isn't name, get filename sans *.thrift file extension.
-        if (!ns) {
+        if (!self.allowIncludeAlias || !ns) {
             var basename = path.basename(def.id);
             ns = basename.slice(0, basename.length - 7);
             if (!validThriftIdentifierRE.test(ns)) {
@@ -227,7 +228,8 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             spec = new Thrift({
                 thriftFile: thriftFile,
                 strict: self.strict,
-                filepathThriftMemo: self.filepathThriftMemo
+                filepathThriftMemo: self.filepathThriftMemo,
+                allowIncludeAlias: true
             });
             spec.compile();
         }

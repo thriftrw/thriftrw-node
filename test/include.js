@@ -25,9 +25,10 @@ var test = require('tape');
 var Thrift = require('../thrift').Thrift;
 var path = require('path');
 
-test('loads a thrift file with imports synchronously', function t(assert) {
+test('loads a thrift file that imports synchronously', function t(assert) {
     var mainThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-parent.thrift')
+        thriftFile: path.join(__dirname, 'include-parent.thrift'),
+        allowIncludeAlias: true
     });
     var importedThrift = mainThrift.modulesByName.common;
 
@@ -75,7 +76,8 @@ test('include without explicitly defined namespace', function t(assert) {
         thriftFile: path.join(
             __dirname,
             'include-filename-namespace.thrift'
-        )
+        ),
+        allowIncludeAlias: true
     });
 
     assert.ok(thrift.modulesByName.typedef,
@@ -88,7 +90,8 @@ test('cyclic dependencies', function t(assert) {
         thriftFile: path.join(
             __dirname,
             'include-cyclic-a.thrift'
-        )
+        ),
+        allowIncludeAlias: true
     });
 
     var thriftB = thriftA.modulesByName.value;
@@ -121,7 +124,8 @@ test('bad include paths', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-not-path.thrift'
-            )
+            ),
+            allowIncludeAlias: true
         });
     }
 });
@@ -139,7 +143,8 @@ test('unknown thrift module name', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-unknown-module.thrift'
-            )
+            ),
+            allowIncludeAlias: true
         });
     }
 });
@@ -157,7 +162,8 @@ test('bad thrift module name', function t(assert) {
             thriftFile: path.join(
                 __dirname,
                 'include-error-invalid-filename-as-namespace.thrift'
-            )
+            ),
+            allowIncludeAlias: true
         });
     }
 });
@@ -172,7 +178,8 @@ test('includes from opts.source throws', function t(assert) {
 
     function includesViaSource() {
         return new Thrift({
-            source: 'include "./foo.thrift"'
+            source: 'include "./foo.thrift"',
+            allowIncludeAlias: true
         });
     }
 });
