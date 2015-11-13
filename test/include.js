@@ -29,9 +29,7 @@ test('loads a thrift file with imports synchronously', function t(assert) {
     var mainThrift = Thrift.loadSync({
         thriftFile: path.join(__dirname, 'include-parent.thrift')
     });
-    var importedThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-child.thrift')
-    });
+    var importedThrift = mainThrift.modulesByName.common;
 
     var typeImportedByMainThrift = mainThrift
         .types
@@ -93,12 +91,7 @@ test('cyclic dependencies', function t(assert) {
         )
     });
 
-    var thriftB = Thrift.loadSync({
-        thriftFile: path.join(
-            __dirname,
-            'include-cyclic-b.thrift'
-        )
-    });
+    var thriftB = thriftA.modulesByName.value;
 
     assert.equal(
         thriftA.structs.Node.fieldsByName.value.valueType,

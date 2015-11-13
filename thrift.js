@@ -48,7 +48,6 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
-var globalFilepathThriftMemo = {};
 var validThriftIdentifierRE = /^[a-zA-Z0-9_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
@@ -85,61 +84,26 @@ function Thrift(options) {
     self.typedefs = Object.create(null);
     self.modulesByName = Object.create(null);
     self.modulesByPath = options.modulesByPath || Object.create(null);
-    self.compiled = false;
     self.linked = false;
     self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
 
     if (self.thriftFile) {
         self.dirname = path.dirname(self.thriftFile);
+        self.filepathThriftMemo[self.thriftFile] = self;
     }
 
-    self.build();
+    if (options.source) {
+        // Two passes permits forward references and cyclic references.
+        self.compile();
+        self.link();
+    }
 }
 
 Thrift.loadSync = function loadSync(options) {
-    var filepath = path.resolve(options.thriftFile);
-
-    if (globalFilepathThriftMemo[filepath]) {
-        return globalFilepathThriftMemo[filepath];
-    }
-
-    var thrift = globalFilepathThriftMemo[filepath] = new Thrift(options);
-
+    var thrift = new Thrift(options);
+    thrift.compile();
+    thrift.link();
     return thrift;
-};
-
-Thrift.prototype.build = function build() {
-    var self = this;
-    // istanbul ignore else
-    if (!self.filepathThriftMemo[self.thriftFile]) {
-        globalFilepathThriftMemo[self.thriftFile] = self;
-        self.filepathThriftMemo[self.thriftFile] = self;
-        // Two passes permits forward references and cyclic references.
-        // First pass constructs objects.
-        self.compile(self.source);
-        // Second pass links field references of structs.
-        // self.link();
-        // parent module links child modules.
-        var moduleNames = Object.keys(self.modulesByName);
-        var allCompiled = [];
-        var allLinked = [];
-        for (var index = 0; index < moduleNames.length; index++) {
-            var thriftModule = self.modulesByName[moduleNames[index]];
-            if (thriftModule.compiled) {
-                thriftModule.link(self);
-            }
-            allCompiled.push(thriftModule.compiled);
-            allLinked.push(thriftModule.linked);
-        }
-
-        if (allCompiled.every(identity) && allLinked.every(identity)) {
-            self.link();
-        }
-    }
-
-    function identity(x) {
-        return x;
-    }
 };
 
 Thrift.prototype.getType = function getType(name) {
@@ -168,9 +132,9 @@ Thrift.prototype.baseTypes = {
     binary: ThriftBinary
 };
 
-Thrift.prototype.compile = function compile(source) {
+Thrift.prototype.compile = function compile() {
     var self = this;
-    var syntax = idl.parse(source);
+    var syntax = idl.parse(self.source);
     assert.equal(syntax.type, 'Program', 'expected a program');
     self.compileHeaders(syntax.headers);
     self.compileDefinitions(syntax.definitions);
@@ -260,13 +224,12 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
         if (self.filepathThriftMemo[thriftFile]) {
             spec = self.filepathThriftMemo[thriftFile];
         } else {
-            spec = Thrift.loadSync({
+            spec = new Thrift({
                 thriftFile: thriftFile,
                 strict: self.strict,
                 filepathThriftMemo: self.filepathThriftMemo
             });
-            self.filepathThriftMemo[thriftFile] = spec;
-            globalFilepathThriftMemo[thriftFile] = spec;
+            spec.compile();
         }
 
         self.claim(ns, def, spec);
@@ -382,11 +345,11 @@ Thrift.prototype.link = function link() {
 
 Thrift.prototype.resolve = function resolve(def) {
     var self = this;
+    // istanbul ignore else
     if (def.type === 'BaseType') {
         return new self.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
         return self.resolveIdentifier(def, def.name);
-    // istanbul ignore else
     } else if (def.type === 'List') {
         return new ThriftList(self.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
@@ -402,7 +365,7 @@ Thrift.prototype.resolve = function resolve(def) {
 
 Thrift.prototype.resolveValue = function resolveValue(def) {
     var self = this;
-    // var err;
+    // istanbul ignore else
     if (!def) {
         return null;
     } else if (def.type === 'Literal') {
@@ -411,7 +374,6 @@ Thrift.prototype.resolveValue = function resolveValue(def) {
         return self.resolveListConst(def);
     } else if (def.type === 'ConstMap') {
         return self.resolveMapConst(def);
-    // istanbul ignore else
     } else if (def.type === 'Identifier') {
         if (def.name === 'true') {
             return true;
