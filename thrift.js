@@ -369,7 +369,7 @@ Thrift.prototype.resolveValue = function resolveValue(def) {
         } else if (def.name === 'false') {
             return false;
         }
-        return self.resolveIdentifier(def, def.name).surface;
+        return self.resolveIdentifier(def, def.name, 'value').value;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }
@@ -394,20 +394,31 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
     return map;
 };
 
-Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier) {
+Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier, models) {
     var self = this;
+    var model;
 
     // short circuit if in global namespace of this thrift.
     if (self.definitions[identifier]) {
-        return self.definitions[identifier].link(self);
+        model = self.definitions[identifier].link(self);
+        if (model.models !== models) {
+            err = new Error(
+                'type mismatch for ' + def.name + ' at ' + def.line + ':' + def.column +
+                ', expects ' + models + ', got ' + model.models
+            );
+            err.line = def.line;
+            err.column = def.column;
+            throw err;
+        }
+        return model;
     }
 
     var parts = identifier.split('.');
     var err;
 
-    var currentModule = self.modules[parts.shift()];
-    if (currentModule) {
-        return currentModule.resolveIdentifier(def, parts.join('.'));
+    var module = self.modules[parts.shift()];
+    if (module) {
+        return module.resolveIdentifier(def, parts.join('.'), models);
     } else {
         err = new Error('cannot resolve reference to ' + def.name + ' at ' + def.line + ':' + def.column);
         err.line = def.line;

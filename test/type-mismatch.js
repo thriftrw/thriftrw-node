@@ -20,36 +20,23 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
+var test = require('tape');
+
+var Thrift = require('..').Thrift;
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
+
+test('consts parse', function t(assert) {
+    assert.throws(
+        typeMismatch,
+        /type mismatch.*expects value, got service/,
+        'throws if service identified for value'
+    );
+    assert.end();
+
+    function typeMismatch() {
+        return new Thrift({source: source});
+    }
+});
+
