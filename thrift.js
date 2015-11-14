@@ -137,8 +137,8 @@ Thrift.prototype.compile = function compile() {
     var self = this;
     var syntax = idl.parse(self.source);
     assert.equal(syntax.type, 'Program', 'expected a program');
-    self.compileHeaders(syntax.headers);
-    self.compileDefinitions(syntax.definitions);
+    self._compile(syntax.headers);
+    self._compile(syntax.definitions);
 };
 
 Thrift.prototype.define = function define(name, def, model) {
@@ -147,42 +147,26 @@ Thrift.prototype.define = function define(name, def, model) {
     self.models[name] = model;
 };
 
-Thrift.prototype._headerProcessors = {
-    // sorted
-    Include: 'compileInclude'
-};
-
-Thrift.prototype._definitionProcessors = {
+Thrift.prototype.compilers = {
     // sorted
     Const: 'compileConst',
     Enum: 'compileEnum',
     Exception: 'compileException',
+    Include: 'compileInclude',
     Service: 'compileService',
     Struct: 'compileStruct',
     Typedef: 'compileTypedef',
     Union: 'compileUnion'
 };
 
-Thrift.prototype.compileHeaders = function compileHeaders(defs) {
+Thrift.prototype._compile = function _compile(defs) {
     var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
-        var headerProcessor = self._headerProcessors[def.type];
+        var compilerName = self.compilers[def.type];
         // istanbul ignore else
-        if (headerProcessor) {
-            self[headerProcessor](def);
-        }
-    }
-};
-
-Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
-    var self = this;
-    for (var index = 0; index < defs.length; index++) {
-        var def = defs[index];
-        var definitionProcessor = self._definitionProcessors[def.type];
-        // istanbul ignore else
-        if (definitionProcessor) {
-            self[definitionProcessor](def);
+        if (compilerName) {
+            self[compilerName](def);
         }
     }
 };
