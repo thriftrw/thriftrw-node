@@ -28,7 +28,7 @@ var errors = require('./errors');
 
 function ThriftList(valueType, annotations) {
     var self = this;
-    self.valueType = valueType.name;
+    self.valueType = valueType;
     self.rw = new ListRW(valueType, self);
 }
 

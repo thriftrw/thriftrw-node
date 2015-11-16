@@ -32,23 +32,20 @@ test('loads a thrift file that imports synchronously', function t(assert) {
     });
     var importedThrift = mainThrift.modules.common;
 
-    var typeImportedByMainThrift = mainThrift
-        .types
-        .BatchGetResponse
+    var typeImportedByMainThrift = mainThrift // Thrift
+        .models
+        .BatchGetResponse // ThriftStruct
         .fieldsByName
-        .items
-        .valueType
-        .rw
-        .valueType;
+        .items // ThriftField
+        .valueType // ThriftList
+        .valueType; // Item
 
-    var typeFromImportedThrift = importedThrift.types.Item;
+    var typeFromImportedThrift = importedThrift.models.Item;
 
     assert.equal(typeImportedByMainThrift, typeFromImportedThrift,
         'Type imported correctly');
 
-    var keyValueServiceFunctions = Object.keys(
-        mainThrift.services.KeyValue.functionsByName
-    );
+    var keyValueServiceFunctions = Object.keys(mainThrift.KeyValue);
 
     assert.deepEqual(
         keyValueServiceFunctions,
@@ -57,13 +54,13 @@ test('loads a thrift file that imports synchronously', function t(assert) {
     );
 
     assert.deepEqual(
-        mainThrift.consts.nums.value,
+        mainThrift.consts.nums,
         [1, 42, 2],
         'Resolve values to included consts'
     );
 
     assert.equal(
-        mainThrift.consts.DEFAULT_ROLE.value,
+        mainThrift.DEFAULT_ROLE,
         'USER',
         'Constant defined from imported enum'
     );
@@ -94,17 +91,17 @@ test('cyclic dependencies', function t(assert) {
         allowIncludeAlias: true
     });
 
-    var thriftB = thriftA.modules.B;
+    var thriftB = thriftA.B;
 
     assert.equal(
-        thriftA.structs.Node.fieldsByName.value.valueType,
-        thriftB.structs.Value,
+        thriftA.models.Node.fieldsByName.value.valueType,
+        thriftB.models.Struct,
         'Value imported correctly from include-cyclic-b thrift file'
     );
 
     assert.equal(
-        thriftB.structs.Value.fieldsByName.nodes.valueType.rw.valueType,
-        thriftA.structs.Node,
+        thriftB.models.Struct.fieldsByName.nodes.valueType.valueType,
+        thriftA.models.Node,
         'Node imported correctly from include-cyclic-a thrift file'
     );
 

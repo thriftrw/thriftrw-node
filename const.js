@@ -37,6 +37,12 @@ ThriftConst.prototype.link = function link(model) {
         self.defined = true;
         self.value = model.resolveValue(self.valueDefinition);
         self.surface = self.value;
+        model.consts[self.name] = self.value;
+
+        // Alias if first character is not lower-case
+        if (!/^[a-z]/.test(self.name)) {
+            model[self.name] = self.value;
+        }
     }
     return self;
 };

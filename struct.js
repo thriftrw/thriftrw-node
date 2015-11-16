@@ -83,6 +83,7 @@ function ThriftStruct(options) {
     self.fieldsByName = {};
     self.isArgument = null;
     self.isResult = null;
+    self.isException = options.isException || false;
     self.Constructor = null;
     self.surface = null;
     self.rw = new self.RW(self);
@@ -187,6 +188,19 @@ ThriftStruct.prototype.link = function link(model) {
     // first.
     for (index = 0; index < self.fields.length; index++) {
         self.fields[index].link(model);
+    }
+
+    if (self.isUnion) {
+        model.unions[self.name] = self.Constructor;
+    } else if (self.isException) {
+        model.exceptions[self.name] = self.Constructor;
+    } else {
+        model.structs[self.name] = self.Constructor;
+    }
+
+    // Alias if first character is not lower-case
+    if (!/^[a-z]/.test(self.name)) {
+        model[self.name] = self.Constructor;
     }
 
     return self;

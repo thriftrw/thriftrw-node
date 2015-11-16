@@ -141,6 +141,13 @@ ThriftService.prototype.link = function link(model) {
         self.functions[index].link(model);
     }
 
+    model.services[self.name] = self.surface;
+
+    // istanbul ignore else
+    if (!/^[a-z]/.test(self.name)) {
+        model[self.name] = self.surface;
+    }
+
     return self;
 };
 

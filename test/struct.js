@@ -32,6 +32,7 @@ var thriftHealth = new ThriftStruct();
 // Manually drive compile(idl) and link(thrift). This would be done by the Spec.
 
 var thriftMock = {
+    structs: {},
     resolve: function resolve() {
         // pretend all fields are boolean
         return new ThriftBoolean();

@@ -40,6 +40,7 @@ ThriftTypedef.prototype.link = function link(model) {
     if (!self.to) {
         self.to = model.resolve(self.valueDefinition);
     }
+    model.typedefs[self.name] = self.to.surface;
     return self.to;
 };
 
