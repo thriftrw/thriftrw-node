@@ -233,6 +233,81 @@ var error = new thrift.Pebcak({
 Exceptions are indexed by name on the `thrift.exceptions` object and aliased on
 the thrift object if their name does not start with a lower-case letter.
 
+### Including other Thrift IDL files
+
+Types, services, and constants defined in different Thrift files may be referenced by using include statements with paths relative to the current .thrift file. The paths must be in the form ./foo.thrift, ./foo/bar.thrift, ../baz.thrift, and so on.
+
+Included modules will automatically be interpreted along with the module that included them, and they will be made available in the generated module with the base name of the included file.
+
+For example, given:
+
+```
+// shared/types.thrift
+
+struct UUID {
+    1: required i64 high
+    2: required i64 low
+}
+```
+
+And:
+
+```
+// services/user.thrift
+
+include "../shared/types.thrift"
+
+struct User {
+    1: required types.UUID uuid
+}
+```
+
+You can do the following
+
+```js
+var path = require('path');
+var Thrift = require('thriftrw').Thrift;
+var service = Thrift.loadSync({
+  thriftFile: path.resolve(__dirname, 'services/user.thrift')
+});
+
+var userUuid = service.modules.types.UUID({
+  high: ...,
+  low: ...
+});
+
+var user = service.User({
+  uuid: userUuid
+});
+```
+
+### Aliasing/Renaming Includes
+
+thriftrw-node contains experimental include-as support. This lets you include a file aliasing it to a different name than that of the file. This feature is hidden behind a flag and should not be used until support for include-as aliasing is supported by other language implementations of thriftrw.
+
+Unaliased include:
+```
+include "../shared/Types.thrift"
+```
+
+Aliased include:
+```
+include Types "../shared/types.thrift"
+```
+
+To enable this you need to execute `Thrift.loadSync` with the `allowIncludeAlias` option set to true. e.g. 
+
+```js
+var thrift = Thrift.loadSync({
+  thriftFile: /* path to main thrift file */,
+  allowIncludeAlias: true
+});
+```
+
+### Definitions with PascalCase Identifiers are Exposed
+
+The surface of any Thrift object will expose definitions as top level properties on an object if the identifier for that definition is PascalCased. In the include example above this can be seen. The filename for the `types.thrift` file is not PascalCase so it needed to be reached via the modules property. If the filename had instead been PascalCased, like `Types.thrift` or imported as `Types`, that module could have been accessed directly via `service.Types.UUID`;`
+
 ### Unions
 
 ThriftUnion also extends ThriftStruct.
