@@ -1,5 +1,5 @@
 include A "./include-cyclic-a.thrift"
 
-struct Value {
+struct Struct {
     1: required list<A.Node> nodes
 }

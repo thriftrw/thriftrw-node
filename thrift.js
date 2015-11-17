@@ -72,16 +72,32 @@ function Thrift(options) {
 
     self.strict = options.strict !== undefined ? options.strict : true;
 
-    self.definitions = Object.create(null);
+    // [name] :Thrift* implementing {compile, link, &c}
+    // Heterogenous Thrift model objects by name in a consolidated name-space
+    // to prevent duplicate references with the same and different types, like
+    // a service and a struct with the same name in the scope of a Thrift IDL
+    // module:
+    self.models = Object.create(null);
+    // [serviceName][functionName] :{rw, Arguments, Result}
     self.services = Object.create(null);
-    self.types = Object.create(null);
+    // [constName] :Value
     self.consts = Object.create(null);
+    // [enumName][name] :String
     self.enums = Object.create(null);
+    // [structName] :Constructor
     self.structs = Object.create(null);
+    // [exceptionName] :Constructor
     self.exceptions = Object.create(null);
+    // [unionName] :Constructor
     self.unions = Object.create(null);
+    // [typedefName] :Constructor (might be Array, Object, or Number)
     self.typedefs = Object.create(null);
+    // [moduleName] :Thrift
+    // Child modules indexed by their local alias.
     self.modules = Object.create(null);
+
+    self.surface = self;
+
     self.linked = false;
     self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
     self.allowIncludeAlias = options.allowIncludeAlias || false;
@@ -114,11 +130,11 @@ Thrift.prototype.getType = function getType(name) {
 
 Thrift.prototype.getTypeResult = function getType(name) {
     var self = this;
-    var type = self.types[name];
-    if (!type) {
+    var model = self.models[name];
+    if (!model || model.models !== 'type') {
         return new Result(new Error(util.format('type %s not found', name)));
     }
-    return new Result(null, type.link());
+    return new Result(null, model.link(self));
 };
 
 Thrift.prototype.baseTypes = {
@@ -137,52 +153,36 @@ Thrift.prototype.compile = function compile() {
     var self = this;
     var syntax = idl.parse(self.source);
     assert.equal(syntax.type, 'Program', 'expected a program');
-    self.compileHeaders(syntax.headers);
-    self.compileDefinitions(syntax.definitions);
+    self._compile(syntax.headers);
+    self._compile(syntax.definitions);
 };
 
-Thrift.prototype.define = function define(name, def, spec) {
+Thrift.prototype.define = function define(name, def, model) {
     var self = this;
-    assert(!self.definitions[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    self.definitions[name] = spec;
+    assert(!self.models[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
+    self.models[name] = model;
 };
 
-Thrift.prototype._headerProcessors = {
-    // sorted
-    Include: 'compileInclude'
-};
-
-Thrift.prototype._definitionProcessors = {
+Thrift.prototype.compilers = {
     // sorted
     Const: 'compileConst',
     Enum: 'compileEnum',
     Exception: 'compileException',
+    Include: 'compileInclude',
     Service: 'compileService',
     Struct: 'compileStruct',
     Typedef: 'compileTypedef',
     Union: 'compileUnion'
 };
 
-Thrift.prototype.compileHeaders = function compileHeaders(defs) {
+Thrift.prototype._compile = function _compile(defs) {
     var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
-        var headerProcessor = self._headerProcessors[def.type];
+        var compilerName = self.compilers[def.type];
         // istanbul ignore else
-        if (headerProcessor) {
-            self[headerProcessor](def);
-        }
-    }
-};
-
-Thrift.prototype.compileDefinitions = function compileDefinitions(defs) {
-    var self = this;
-    for (var index = 0; index < defs.length; index++) {
-        var def = defs[index];
-        var definitionProcessor = self._definitionProcessors[def.type];
-        // istanbul ignore else
-        if (definitionProcessor) {
-            self[definitionProcessor](def);
+        if (compilerName) {
+            self[compilerName](def);
         }
     }
 };
@@ -211,22 +211,29 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             }
         }
 
-        var spec;
+        var model;
 
         if (self.filepathThriftMemo[thriftFile]) {
-            spec = self.filepathThriftMemo[thriftFile];
+            model = self.filepathThriftMemo[thriftFile];
         } else {
-            spec = new Thrift({
+            model = new Thrift({
                 thriftFile: thriftFile,
                 strict: self.strict,
                 filepathThriftMemo: self.filepathThriftMemo,
                 allowIncludeAlias: true
             });
-            spec.compile();
+            model.compile();
         }
 
-        self.define(ns, def, spec);
-        self.modules[ns] = spec;
+        self.define(ns, def, model);
+
+        // Alias if first character is not lower-case
+        self.modules[ns] = model;
+
+        if (!/^[a-z]/.test(ns)) {
+            self[ns] = model;
+        }
+
     } else {
         throw Error('Include path string must start with either ./ or ../');
     }
@@ -234,42 +241,34 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
 Thrift.prototype.compileStruct = function compileStruct(def) {
     var self = this;
-    var spec = new ThriftStruct({strict: self.strict});
-    spec.compile(def, self);
-    self.define(spec.fullName, def, spec);
-    self.structs[spec.fullName] = spec;
-    self.types[spec.fullName] = spec;
-    return spec;
+    var model = new ThriftStruct({strict: self.strict});
+    model.compile(def, self);
+    self.define(model.fullName, def, model);
+    return model;
 };
 
 Thrift.prototype.compileException = function compileException(def) {
     var self = this;
-    var spec = new ThriftStruct({strict: self.strict});
-    spec.compile(def, self);
-    self.define(spec.fullName, def, spec);
-    self.exceptions[spec.fullName] = spec;
-    self.types[spec.fullName] = spec;
-    return spec;
+    var model = new ThriftStruct({strict: self.strict, isException: true});
+    model.compile(def, self);
+    self.define(model.fullName, def, model);
+    return model;
 };
 
 Thrift.prototype.compileUnion = function compileUnion(def) {
     var self = this;
-    var spec = new ThriftUnion({strict: self.strict});
-    spec.compile(def, self);
-    self.define(spec.fullName, def, spec);
-    self.unions[spec.fullName] = spec;
-    self.types[spec.fullName] = spec;
-    return spec;
+    var model = new ThriftUnion({strict: self.strict});
+    model.compile(def, self);
+    self.define(model.fullName, def, model);
+    return model;
 };
 
 Thrift.prototype.compileTypedef = function compileTypedef(def) {
     var self = this;
-    var spec = new ThriftTypedef();
-    spec.compile(def, self);
-    self.define(spec.name, spec, spec);
-    self.typedefs[spec.name] = spec;
-    self.types[spec.name] = spec;
-    return spec;
+    var model = new ThriftTypedef({strict: self.strict});
+    model.compile(def, self);
+    self.define(model.name, def, model);
+    return model;
 };
 
 Thrift.prototype.compileService = function compileService(def) {
@@ -277,58 +276,32 @@ Thrift.prototype.compileService = function compileService(def) {
     var service = new ThriftService({strict: self.strict});
     service.compile(def, self);
     self.define(service.name, def.id, service);
-    self.services[service.name] = service;
 };
 
-Thrift.prototype.compileConst = function compileConst(def, spec) {
+Thrift.prototype.compileConst = function compileConst(def, model) {
     var self = this;
     var thriftConst = new ThriftConst(def);
     self.define(def.id.name, def.id, thriftConst);
-    self.consts[def.id.name] = thriftConst;
 };
 
 Thrift.prototype.compileEnum = function compileEnum(def) {
     var self = this;
-    var spec = new ThriftEnum();
-    spec.compile(def, self);
-    self.define(spec.name, def.id, spec);
-    self.enums[spec.name] = spec;
-    self.types[spec.name] = spec;
+    var model = new ThriftEnum();
+    model.compile(def, self);
+    self.define(model.name, def.id, model);
 };
 
 Thrift.prototype.link = function link() {
     var self = this;
-    var index;
 
     if (self.linked) {
         return self;
     }
     self.linked = true;
 
-    var moduleNames = Object.keys(self.modules);
-    for (index = 0; index < moduleNames.length; index++) {
-        var thriftModule = self.modules[moduleNames[index]];
-        thriftModule.link(self);
-        self.modules[moduleNames[index]] = thriftModule;
-    }
-
-    var typeNames = Object.keys(self.types);
-    for (index = 0; index < typeNames.length; index++) {
-        var type = self.types[typeNames[index]];
-        self[type.name] = type.link(self).surface;
-    }
-
-    var serviceNames = Object.keys(self.services);
-    for (index = 0; index < serviceNames.length; index++) {
-        var service = self.services[serviceNames[index]];
-        self[service.name] = service.link(self).surface;
-    }
-
-    var constNames = Object.keys(self.consts);
-    for (index = 0; index < constNames.length; index++) {
-        var thriftConst = self.consts[constNames[index]];
-        self.consts[constNames[index]] = thriftConst.link(self);
-        self[thriftConst.name] = thriftConst.link(self).surface;
+    var names = Object.keys(self.models);
+    for (var index = 0; index < names.length; index++) {
+        self.models[names[index]].link(self);
     }
 
     return self;
@@ -352,6 +325,7 @@ Thrift.prototype.resolve = function resolve(def) {
     }
 };
 
+// TODO thread type model and validate / coerce
 Thrift.prototype.resolveValue = function resolveValue(def) {
     var self = this;
     // istanbul ignore else
@@ -394,13 +368,13 @@ Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
     return map;
 };
 
-Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier, models) {
+Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, name, models) {
     var self = this;
     var model;
 
     // short circuit if in global namespace of this thrift.
-    if (self.definitions[identifier]) {
-        model = self.definitions[identifier].link(self);
+    if (self.models[name]) {
+        model = self.models[name].link(self);
         if (model.models !== models) {
             err = new Error(
                 'type mismatch for ' + def.name + ' at ' + def.line + ':' + def.column +
@@ -413,7 +387,7 @@ Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, identifier,
         return model;
     }
 
-    var parts = identifier.split('.');
+    var parts = name.split('.');
     var err;
 
     var module = self.modules[parts.shift()];

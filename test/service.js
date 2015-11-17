@@ -64,26 +64,26 @@ test('returns non-base-type', function t(assert) {
 
 test('service extends from another service', function t(assert) {
     assert.deepEqual(
-        Object.keys(thrift.services.Qux.functionsByName),
+        Object.keys(thrift.Qux),
         ['quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
         'Service contains function from BaseService'
     );
 
     assert.deepEqual(
-        Object.keys(thrift.services.Corge.functionsByName),
+        Object.keys(thrift.Corge),
         ['grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
         'Service contains function from BaseService'
     );
 
     assert.deepEqual(
-        Object.keys(thrift.services.Garply.functionsByName),
+        Object.keys(thrift.Garply),
         ['waldo', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
         'Service contains function from BaseService'
     );
 
     assert.equal(
-        thrift.services.Qux.functionsByName.foo,
-        thrift.services.Foo.functionsByName.foo,
+        thrift.Qux.foo,
+        thrift.Foo.foo,
         'Function Qux.foo is the same as Foo.foo by reference'
     );
 

@@ -39,12 +39,13 @@ function ThriftEnum() {
     self.namesToNames = Object.create(null);
     self.surface = self.namesToNames;
     self.rw = new EnumRW(self);
+    self.linked = false;
 }
 
 ThriftEnum.prototype.typeid = TYPE.I32;
 ThriftEnum.prototype.models = 'type';
 
-ThriftEnum.prototype.compile = function compile(def, spec) {
+ThriftEnum.prototype.compile = function compile(def, model) {
     var self = this;
 
     self.name = def.id.name;
@@ -73,8 +74,8 @@ ThriftEnum.prototype.compile = function compile(def, spec) {
             new ast.Literal(name)
         );
         var constModel = new ThriftConst(constDef);
-        spec.consts[fullName] = constModel;
-        spec.define(fullName, enumDef.id, constModel);
+        model.consts[fullName] = constModel;
+        model.define(fullName, enumDef.id, constModel);
         self.namesToValues[name] = value;
         self.namesToNames[name] = name;
         self.valuesToNames[value] = name;
@@ -82,14 +83,28 @@ ThriftEnum.prototype.compile = function compile(def, spec) {
     }
 };
 
-ThriftEnum.prototype.link = function link(spec) {
+ThriftEnum.prototype.link = function link(model) {
     var self = this;
+
+    if (self.linked) {
+        return self;
+    }
+    self.linked = true;
+
+    model.enums[self.name] = self.namesToNames;
+
+    // Alias if first character is not lower-case
+    // istanbul ignore else
+    if (!/^[a-z]/.test(self.name)) {
+        model[self.name] = self.surface;
+    }
+
     return self;
 };
 
-function EnumRW(spec) {
+function EnumRW(model) {
     var self = this;
-    self.spec = spec;
+    self.model = model;
 }
 
 EnumRW.prototype.lengthResult = new LengthResult(null, bufrw.Int32BE.width);
@@ -103,16 +118,16 @@ EnumRW.prototype.writeInto = function writeInto(name, buffer, offset) {
     var self = this;
     if (typeof name !== 'string') {
         return new WriteResult(errors.InvalidEnumerationTypeError({
-            enumName: self.spec.name,
+            enumName: self.model.name,
             name: name,
             nameType: typeof name
         }));
     }
-    var value = self.spec.namesToValues[name];
+    var value = self.model.namesToValues[name];
     // istanbul ignore if
     if (value === undefined) {
         return new WriteResult(errors.InvalidEnumerationNameError({
-            enumName: self.spec.name,
+            enumName: self.model.name,
             name: name
         }));
     }
@@ -129,10 +144,10 @@ EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
     }
     offset = result.offset;
     var value = result.value;
-    var name = self.spec.valuesToNames[value];
+    var name = self.model.valuesToNames[value];
     if (!name) {
         return new ReadResult(errors.InvalidEnumerationValueError({
-            enumName: self.spec.name,
+            enumName: self.model.name,
             value: value
         }));
     }

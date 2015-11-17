@@ -28,14 +28,14 @@ function ThriftFunction(args) {
     self.name = args.name;
     self.service = args.service;
     self.fullName = self.service.name + '::' + self.name;
-    self.spec = args.spec;
+    self.model = args.model;
     self.args = null;
     self.result = null;
     self.strict = args.strict;
     self.linked = false;
 }
 
-ThriftFunction.prototype.compile = function process(def, spec) {
+ThriftFunction.prototype.compile = function process(def, model) {
     var self = this;
 
     self.name = def.id.name;
@@ -45,7 +45,7 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     argsId.as = self.fullName + '_args';
     var argsStruct = new ast.Struct(argsId, def.fields);
     argsStruct.isArgument = true;
-    self.args = spec.compileStruct(argsStruct);
+    self.args = model.compileStruct(argsStruct);
     self.Arguments = self.args.Constructor;
 
     var returnType = def.returns;
@@ -63,17 +63,17 @@ ThriftFunction.prototype.compile = function process(def, spec) {
     resultId.as = self.fullName + '_result';
     var resultStruct = new ast.Struct(resultId, resultFields);
     resultStruct.isResult = true;
-    self.result = spec.compileStruct(resultStruct);
+    self.result = model.compileStruct(resultStruct);
     self.Result = self.result.Constructor;
 
     self.annotations = def.annotations;
     self.oneway = def.oneway;
 };
 
-ThriftFunction.prototype.link = function link(spec) {
+ThriftFunction.prototype.link = function link(model) {
     var self = this;
-    self.args.link(spec);
-    self.result.link(spec);
+    self.args.link(model);
+    self.result.link(model);
 };
 
 function ThriftService(args) {
@@ -89,23 +89,23 @@ function ThriftService(args) {
 
 ThriftService.prototype.models = 'service';
 
-ThriftService.prototype.compile = function process(def, spec) {
+ThriftService.prototype.compile = function process(def, model) {
     var self = this;
     self.name = def.id.name;
     for (var index = 0; index < def.functions.length; index++) {
-        self.compileFunction(def.functions[index], spec);
+        self.compileFunction(def.functions[index], model);
     }
     self.baseService = def.baseService;
 };
 
-ThriftService.prototype.compileFunction = function processFunction(def, spec) {
+ThriftService.prototype.compileFunction = function processFunction(def, model) {
     var self = this;
     var thriftFunction = new ThriftFunction({
         name: def.id.name,
         service: self,
         strict: self.strict
     });
-    thriftFunction.compile(def, spec);
+    thriftFunction.compile(def, model);
     self.addFunction(thriftFunction);
 };
 
@@ -119,7 +119,7 @@ ThriftService.prototype.addFunction = function addFunction(thriftFunction) {
     }
 };
 
-ThriftService.prototype.link = function link(spec) {
+ThriftService.prototype.link = function link(model) {
     var self = this;
     var index = 0;
 
@@ -129,8 +129,8 @@ ThriftService.prototype.link = function link(spec) {
     self.linked = true;
 
     if (self.baseService) {
-        var baseService = spec.resolveIdentifier(self.baseService, self.baseService.name, 'service');
-        baseService.link(spec);
+        var baseService = model.resolveIdentifier(self.baseService, self.baseService.name, 'service');
+        baseService.link(model);
         for (index = 0; index < baseService.functions.length; index++) {
             var thriftFunction = baseService.functions[index];
             self.addFunction(thriftFunction);
@@ -138,7 +138,14 @@ ThriftService.prototype.link = function link(spec) {
     }
 
     for (index = 0; index < self.functions.length; index++) {
-        self.functions[index].link(spec);
+        self.functions[index].link(model);
+    }
+
+    model.services[self.name] = self.surface;
+
+    // istanbul ignore else
+    if (!/^[a-z]/.test(self.name)) {
+        model[self.name] = self.surface;
     }
 
     return self;

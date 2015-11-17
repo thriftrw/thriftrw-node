@@ -30,10 +30,10 @@ var thrift;
 
 test('consts parse', function t(assert) {
     thrift = new Thrift({source: source});
-    assert.equal(thrift.ten, 10, 'ten constant');
-    assert.equal(thrift.tenForward, 10, 'forward reference');
-    assert.deepEqual(thrift.edges, {0: 1, 1: 2}, 'map constant');
-    assert.deepEqual(thrift.names, ['a', 'ab', 'abc'], 'list constant');
-    assert.deepEqual(thrift.tens, [10, 10, 10], 'list of identifiers');
+    assert.equal(thrift.consts.ten, 10, 'ten constant');
+    assert.equal(thrift.consts.tenForward, 10, 'forward reference');
+    assert.deepEqual(thrift.consts.edges, {0: 1, 1: 2}, 'map constant');
+    assert.deepEqual(thrift.consts.names, ['a', 'ab', 'abc'], 'list constant');
+    assert.deepEqual(thrift.consts.tens, [10, 10, 10], 'list of identifiers');
     assert.end();
 });

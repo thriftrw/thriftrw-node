@@ -144,7 +144,16 @@ console.log('created a TStruct from a binary buffer', struct2);
 
 ## Thrift Model
 
-Each service in the IDL gets revealed as an object by the same name on the Thrift instance.
+Thrift has internal models for modules, services, types, and values.
+These models are indexed by name on each Thrift module in the `models` object.
+Each of these models has a "surface", which is a constructor for types, values
+for constants, an index of functions for services, and the model itself for
+modules.
+Modules expose their names on their own object only if they start with a
+non-lower-case character, to avoid name collisions with other properties and
+methods, but are always also available through the index for their type class,
+like `thrift.consts.PI`.
+
 The Meta service is simply `thrift.Meta`.
 The object is an object mapping functions by name, so `thrift.Meta.health` is
 the interface for accessing the `args` and `result` structs for the
@@ -194,8 +203,8 @@ constructors increases the probability V8 optimization.
 Each constructor also hosts `toBuffer(value)`, `fromBuffer(buffer)`,
 `toBufferResult(value)`, and `fromBufferResult(buffer)`.
 
-The internal ThriftStruct instance is also indexed by name on the thrift
-object's `thrift.structs` object.
+Structs are indexed by name on the `thrift.structs` object and aliased on the
+thrift object if their name does not start with a lower-case letter.
 
 ### Exceptions
 
@@ -221,8 +230,8 @@ var error = new thrift.Pebcak({
 });
 ```
 
-The ThriftException instance internal to the thrift compiler is indexed by name
-on `thrift.exceptions`.
+Exceptions are indexed by name on the `thrift.exceptions` object and aliased on
+the thrift object if their name does not start with a lower-case letter.
 
 ### Unions
 
@@ -259,8 +268,8 @@ var coinToss = new thrift.CoinToss({
 })
 ```
 
-The compiler's internal representation of a ThriftUnion is indexed by name on
-`thrift.unions`.
+Unions are indexed by name on the `thrift.unions` object and aliased on the
+thrift object if their name does not start with a lower-case letter.
 
 ### Enums
 
@@ -290,6 +299,9 @@ Thrift expressible as JSON on the command line with [TCurl][]
 
 [TCurl]: https://github.com/uber/tcurl
 
+Enums are indexed by name on the `thrift.unions` object and aliased on the
+thrift object if their name does not start with a lower-case letter.
+
 ### Consts
 
 Thrift constants are surfaced as properties of the thrift instance.
@@ -304,8 +316,8 @@ var PI = thrift.PI;
 var TAU = thrift.TAU;
 ```
 
-Internal representations of consts are indexed by name on the `thrift.consts`
-object.
+Consts are indexed by name on the `thrift.consts` object and aliased on the
+thrift object if their name does not start with a lower-case letter.
 
 
 ## Enhancements and Departures from Thrift proper
