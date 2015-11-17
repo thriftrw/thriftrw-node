@@ -32,56 +32,25 @@ var source = fs.readFileSync(sourceFile, 'utf8');
 var thrift = new Thrift({source: source});
 
 var jsen = require('jsen');
+var greek = ['alpha', 'beta', 'gama', 'delta', 'epsilon', 'zeta', 'eta',
+    'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi',
+    'rho', 'sigma', 'tau', 'upsilon', 'phi', 'chi', 'psi', 'omega'];
 
-function generateMultipleCoordinatesCases(lengths) {
+function generateMultipleObjectCases() {
     var cases = {};
-    for (var i = 0; i < lengths.length; i++) {
-        var length = lengths[i];
-        var subcases = generateCoordinatesCases(length);
-        var names = Object.keys(subcases);
-        for (var j = 0; j < names.length; j++) {
-            var name = names[j];
-            cases[length + ' ' + name] = subcases[name];
-        }
+    for (var index = 0; index < greek.length; index += 6) {
+        var c = generateObjectCases(index);
+        cases[index + ' thrift'] = c.thrift;
+        cases[index + ' json'] = c.json;
     }
     return cases;
 }
 
-function generateCoordinatesCases(count) {
-    // large array of {lat,lon}
+function generateObjectCases(length) {
 
-    var coordinates = [];
-    for (var i = 0; i < count; i++) {
-        var lat = Math.random();
-        var lon = Math.random();
-        var coordinate = {
-            lat: lat,
-            lon: lon
-        };
-        coordinates.push(coordinate);
-    }
+    var payload = generatePayload(length);
+    var schema = generateOptionalSchema(24);
 
-    var payload = {
-        coordinates: coordinates
-    };
-
-    var schema = {
-        type: 'object',
-        properties: {
-            coordinates: {
-                type: 'array',
-                items: {
-                    type: 'object',
-                    properties: {
-                        lat: {type: 'number'},
-                        lon: {type: 'number'}
-                    },
-                    required: ['lat', 'lon']
-                }
-            }
-        },
-        required: ['coordinates']
-    };
     var verify = jsen(schema);
     var valid = verify(payload);
     assert.ok(valid, 'json must be valid');
@@ -94,4 +63,23 @@ function generateCoordinatesCases(count) {
     return cases;
 }
 
-benchCasesSync(generateMultipleCoordinatesCases([0, 1, 1e1, 1e2, 1e3, 1e4]));
+function generatePayload(length) {
+    var payload = {};
+    for (var index = 0; index < length; index++) {
+        var name = greek[index];
+        payload[name] = name;
+    }
+    return payload;
+}
+
+function generateOptionalSchema(length) {
+    var properties = {};
+    for (var index = 0; index < length; index++) {
+        var name = greek[index];
+        properties[name] = {type: 'string'};
+    }
+    var schema = {type: 'object', properties: properties};
+    return schema;
+}
+
+benchCasesSync(generateMultipleObjectCases());

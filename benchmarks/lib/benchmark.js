@@ -39,10 +39,12 @@ function benchCasesSync(cases) {
 
 function summarize(name, stats) {
     console.log(
-        'p50 %s p75 %s p90 %s stdev %s %s',
+        'p25 %s p50 %s p75 %s p90 %s stddev %s q3-q1/2 %s %s',
+        humanize.ns(stats.percentile(25)),
         humanize.ns(stats.percentile(50)),
         humanize.ns(stats.percentile(75)),
         humanize.ns(stats.percentile(90)),
+        humanize.ns((stats.percentile(50) - stats.percentile(25)) / 2),
         humanize.ns(stats.stddev()),
         name
     );
