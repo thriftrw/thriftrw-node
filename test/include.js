@@ -27,7 +27,7 @@ var path = require('path');
 
 test('loads a thrift file that imports synchronously', function t(assert) {
     var mainThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-parent.thrift'),
+        entryPoint: path.join(__dirname, 'include-parent.thrift'),
         allowIncludeAlias: true
     });
     var importedThrift = mainThrift.modules.common;
@@ -70,7 +70,7 @@ test('loads a thrift file that imports synchronously', function t(assert) {
 
 test('include without explicitly defined namespace', function t(assert) {
     var thrift = Thrift.loadSync({
-        thriftFile: path.join(
+        entryPoint: path.join(
             __dirname,
             'include-filename-namespace.thrift'
         ),
@@ -84,7 +84,7 @@ test('include without explicitly defined namespace', function t(assert) {
 
 test('cyclic dependencies', function t(assert) {
     var thriftA = Thrift.loadSync({
-        thriftFile: path.join(
+        entryPoint: path.join(
             __dirname,
             'include-cyclic-a.thrift'
         ),
@@ -118,7 +118,7 @@ test('bad include paths', function t(assert) {
 
     function badIncludePaths() {
         Thrift.loadSync({
-            thriftFile: path.join(
+            entryPoint: path.join(
                 __dirname,
                 'include-error-not-path.thrift'
             ),
@@ -137,7 +137,7 @@ test('unknown thrift module name', function t(assert) {
 
     function unknownThriftModule() {
         Thrift.loadSync({
-            thriftFile: path.join(
+            entryPoint: path.join(
                 __dirname,
                 'include-error-unknown-module.thrift'
             ),
@@ -156,7 +156,7 @@ test('bad thrift module name', function t(assert) {
 
     function badThriftModuleName() {
         Thrift.loadSync({
-            thriftFile: path.join(
+            entryPoint: path.join(
                 __dirname,
                 'include-error-invalid-filename-as-namespace.thrift'
             ),
@@ -168,8 +168,8 @@ test('bad thrift module name', function t(assert) {
 test('includes from opts.source throws', function t(assert) {
     assert.throws(
         includesViaSource,
-        /Must set opts.thriftFile on instantiation to resolve include paths/,
-        'throws when instantiated via opts.source without opts.thriftFile set'
+        /Thrift must be constructed with/,
+        'throws when instantiated via opts.source without opts.entryPoint set'
     );
     assert.end();
 
