@@ -55,19 +55,19 @@ function Thrift(options) {
 
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
-    assert(options.source || options.thriftFile,
-        'opts.source or opts.thriftFile required');
+    assert(options.source || options.entryPoint,
+        'opts.source or opts.entryPoint required');
 
-    self.thriftFile = options.thriftFile ?
-        path.resolve(options.thriftFile) : null;
+    self.entryPoint = options.entryPoint ?
+        path.resolve(options.entryPoint) : null;
 
     if (options.source) {
         assert(typeof options.source === 'string', 'source must be string');
         self.source = options.source;
     }
 
-    if (self.thriftFile && !self.source) {
-        self.source = fs.readFileSync(self.thriftFile, 'ascii');
+    if (self.entryPoint && !self.source) {
+        self.source = fs.readFileSync(self.entryPoint, 'ascii');
     }
 
     self.strict = options.strict !== undefined ? options.strict : true;
@@ -102,9 +102,9 @@ function Thrift(options) {
     self.idls = options.idls || Object.create(null);
     self.allowIncludeAlias = options.allowIncludeAlias || false;
 
-    if (self.thriftFile) {
-        self.dirname = path.dirname(self.thriftFile);
-        self.idls[self.thriftFile] = self;
+    if (self.entryPoint) {
+        self.dirname = path.dirname(self.entryPoint);
+        self.idls[self.entryPoint] = self;
     }
 
     if (options.source) {
@@ -192,12 +192,12 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
     assert(
         self.dirname,
-        'Must set opts.thriftFile on instantiation to resolve include paths'
+        'Must set opts.entryPoint on instantiation to resolve include paths'
     );
 
     if (def.id.lastIndexOf('./', 0) === 0 ||
         def.id.lastIndexOf('../', 0) === 0) {
-        var thriftFile = path.resolve(self.dirname, def.id);
+        var entryPoint = path.resolve(self.dirname, def.id);
         var ns = def.namespace && def.namespace.name;
 
         // If include isn't name, get filename sans *.thrift file extension.
@@ -213,11 +213,11 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
         var model;
 
-        if (self.idls[thriftFile]) {
-            model = self.idls[thriftFile];
+        if (self.idls[entryPoint]) {
+            model = self.idls[entryPoint];
         } else {
             model = new Thrift({
-                thriftFile: thriftFile,
+                entryPoint: entryPoint,
                 strict: self.strict,
                 idls: self.idls,
                 allowIncludeAlias: true
