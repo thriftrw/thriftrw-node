@@ -27,6 +27,7 @@ var fs = require('fs');
 var path = require('path');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
+var lcp = require('./lib/lcp');
 
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
@@ -143,6 +144,20 @@ Thrift.prototype.getTypeResult = function getType(name) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
     return new Result(null, model.link(self));
+};
+
+Thrift.prototype.getSources = function getSources() {
+    var self = this;
+    var filenames = Object.keys(self.idls);
+    var common = lcp.longestCommonPath(filenames);
+    var idls = {};
+    for (var index = 0; index < filenames.length; index++) {
+        var filename = filenames[index];
+        var module = self.memo[filename];
+        idls[filename.slice(common.length + 1)] = module.source;
+    }
+    var entryPoint = self.filename.slice(common.length + 1);
+    return {entryPoint: entryPoint, idls: idls};
 };
 
 Thrift.prototype.baseTypes = {
