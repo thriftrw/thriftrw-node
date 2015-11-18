@@ -60,10 +60,12 @@ function Identifier(name, line, column) {
 Identifier.prototype.type = 'Identifier';
 
 module.exports.Include = Include;
-function Include(id, namespace) {
+function Include(id, namespace, line, column) {
     var self = this;
     self.id = id;
     self.namespace = namespace;
+    self.line = line;
+    self.column = column;
 }
 Include.prototype.type = 'Include';
 

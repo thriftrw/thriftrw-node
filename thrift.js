@@ -321,7 +321,10 @@ Thrift.prototype.resolve = function resolve(def) {
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
-        assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s at %s:%s', def.type, def.line, def.column));
+        assert.fail(util.format(
+            'Can\'t get reader/writer for definition with unknown type %s at %s:%s',
+            def.type, def.line, def.column
+        ));
     }
 };
 
