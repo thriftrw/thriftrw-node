@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint max-statements:[1, 30] */
+/* eslint max-statements:[1, 40] */
 'use strict';
 
 var assert = require('assert');
@@ -27,6 +27,7 @@ var fs = require('fs');
 var path = require('path');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
+var lcp = require('./lib/lcp');
 
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
@@ -69,24 +70,11 @@ function Thrift(options) {
     // filename to Thrift instance
     self.memo = options.memo || Object.create(null);
 
-    self.filename = options.entryPoint;
-    self.dirname = path.dirname(self.filename);
-    self.memo[self.filename] = self;
-
     // Grant file system access for resolving includes, as opposed to lifting
     // includes from provided options.idls alone.
     self.fs = options.fs;
     if (options.allowFilesystemAccess) {
         self.fs = fs;
-    }
-
-    var source = self.idls[options.entryPoint];
-    if (!source) {
-        assert.ok(self.fs, self.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
-        assert.ok(self.filename, 'Thrift must be constructed with a options.entryPoint');
-        self.filename = path.resolve(self.filename);
-        source = self.fs.readFileSync(self.filename, 'ascii');
-        self.idls[self.filename] = source;
     }
 
     self.strict = options.strict !== undefined ? options.strict : true;
@@ -120,6 +108,19 @@ function Thrift(options) {
     self.linked = false;
     self.allowIncludeAlias = options.allowIncludeAlias || false;
 
+    self.filename = options.entryPoint;
+    self.dirname = path.dirname(self.filename);
+    self.memo[self.filename] = self;
+
+    var source = self.idls[options.entryPoint];
+    if (!source) {
+        assert.ok(self.fs, self.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
+        assert.ok(self.filename, 'Thrift must be constructed with a options.entryPoint');
+        self.filename = path.resolve(self.filename);
+        source = self.fs.readFileSync(self.filename, 'ascii');
+        self.idls[self.filename] = source;
+    }
+
     // Separate compile/link passes permits forward references and cyclic
     // references.
     self.compile(source);
@@ -149,6 +150,19 @@ Thrift.prototype.getTypeResult = function getType(name) {
         return new Result(new Error(util.format('type %s not found', name)));
     }
     return new Result(null, model.link(self));
+};
+
+Thrift.prototype.getSources = function getSources() {
+    var self = this;
+    var filenames = Object.keys(self.idls);
+    var common = lcp.longestCommonPath(filenames);
+    var idls = {};
+    for (var index = 0; index < filenames.length; index++) {
+        var filename = filenames[index];
+        idls[filename.slice(common.length + 1)] = self.idls[filename];
+    }
+    var entryPoint = self.filename.slice(common.length + 1);
+    return {entryPoint: entryPoint, idls: idls};
 };
 
 Thrift.prototype.baseTypes = {

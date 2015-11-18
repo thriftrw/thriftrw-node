@@ -20,38 +20,29 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./byte');
-require('./double');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
+var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var Thrift = require('../thrift').Thrift;
+
+test('can round trip a thrift file through sources', function t(assert) {
+
+    var thrift = new Thrift({
+        entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
+        fs: fs,
+        allowFsAccess: true,
+        allowIncludeAlias: true
+    });
+
+    var sources = thrift.getSources();
+    var rethrift = new Thrift({
+        entryPoint: sources.entryPoint,
+        idls: sources.idls,
+        allowIncludeAlias: true
+    });
+
+    assert.deepEquals(Object.keys(rethrift.models), Object.keys(thrift.models), 'all models survive round trip');
+
+    assert.end();
+});
+
