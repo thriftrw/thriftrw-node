@@ -25,9 +25,11 @@
   "devDependencies": {
     "coveralls": "^2.10.0",
     "debug": "^2.1.2",
+    "fast-stats": "0.0.3",
     "faucet": "0.0.1",
     "istanbul": "^0.3.5",
     "itape": "^1.5.0",
+    "jsen": "^0.6.0",
     "opn": "^1.0.1",
     "pre-commit": "0.0.9",
     "tape": "^2.0.0",

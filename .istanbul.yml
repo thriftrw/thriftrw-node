@@ -1,5 +1,7 @@
 instrumentation:
     include-all-sources: true
+    excludes:
+        - benchmarks/**
 check:
     global:
         statements: 100
