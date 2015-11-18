@@ -99,12 +99,12 @@ function Thrift(options) {
     self.surface = self;
 
     self.linked = false;
-    self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
+    self.idls = options.idls || Object.create(null);
     self.allowIncludeAlias = options.allowIncludeAlias || false;
 
     if (self.thriftFile) {
         self.dirname = path.dirname(self.thriftFile);
-        self.filepathThriftMemo[self.thriftFile] = self;
+        self.idls[self.thriftFile] = self;
     }
 
     if (options.source) {
@@ -213,13 +213,13 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
         var model;
 
-        if (self.filepathThriftMemo[thriftFile]) {
-            model = self.filepathThriftMemo[thriftFile];
+        if (self.idls[thriftFile]) {
+            model = self.idls[thriftFile];
         } else {
             model = new Thrift({
                 thriftFile: thriftFile,
                 strict: self.strict,
-                filepathThriftMemo: self.filepathThriftMemo,
+                idls: self.idls,
                 allowIncludeAlias: true
             });
             model.compile();
