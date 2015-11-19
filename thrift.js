@@ -131,11 +131,6 @@ function Thrift(options) {
 
 }
 
-Thrift.loadSync = function loadSync(options) {
-    options.allowFilesystemAccess = true;
-    return new Thrift(options);
-};
-
 Thrift.prototype.models = 'module';
 
 Thrift.prototype.getType = function getType(name) {
