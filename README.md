@@ -267,8 +267,9 @@ You can do the following
 ```js
 var path = require('path');
 var Thrift = require('thriftrw').Thrift;
-var service = Thrift.loadSync({
-  thriftFile: path.resolve(__dirname, 'services/user.thrift')
+var service = new Thrift({
+  entryPoint: path.resolve(__dirname, 'services/user.thrift'),
+  allowFilesystemAccess: true
 });
 
 var userUuid = service.modules.types.UUID({
@@ -295,12 +296,13 @@ Aliased include:
 include Types "../shared/types.thrift"
 ```
 
-To enable this you need to execute `Thrift.loadSync` with the `allowIncludeAlias` option set to true. e.g. 
+To enable this you need to create a `Thrift` with the `allowIncludeAlias` option set to true. e.g.
 
 ```js
-var thrift = Thrift.loadSync({
+var thrift = new Thrift({
   thriftFile: /* path to main thrift file */,
-  allowIncludeAlias: true
+  allowIncludeAlias: true,
+  allowFilesystemAccess: true
 });
 ```
 

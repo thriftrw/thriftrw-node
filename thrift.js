@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint max-statements:[1, 30] */
+/* eslint max-statements:[1, 40] */
 'use strict';
 
 var assert = require('assert');
@@ -27,6 +27,7 @@ var fs = require('fs');
 var path = require('path');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
+var lcp = require('./lib/lcp');
 
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
@@ -55,19 +56,25 @@ function Thrift(options) {
 
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
-    assert(options.source || options.thriftFile,
-        'opts.source or opts.thriftFile required');
+    assert(options.source || options.entryPoint, 'opts.entryPoint required');
 
-    self.thriftFile = options.thriftFile ?
-        path.resolve(options.thriftFile) : null;
-
+    // Coerce weakly-deprecated single include usage
     if (options.source) {
         assert(typeof options.source === 'string', 'source must be string');
-        self.source = options.source;
+        options.entryPoint = 'source.thrift';
+        options.idls = {'source.thrift': options.source};
     }
 
-    if (self.thriftFile && !self.source) {
-        self.source = fs.readFileSync(self.thriftFile, 'ascii');
+    // filename to source
+    self.idls = options.idls || Object.create(null);
+    // filename to Thrift instance
+    self.memo = options.memo || Object.create(null);
+
+    // Grant file system access for resolving includes, as opposed to lifting
+    // includes from provided options.idls alone.
+    self.fs = options.fs;
+    if (options.allowFilesystemAccess) {
+        self.fs = fs;
     }
 
     self.strict = options.strict !== undefined ? options.strict : true;
@@ -99,27 +106,30 @@ function Thrift(options) {
     self.surface = self;
 
     self.linked = false;
-    self.filepathThriftMemo = options.filepathThriftMemo || Object.create(null);
     self.allowIncludeAlias = options.allowIncludeAlias || false;
 
-    if (self.thriftFile) {
-        self.dirname = path.dirname(self.thriftFile);
-        self.filepathThriftMemo[self.thriftFile] = self;
+    self.filename = options.entryPoint;
+    self.dirname = path.dirname(self.filename);
+    self.memo[self.filename] = self;
+
+    var source = self.idls[options.entryPoint];
+    if (!source) {
+        assert.ok(self.fs, self.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
+        assert.ok(self.filename, 'Thrift must be constructed with a options.entryPoint');
+        self.filename = path.resolve(self.filename);
+        source = self.fs.readFileSync(self.filename, 'ascii');
+        self.idls[self.filename] = source;
     }
 
-    if (options.source) {
-        // Two passes permits forward references and cyclic references.
-        self.compile();
+    // Separate compile/link passes permits forward references and cyclic
+    // references.
+    self.compile(source);
+    // We only link from the root Thrift object.
+    if (!options.noLink) {
         self.link();
     }
-}
 
-Thrift.loadSync = function loadSync(options) {
-    var thrift = new Thrift(options);
-    thrift.compile();
-    thrift.link();
-    return thrift;
-};
+}
 
 Thrift.prototype.models = 'module';
 
@@ -137,6 +147,19 @@ Thrift.prototype.getTypeResult = function getType(name) {
     return new Result(null, model.link(self));
 };
 
+Thrift.prototype.getSources = function getSources() {
+    var self = this;
+    var filenames = Object.keys(self.idls);
+    var common = lcp.longestCommonPath(filenames);
+    var idls = {};
+    for (var index = 0; index < filenames.length; index++) {
+        var filename = filenames[index];
+        idls[filename.slice(common.length + 1)] = self.idls[filename];
+    }
+    var entryPoint = self.filename.slice(common.length + 1);
+    return {entryPoint: entryPoint, idls: idls};
+};
+
 Thrift.prototype.baseTypes = {
     void: ThriftVoid,
     bool: ThriftBoolean,
@@ -149,9 +172,9 @@ Thrift.prototype.baseTypes = {
     binary: ThriftBinary
 };
 
-Thrift.prototype.compile = function compile() {
+Thrift.prototype.compile = function compile(source) {
     var self = this;
-    var syntax = idl.parse(self.source);
+    var syntax = idl.parse(source);
     assert.equal(syntax.type, 'Program', 'expected a program');
     self._compile(syntax.headers);
     self._compile(syntax.definitions);
@@ -190,15 +213,10 @@ Thrift.prototype._compile = function _compile(defs) {
 Thrift.prototype.compileInclude = function compileInclude(def) {
     var self = this;
 
-    assert(
-        self.dirname,
-        'Must set opts.thriftFile on instantiation to resolve include paths'
-    );
-
     if (def.id.lastIndexOf('./', 0) === 0 ||
         def.id.lastIndexOf('../', 0) === 0) {
-        var thriftFile = path.resolve(self.dirname, def.id);
         var ns = def.namespace && def.namespace.name;
+        var filename = path.join(self.dirname, def.id);
 
         // If include isn't name, get filename sans *.thrift file extension.
         if (!self.allowIncludeAlias || !ns) {
@@ -213,16 +231,18 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
         var model;
 
-        if (self.filepathThriftMemo[thriftFile]) {
-            model = self.filepathThriftMemo[thriftFile];
+        if (self.memo[filename]) {
+            model = self.memo[filename];
         } else {
             model = new Thrift({
-                thriftFile: thriftFile,
+                entryPoint: filename,
+                fs: self.fs,
+                idls: self.idls,
+                memo: self.memo,
                 strict: self.strict,
-                filepathThriftMemo: self.filepathThriftMemo,
-                allowIncludeAlias: true
+                allowIncludeAlias: true,
+                noLink: true
             });
-            model.compile();
         }
 
         self.define(ns, def, model);
@@ -321,7 +341,10 @@ Thrift.prototype.resolve = function resolve(def) {
     } else if (def.type === 'Map') {
         return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
     } else {
-        assert.fail(util.format('Can\'t get reader/writer for definition with unknown type %s at %s:%s', def.type, def.line, def.column));
+        assert.fail(util.format(
+            'Can\'t get reader/writer for definition with unknown type %s at %s:%s',
+            def.type, def.line, def.column
+        ));
     }
 };
 

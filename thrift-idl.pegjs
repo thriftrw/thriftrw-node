@@ -22,7 +22,7 @@ Header
 
 Include
   = IncludeToken namespace:Identifier? __ id:Literal {
-    return new ast.Include(id, namespace);
+    return new ast.Include(id, namespace, line(), column());
   }
 
 CppInclude

@@ -26,9 +26,10 @@ var Thrift = require('../thrift').Thrift;
 var path = require('path');
 
 test('loads a thrift file that imports synchronously', function t(assert) {
-    var mainThrift = Thrift.loadSync({
-        thriftFile: path.join(__dirname, 'include-parent.thrift'),
-        allowIncludeAlias: true
+    var mainThrift = new Thrift({
+        entryPoint: path.join(__dirname, 'include-parent.thrift'),
+        allowIncludeAlias: true,
+        allowFilesystemAccess: true
     });
     var importedThrift = mainThrift.modules.common;
 
@@ -69,12 +70,13 @@ test('loads a thrift file that imports synchronously', function t(assert) {
 });
 
 test('include without explicitly defined namespace', function t(assert) {
-    var thrift = Thrift.loadSync({
-        thriftFile: path.join(
+    var thrift = new Thrift({
+        entryPoint: path.join(
             __dirname,
             'include-filename-namespace.thrift'
         ),
-        allowIncludeAlias: true
+        allowIncludeAlias: true,
+        allowFilesystemAccess: true
     });
 
     assert.ok(thrift.modules.typedef,
@@ -83,12 +85,13 @@ test('include without explicitly defined namespace', function t(assert) {
 });
 
 test('cyclic dependencies', function t(assert) {
-    var thriftA = Thrift.loadSync({
-        thriftFile: path.join(
+    var thriftA = new Thrift({
+        entryPoint: path.join(
             __dirname,
             'include-cyclic-a.thrift'
         ),
-        allowIncludeAlias: true
+        allowIncludeAlias: true,
+        allowFilesystemAccess: true
     });
 
     var thriftB = thriftA.B;
@@ -117,12 +120,13 @@ test('bad include paths', function t(assert) {
     assert.end();
 
     function badIncludePaths() {
-        Thrift.loadSync({
-            thriftFile: path.join(
+        return new Thrift({
+            entryPoint: path.join(
                 __dirname,
                 'include-error-not-path.thrift'
             ),
-            allowIncludeAlias: true
+            allowIncludeAlias: true,
+            allowFilesystemAccess: true
         });
     }
 });
@@ -136,12 +140,13 @@ test('unknown thrift module name', function t(assert) {
     assert.end();
 
     function unknownThriftModule() {
-        Thrift.loadSync({
-            thriftFile: path.join(
+        return new Thrift({
+            entryPoint: path.join(
                 __dirname,
                 'include-error-unknown-module.thrift'
             ),
-            allowIncludeAlias: true
+            allowIncludeAlias: true,
+            allowFilesystemAccess: true
         });
     }
 });
@@ -155,12 +160,13 @@ test('bad thrift module name', function t(assert) {
     assert.end();
 
     function badThriftModuleName() {
-        Thrift.loadSync({
-            thriftFile: path.join(
+        return new Thrift({
+            entryPoint: path.join(
                 __dirname,
                 'include-error-invalid-filename-as-namespace.thrift'
             ),
-            allowIncludeAlias: true
+            allowIncludeAlias: true,
+            allowFilesystemAccess: true
         });
     }
 });
@@ -168,8 +174,8 @@ test('bad thrift module name', function t(assert) {
 test('includes from opts.source throws', function t(assert) {
     assert.throws(
         includesViaSource,
-        /Must set opts.thriftFile on instantiation to resolve include paths/,
-        'throws when instantiated via opts.source without opts.thriftFile set'
+        /Thrift must be constructed with/,
+        'throws when instantiated via opts.source without opts.entryPoint set'
     );
     assert.end();
 
