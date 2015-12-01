@@ -61,8 +61,8 @@ function Thrift(options) {
     // Coerce weakly-deprecated single include usage
     if (options.source) {
         assert(typeof options.source === 'string', 'source must be string');
-        options.entryPoint = 'source.thrift';
-        options.idls = {'source.thrift': options.source};
+        options.entryPoint = 'service.thrift';
+        options.idls = {'service.thrift': options.source};
     }
 
     // filename to source
@@ -154,9 +154,9 @@ Thrift.prototype.getSources = function getSources() {
     var idls = {};
     for (var index = 0; index < filenames.length; index++) {
         var filename = filenames[index];
-        idls[filename.slice(common.length + 1)] = self.idls[filename];
+        idls[filename.slice(common.length)] = self.idls[filename];
     }
-    var entryPoint = self.filename.slice(common.length + 1);
+    var entryPoint = self.filename.slice(common.length);
     return {entryPoint: entryPoint, idls: idls};
 };
 
