@@ -52,19 +52,25 @@ var pathTests = [
         '/home/luser/app/idl/bob/bob.thrift',
         '/home/luser/app/idl/charlie/charlie.thrift',
         '/home/luser/app/idl/common.thrift'
-    ], path: '/home/luser/app/idl'},
+    ], path: '/home/luser/app/idl/'},
     {paths: [
         '/home/luser/app/idl/alice/alice.thrift',
         '/home/luser/app/idl/alice.thrift'
-    ], path: '/home/luser/app/idl'},
+    ], path: '/home/luser/app/idl/'},
     {paths: [
         '/home/luser/app/idl/alice',
         '/home/luser/app/idl/bob'
-    ], path: '/home/luser/app/idl'},
+    ], path: '/home/luser/app/idl/'},
     {paths: [
         '/home/luser/app/idl/',
         '/home/luser/app/idl/'
-    ], path: '/home/luser/app/idl'}
+    ], path: '/home/luser/app/idl/'},
+    {paths: [
+        'service.thrift'
+    ], path: ''},
+    {paths: [
+        '/home/luser/app/idl/service.thrift'
+    ], path: '/home/luser/app/idl/'}
 ];
 
 test('common parent directory', function t(assert) {

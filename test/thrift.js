@@ -28,10 +28,30 @@ var Thrift = require('../thrift').Thrift;
 
 var thrift;
 
-test('thrift parses', function t(assert) {
+test('thrift parses from source', function t(assert) {
     var filename = path.join(__dirname, 'thrift.thrift');
     var source = fs.readFileSync(filename, 'ascii');
     thrift = new Thrift({source: source});
+    assert.equal(
+        thrift.getSources().entryPoint,
+        'service.thrift',
+        'Correct default entryPoint value when no includes'
+    );
+    assert.pass('thrift parses');
+    assert.end();
+});
+
+test('thrift parses from entryPoint', function t(assert) {
+    var filename = path.join(__dirname, 'thrift.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    assert.equal(
+        thrift.getSources().entryPoint,
+        'thrift.thrift',
+        'Correct default entryPoint value when no includes'
+    );
     assert.pass('thrift parses');
     assert.end();
 });
