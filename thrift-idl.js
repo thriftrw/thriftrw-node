@@ -44,8 +44,8 @@ var ast = require('./ast');
 // strict mode.
 
 var grammarPath = path.join(__dirname, 'thrift-idl.pegjs');
-var parserSource = PEG.buildParser(fs.readFileSync(grammarPath).toString('ascii'),
-    {output: 'source'});
+var grammarSource = fs.readFileSync(grammarPath).toString('ascii');
+var parserSource = PEG.buildParser(grammarSource, {output: 'source', cache: true});
 var parserMaker = new Function('ast', 'return ' + parserSource);
 var parser = parserMaker(ast);
 
