@@ -66,6 +66,16 @@ test('loads a thrift file that imports synchronously', function t(assert) {
         'Constant defined from imported enum'
     );
 
+    assert.ok(
+        mainThrift.getType('KeyValue::healthy_args'),
+        'Function inherited from service subclass copies _args key'
+    );
+
+    assert.ok(
+        mainThrift.getType('KeyValue::healthy_result'),
+        'Function inherited from service subclass copies _result key'
+    );
+
     assert.end();
 });
 

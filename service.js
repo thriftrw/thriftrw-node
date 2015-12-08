@@ -37,6 +37,7 @@ function ThriftFunction(args) {
 ThriftFunction.prototype.compile = function process(def, model) {
     var self = this;
 
+    self.def = def;
     self.name = def.id.name;
 
     var argsId = new ast.Identifier(self.name + '_args');
@@ -107,11 +108,24 @@ ThriftService.prototype.compileFunction = function processFunction(def, model) {
     self.addFunction(thriftFunction);
 };
 
-ThriftService.prototype.addFunction = function addFunction(thriftFunction) {
+ThriftService.prototype.addFunction = function addFunction(thriftFunction, thrift) {
     var self = this;
     self.functions.push(thriftFunction);
     if (!self.functionsByName[thriftFunction.name]) {
         self.functionsByName[thriftFunction.name] = thriftFunction;
+        if (thrift) {
+            thrift.define(
+                self.name + '::' + thriftFunction.args.name,
+                thriftFunction.def,
+                thriftFunction.args
+            );
+
+            thrift.define(
+                self.name + '::' + thriftFunction.result.name,
+                thriftFunction.def,
+                thriftFunction.result
+            );
+        }
     } else {
         throw new Error(self.name + '.' + thriftFunction.name + ' already inherited from baseService');
     }
@@ -131,7 +145,7 @@ ThriftService.prototype.link = function link(model) {
         baseService.link(model);
         for (index = 0; index < baseService.functions.length; index++) {
             var thriftFunction = baseService.functions[index];
-            self.addFunction(thriftFunction);
+            self.addFunction(thriftFunction, model);
         }
     }
 
