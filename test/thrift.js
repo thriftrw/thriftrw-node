@@ -156,3 +156,59 @@ test('duplicate reference in thrift', function t(assert) {
     }
     assert.end();
 });
+
+test('get endpoints single service', function t(assert) {
+    var filename = path.join(__dirname, 'thrift.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    assert.deepEqual(
+        thrift.getServiceEndpoints(),
+        ['Service::foo'],
+        'Correct endpoints from single service'
+    );
+    assert.end();
+});
+
+test('get endpoints multi service', function t(assert) {
+    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    assert.deepEqual(
+        thrift.getServiceEndpoints(),
+        ['Weatherwax::headology', 'Weatherwax::wossname', 'Ogg::voodoo'],
+        'Correct endpoints from multiple services'
+    );
+    assert.end();
+});
+
+test('get endpoints multi service target', function t(assert) {
+    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    assert.deepEqual(
+        thrift.getServiceEndpoints('Ogg'),
+        ['Ogg::voodoo'],
+        'Correct endpoints from multiple services'
+    );
+    assert.end();
+});
+
+test('get endpoints multi service bad target', function t(assert) {
+    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    assert.deepEqual(
+        thrift.getServiceEndpoints('Magrat'),
+        [],
+        'Correct empty endpoints list'
+    );
+    assert.end();
+});
