@@ -114,8 +114,10 @@ function Thrift(options) {
 
     var source = self.idls[options.entryPoint];
     if (!source) {
+        /* eslint-disable max-len */
         assert.ok(self.fs, self.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
         assert.ok(self.filename, 'Thrift must be constructed with a options.entryPoint');
+        /* eslint-enable max-len */
         self.filename = path.resolve(self.filename);
         source = self.fs.readFileSync(self.filename, 'ascii');
         self.idls[self.filename] = source;
@@ -158,6 +160,23 @@ Thrift.prototype.getSources = function getSources() {
     }
     var entryPoint = self.filename.slice(common.length);
     return {entryPoint: entryPoint, idls: idls};
+};
+
+Thrift.prototype.getServiceEndpoints = function getServiceEndpoints(target) {
+    var self = this;
+    target = target || null;
+    var services = Object.keys(self.services);
+
+    return services.reduce(function getResults(memo, serviceName) {
+        if (!target || target === serviceName) {
+            var methods = Object.keys(self.services[serviceName]);
+            var endpoints = methods.map(function getEndpoint(method) {
+                return util.format('%s::%s', serviceName, method);
+            });
+            return memo.concat(endpoints);
+        }
+        return memo;
+    }, []);
 };
 
 Thrift.prototype.baseTypes = {
