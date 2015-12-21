@@ -27,9 +27,8 @@ var TYPE = require('./TYPE');
 var errors = require('./errors');
 
 function ThriftList(valueType, annotations) {
-    var self = this;
-    self.valueType = valueType;
-    self.rw = new ListRW(valueType, self);
+    this.valueType = valueType;
+    this.rw = new ListRW(valueType, this);
 }
 
 ThriftList.prototype.name = 'list';
@@ -38,9 +37,8 @@ ThriftList.prototype.surface = Array;
 ThriftList.prototype.models = 'type';
 
 function ListRW(valueType, model) {
-    var self = this;
-    self.valueType = valueType;
-    self.model = model;
+    this.valueType = valueType;
+    this.model = model;
 }
 
 ListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
@@ -59,10 +57,9 @@ ListRW.prototype.form = {
 };
 
 ListRW.prototype.byteLength = function byteLength(list) {
-    var self = this;
-    var valueType = self.valueType;
+    var valueType = this.valueType;
 
-    list = self.form.toArray(list);
+    list = this.form.toArray(list);
 
     var length = 5; // header length
     var t;
@@ -78,10 +75,9 @@ ListRW.prototype.byteLength = function byteLength(list) {
 };
 
 ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
-    var self = this;
-    var valueType = self.valueType;
+    var valueType = this.valueType;
 
-    list = self.form.toArray(list);
+    list = this.form.toArray(list);
 
     var t = this.headerRW.writeInto([valueType.typeid, list.length],
         buffer, offset);
@@ -103,8 +99,7 @@ ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
 };
 
 ListRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var self = this;
-    var valueType = self.valueType;
+    var valueType = this.valueType;
 
     var t = this.headerRW.readFrom(buffer, offset);
     // istanbul ignore if
@@ -120,17 +115,17 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
             encoded: valueTypeid,
             expectedId: valueType.typeid,
             expected: valueType.name,
-            what: self.model.name
+            what: this.model.name
         }));
     }
     if (size < 0) {
         return new bufrw.ReadResult(errors.InvalidSizeError({
             size: size,
-            what: self.model.name
+            what: this.model.name
         }));
     }
 
-    var list = self.form.create();
+    var list = this.form.create();
 
     for (var i = 0; i < size; i++) {
         t = valueType.rw.readFrom(buffer, offset);
@@ -139,7 +134,7 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
             return t;
         }
         offset = t.offset;
-        self.form.add(list, t.value);
+        this.form.add(list, t.value);
     }
     return new bufrw.ReadResult(null, offset, list);
 };

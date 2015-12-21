@@ -21,8 +21,7 @@
 'use strict';
 
 function ThriftUnrecognizedException(value) {
-    var self = this;
-    self.thrift = value;
+    this.thrift = value;
 }
 
 module.exports.ThriftUnrecognizedException = ThriftUnrecognizedException;

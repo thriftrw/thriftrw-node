@@ -21,30 +21,28 @@
 'use strict';
 
 function ThriftConst(def) {
-    var self = this;
-    self.name = def.id.name;
-    self.valueDefinition = def.value;
-    self.defined = false;
-    self.value = null;
-    self.surface = null;
+    this.name = def.id.name;
+    this.valueDefinition = def.value;
+    this.defined = false;
+    this.value = null;
+    this.surface = null;
 }
 
 ThriftConst.prototype.models = 'value';
 
 ThriftConst.prototype.link = function link(model) {
-    var self = this;
-    if (!self.defined) {
-        self.defined = true;
-        self.value = model.resolveValue(self.valueDefinition);
-        self.surface = self.value;
-        model.consts[self.name] = self.value;
+    if (!this.defined) {
+        this.defined = true;
+        this.value = model.resolveValue(this.valueDefinition);
+        this.surface = this.value;
+        model.consts[this.name] = this.value;
 
         // Alias if first character is not lower-case
-        if (!/^[a-z]/.test(self.name)) {
-            model[self.name] = self.value;
+        if (!/^[a-z]/.test(this.name)) {
+            model[this.name] = this.value;
         }
     }
-    return self;
+    return this;
 };
 
 module.exports.ThriftConst = ThriftConst;
