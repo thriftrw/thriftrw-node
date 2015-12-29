@@ -55,7 +55,7 @@ test('ThriftList.rw: list of bytes', testRW.cases(byteList.rw, [
                 type: 'thrift-typeid-mismatch',
                 name: 'ThriftTypeidMismatchError',
                 message: 'encoded list typeid 43 doesn\'t match expected ' +
-                         'type "byte" (id: 3)'
+                         'type "i8" (id: 3)'
             }
         }
     },

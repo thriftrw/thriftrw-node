@@ -61,7 +61,7 @@ test('ThriftSet.rw: set of bytes', testRW.cases(byteSet.rw, [
                 type: 'thrift-typeid-mismatch',
                 name: 'ThriftTypeidMismatchError',
                 message: 'encoded set typeid 43 doesn\'t match expected ' +
-                         'type "byte" (id: 3)'
+                         'type "i8" (id: 3)'
             }
         }
     },

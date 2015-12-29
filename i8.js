@@ -20,5 +20,18 @@
 
 'use strict';
 
-module.exports.ThriftByte = require('./i8').ThriftI8;
-module.exports.ByteRW = require('./i8').I8RW;
+var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
+
+var I8RW = bufrw.Int8;
+
+function ThriftI8() { }
+
+ThriftI8.prototype.rw = I8RW;
+ThriftI8.prototype.name = 'i8';
+ThriftI8.prototype.typeid = TYPE.I8;
+ThriftI8.prototype.surface = Boolean;
+ThriftI8.prototype.models = 'type';
+
+module.exports.I8RW = I8RW;
+module.exports.ThriftI8 = ThriftI8;
