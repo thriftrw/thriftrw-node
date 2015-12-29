@@ -30,9 +30,9 @@ var path = require('path');
 var Thrift = require('../thrift').Thrift;
 var ThriftSet = require('../set').ThriftSet;
 var ThriftString = require('../string').ThriftString;
-var ThriftByte = require('../byte').ThriftByte;
+var ThriftI8 = require('../i8').ThriftI8;
 
-var byteSet = new ThriftSet(new ThriftByte());
+var byteSet = new ThriftSet(new ThriftI8());
 var stringSet = new ThriftSet(new ThriftString());
 var stringObjectSet = new ThriftSet(new ThriftString(), {'js.type': 'object'});
 

@@ -26,8 +26,8 @@ var testThrift = require('./thrift-test');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
 var thriftrw = require('../index');
-var ByteRW = thriftrw.ByteRW;
-var ThriftByte = thriftrw.ThriftByte;
+var I8RW = thriftrw.I8RW;
+var ThriftI8 = thriftrw.ThriftI8;
 var TYPE = require('../TYPE');
 
 var Buffer = require('buffer').Buffer;
@@ -81,5 +81,5 @@ var testCases = [].concat(
     outOfRangeTestCases
 );
 
-test('ByteRW', testRW.cases(ByteRW, testCases));
-test('ThriftByte', testThrift(ThriftByte, ByteRW, TYPE.BYTE));
+test('I8RW', testRW.cases(I8RW, testCases));
+test('ThriftI8', testThrift(ThriftI8, I8RW, TYPE.BYTE));
