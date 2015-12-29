@@ -30,7 +30,7 @@ function ThriftI8() { }
 ThriftI8.prototype.rw = I8RW;
 ThriftI8.prototype.name = 'i8';
 ThriftI8.prototype.typeid = TYPE.I8;
-ThriftI8.prototype.surface = Boolean;
+ThriftI8.prototype.surface = Number;
 ThriftI8.prototype.models = 'type';
 
 module.exports.I8RW = I8RW;
