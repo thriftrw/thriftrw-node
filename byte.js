@@ -20,18 +20,5 @@
 
 'use strict';
 
-var bufrw = require('bufrw');
-var TYPE = require('./TYPE');
-
-var ByteRW = bufrw.Int8;
-
-function ThriftByte() { }
-
-ThriftByte.prototype.rw = ByteRW;
-ThriftByte.prototype.name = 'byte';
-ThriftByte.prototype.typeid = TYPE.BYTE;
-ThriftByte.prototype.surface = Boolean;
-ThriftByte.prototype.models = 'type';
-
-module.exports.ByteRW = ByteRW;
-module.exports.ThriftByte = ThriftByte;
+module.exports.ThriftByte = require('./i8').ThriftI8;
+module.exports.ByteRW = require('./i8').I8RW;

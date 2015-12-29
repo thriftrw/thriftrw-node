@@ -20,38 +20,18 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
+var bufrw = require('bufrw');
+var TYPE = require('./TYPE');
+
+var I8RW = bufrw.Int8;
+
+function ThriftI8() { }
+
+ThriftI8.prototype.rw = I8RW;
+ThriftI8.prototype.name = 'i8';
+ThriftI8.prototype.typeid = TYPE.I8;
+ThriftI8.prototype.surface = Number;
+ThriftI8.prototype.models = 'type';
+
+module.exports.I8RW = I8RW;
+module.exports.ThriftI8 = ThriftI8;

@@ -38,7 +38,7 @@ var ThriftVoid = require('./void').ThriftVoid;
 var ThriftBoolean = require('./boolean').ThriftBoolean;
 var ThriftString = require('./string').ThriftString;
 var ThriftBinary = require('./binary').ThriftBinary;
-var ThriftByte = require('./byte').ThriftByte;
+var ThriftI8 = require('./i8').ThriftI8;
 var ThriftI16 = require('./i16').ThriftI16;
 var ThriftI32 = require('./i32').ThriftI32;
 var ThriftI64 = require('./i64').ThriftI64;
@@ -182,7 +182,8 @@ Thrift.prototype.getServiceEndpoints = function getServiceEndpoints(target) {
 Thrift.prototype.baseTypes = {
     void: ThriftVoid,
     bool: ThriftBoolean,
-    byte: ThriftByte,
+    byte: ThriftI8,
+    i8: ThriftI8,
     i16: ThriftI16,
     i32: ThriftI32,
     i64: ThriftI64,

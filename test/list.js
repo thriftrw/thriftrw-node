@@ -25,9 +25,9 @@ var testRW = require('bufrw/test_rw');
 
 var ThriftList = require('../list').ThriftList;
 var ThriftString = require('../string').ThriftString;
-var ThriftByte = require('../byte').ThriftByte;
+var ThriftI8 = require('../i8').ThriftI8;
 
-var byteList = new ThriftList(new ThriftByte());
+var byteList = new ThriftList(new ThriftI8());
 var stringList = new ThriftList(new ThriftString());
 
 test('ThriftList.rw: list of bytes', testRW.cases(byteList.rw, [
@@ -55,7 +55,7 @@ test('ThriftList.rw: list of bytes', testRW.cases(byteList.rw, [
                 type: 'thrift-typeid-mismatch',
                 name: 'ThriftTypeidMismatchError',
                 message: 'encoded list typeid 43 doesn\'t match expected ' +
-                         'type "byte" (id: 3)'
+                         'type "i8" (id: 3)'
             }
         }
     },

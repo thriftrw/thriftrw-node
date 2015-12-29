@@ -64,6 +64,9 @@ module.exports.ThriftByte = require('./byte').ThriftByte;
 module.exports.DoubleRW = require('./double').DoubleRW;
 module.exports.ThriftDouble = require('./double').ThriftDouble;
 
+module.exports.I8RW = require('./i8').I8RW;
+module.exports.ThriftI8 = require('./i8').ThriftI8;
+
 module.exports.I16RW = require('./i16').I16RW;
 module.exports.ThriftI16 = require('./i16').ThriftI16;
 
