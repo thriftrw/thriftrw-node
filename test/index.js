@@ -22,8 +22,8 @@
 
 require('./binary');
 require('./boolean');
-require('./byte');
 require('./double');
+require('./i8');
 require('./i16');
 require('./i32');
 require('./i64');
