@@ -48,7 +48,7 @@ functions, and types expressed in a ThriftIDL source file.
 var fs = require('fs');
 var path = require('path');
 var Thrift = require('thriftrw').Thrift;
-var source = fs.readFileSync(fs.path(__dirname, 'meta.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'ascii');
 var thrift = new Thrift({source: source, strict: true});
 ```
 
