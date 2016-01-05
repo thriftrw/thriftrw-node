@@ -35,12 +35,10 @@ function I64RW() {
 I64RW.prototype.lengthResult = bufrw.LengthResult.just(8);
 
 I64RW.prototype.byteLength = function byteLength(value) {
-    var self = this;
-    return self.lengthResult;
+    return this.lengthResult;
 };
 
 I64RW.prototype.writeInto = function writeInto(value, buffer, offset) {
-    var self = this;
     if (value instanceof Buffer) {
         value.copy(buffer, offset, 0, 8);
         return new bufrw.WriteResult(null, offset + 8);
@@ -49,11 +47,11 @@ I64RW.prototype.writeInto = function writeInto(value, buffer, offset) {
         buffer.writeInt32BE(value, offset + 4, true);
         return new bufrw.WriteResult(null, offset + 8);
     } else if (Array.isArray(value)) {
-        return self.writeArrayInt64Into(value, buffer, offset);
+        return this.writeArrayInt64Into(value, buffer, offset);
     } else if (typeof value === 'string') {
-        return self.writeStringInt64Into(value, buffer, offset);
+        return this.writeStringInt64Into(value, buffer, offset);
     } else if (value && typeof value === 'object') {
-        return self.writeObjectInt64Into(value, buffer, offset);
+        return this.writeObjectInt64Into(value, buffer, offset);
     } else {
         return bufrw.WriteResult.error(errors.expected(value,
             'i64 representation'));
@@ -142,12 +140,11 @@ I64DateRW.prototype.readFrom = function readFrom(buffer, offset) {
 };
 
 I64DateRW.prototype.writeInto = function writeInto(value, buffer, offset) {
-    var self = this;
     if (typeof value === 'string') {
         value = Date.parse(value);
     }
     value = Long.fromNumber(+value);
-    return self.writeObjectInt64Into(value, buffer, offset);
+    return this.writeObjectInt64Into(value, buffer, offset);
 };
 
 var i64DateRW = new I64DateRW();
@@ -165,16 +162,15 @@ I64BufferRW.prototype.readFrom = function readTInt64From(buffer, offset) {
 var i64BufferRW = new I64BufferRW();
 
 function ThriftI64(annotations) {
-    var self = this;
     if (annotations && annotations['js.type'] === 'Long') {
-        self.rw = i64LongRW;
-        self.surface = Long;
+        this.rw = i64LongRW;
+        this.surface = Long;
     } else if (annotations && annotations['js.type'] === 'Date') {
-        self.rw = i64DateRW;
-        self.surface = Date;
+        this.rw = i64DateRW;
+        this.surface = Date;
     } else {
-        self.rw = i64BufferRW;
-        self.surface = Buffer;
+        this.rw = i64BufferRW;
+        this.surface = Buffer;
     }
 }
 

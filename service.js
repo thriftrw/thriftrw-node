@@ -23,29 +23,26 @@
 var ast = require('./ast');
 
 function ThriftFunction(args) {
-    var self = this;
-    self.name = args.name;
-    self.service = args.service;
-    self.fullName = self.service.name + '::' + self.name;
-    self.model = args.model;
-    self.args = null;
-    self.result = null;
-    self.strict = args.strict;
-    self.linked = false;
+    this.name = args.name;
+    this.service = args.service;
+    this.fullName = this.service.name + '::' + this.name;
+    this.model = args.model;
+    this.args = null;
+    this.result = null;
+    this.strict = args.strict;
+    this.linked = false;
 }
 
 ThriftFunction.prototype.compile = function process(def, model) {
-    var self = this;
+    this.def = def;
+    this.name = def.id.name;
 
-    self.def = def;
-    self.name = def.id.name;
-
-    var argsId = new ast.Identifier(self.name + '_args');
-    argsId.as = self.fullName + '_args';
+    var argsId = new ast.Identifier(this.name + '_args');
+    argsId.as = this.fullName + '_args';
     var argsStruct = new ast.Struct(argsId, def.fields);
     argsStruct.isArgument = true;
-    self.args = model.compileStruct(argsStruct);
-    self.Arguments = self.args.Constructor;
+    this.args = model.compileStruct(argsStruct);
+    this.Arguments = this.args.Constructor;
 
     var returnType = def.returns;
     var resultFields = def.throws || [];
@@ -58,109 +55,103 @@ ThriftFunction.prototype.compile = function process(def, model) {
         resultFields.unshift(successField);
     }
 
-    var resultId = new ast.Identifier(self.name + '_result');
-    resultId.as = self.fullName + '_result';
+    var resultId = new ast.Identifier(this.name + '_result');
+    resultId.as = this.fullName + '_result';
     var resultStruct = new ast.Struct(resultId, resultFields);
     resultStruct.isResult = true;
-    self.result = model.compileStruct(resultStruct);
-    self.Result = self.result.Constructor;
+    this.result = model.compileStruct(resultStruct);
+    this.Result = this.result.Constructor;
 
-    self.annotations = def.annotations;
-    self.oneway = def.oneway;
+    this.annotations = def.annotations;
+    this.oneway = def.oneway;
 };
 
 ThriftFunction.prototype.link = function link(model) {
-    var self = this;
-    self.args.link(model);
-    self.result.link(model);
+    this.args.link(model);
+    this.result.link(model);
 };
 
 function ThriftService(args) {
-    var self = this;
-    self.name = null;
-    self.functions = [];
-    self.functionsByName = Object.create(null);
-    self.surface = self.functionsByName;
-    self.strict = args.strict;
-    self.baseService = null;
-    self.linked = false;
+    this.name = null;
+    this.functions = [];
+    this.functionsByName = Object.create(null);
+    this.surface = this.functionsByName;
+    this.strict = args.strict;
+    this.baseService = null;
+    this.linked = false;
 }
 
 ThriftService.prototype.models = 'service';
 
 ThriftService.prototype.compile = function process(def, model) {
-    var self = this;
-    self.name = def.id.name;
+    this.name = def.id.name;
     for (var index = 0; index < def.functions.length; index++) {
-        self.compileFunction(def.functions[index], model);
+        this.compileFunction(def.functions[index], model);
     }
-    self.baseService = def.baseService;
+    this.baseService = def.baseService;
 };
 
 ThriftService.prototype.compileFunction = function processFunction(def, model) {
-    var self = this;
     var thriftFunction = new ThriftFunction({
         name: def.id.name,
-        service: self,
-        strict: self.strict
+        service: this,
+        strict: this.strict
     });
     thriftFunction.compile(def, model);
-    self.addFunction(thriftFunction);
+    this.addFunction(thriftFunction);
 };
 
 ThriftService.prototype.addFunction = function addFunction(thriftFunction, thrift) {
-    var self = this;
-    self.functions.push(thriftFunction);
-    if (!self.functionsByName[thriftFunction.name]) {
-        self.functionsByName[thriftFunction.name] = thriftFunction;
+    this.functions.push(thriftFunction);
+    if (!this.functionsByName[thriftFunction.name]) {
+        this.functionsByName[thriftFunction.name] = thriftFunction;
         if (thrift) {
             thrift.define(
-                self.name + '::' + thriftFunction.args.name,
+                this.name + '::' + thriftFunction.args.name,
                 thriftFunction.def,
                 thriftFunction.args
             );
 
             thrift.define(
-                self.name + '::' + thriftFunction.result.name,
+                this.name + '::' + thriftFunction.result.name,
                 thriftFunction.def,
                 thriftFunction.result
             );
         }
     } else {
-        throw new Error(self.name + '.' + thriftFunction.name + ' already inherited from baseService');
+        throw new Error(this.name + '.' + thriftFunction.name + ' already inherited from baseService');
     }
 };
 
 ThriftService.prototype.link = function link(model) {
-    var self = this;
     var index = 0;
 
-    if (self.linked) {
-        return self;
+    if (this.linked) {
+        return this;
     }
-    self.linked = true;
+    this.linked = true;
 
-    if (self.baseService) {
-        var baseService = model.resolveIdentifier(self.baseService, self.baseService.name, 'service');
+    if (this.baseService) {
+        var baseService = model.resolveIdentifier(this.baseService, this.baseService.name, 'service');
         baseService.link(model);
         for (index = 0; index < baseService.functions.length; index++) {
             var thriftFunction = baseService.functions[index];
-            self.addFunction(thriftFunction, model);
+            this.addFunction(thriftFunction, model);
         }
     }
 
-    for (index = 0; index < self.functions.length; index++) {
-        self.functions[index].link(model);
+    for (index = 0; index < this.functions.length; index++) {
+        this.functions[index].link(model);
     }
 
-    model.services[self.name] = self.surface;
+    model.services[this.name] = this.surface;
 
     // istanbul ignore else
-    if (!/^[a-z]/.test(self.name)) {
-        model[self.name] = self.surface;
+    if (!/^[a-z]/.test(this.name)) {
+        model[this.name] = this.surface;
     }
 
-    return self;
+    return this;
 };
 
 module.exports.ThriftFunction = ThriftFunction;

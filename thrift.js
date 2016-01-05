@@ -52,8 +52,6 @@ var ThriftTypedef = require('./typedef').ThriftTypedef;
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
-    var self = this;
-
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
     assert(options.source || options.entryPoint, 'opts.entryPoint required');
@@ -66,69 +64,69 @@ function Thrift(options) {
     }
 
     // filename to source
-    self.idls = options.idls || Object.create(null);
+    this.idls = options.idls || Object.create(null);
     // filename to Thrift instance
-    self.memo = options.memo || Object.create(null);
+    this.memo = options.memo || Object.create(null);
 
     // Grant file system access for resolving includes, as opposed to lifting
     // includes from provided options.idls alone.
-    self.fs = options.fs;
+    this.fs = options.fs;
     if (options.allowFilesystemAccess) {
-        self.fs = fs;
+        this.fs = fs;
     }
 
-    self.strict = options.strict !== undefined ? options.strict : true;
+    this.strict = options.strict !== undefined ? options.strict : true;
 
     // [name] :Thrift* implementing {compile, link, &c}
     // Heterogenous Thrift model objects by name in a consolidated name-space
     // to prevent duplicate references with the same and different types, like
     // a service and a struct with the same name in the scope of a Thrift IDL
     // module:
-    self.models = Object.create(null);
+    this.models = Object.create(null);
     // [serviceName][functionName] :{rw, Arguments, Result}
-    self.services = Object.create(null);
+    this.services = Object.create(null);
     // [constName] :Value
-    self.consts = Object.create(null);
+    this.consts = Object.create(null);
     // [enumName][name] :String
-    self.enums = Object.create(null);
+    this.enums = Object.create(null);
     // [structName] :Constructor
-    self.structs = Object.create(null);
+    this.structs = Object.create(null);
     // [exceptionName] :Constructor
-    self.exceptions = Object.create(null);
+    this.exceptions = Object.create(null);
     // [unionName] :Constructor
-    self.unions = Object.create(null);
+    this.unions = Object.create(null);
     // [typedefName] :Constructor (might be Array, Object, or Number)
-    self.typedefs = Object.create(null);
+    this.typedefs = Object.create(null);
     // [moduleName] :Thrift
     // Child modules indexed by their local alias.
-    self.modules = Object.create(null);
+    this.modules = Object.create(null);
 
-    self.surface = self;
+    this.surface = this;
 
-    self.linked = false;
-    self.allowIncludeAlias = options.allowIncludeAlias || false;
+    this.linked = false;
+    this.allowIncludeAlias = options.allowIncludeAlias || false;
 
-    self.filename = options.entryPoint;
-    self.dirname = path.dirname(self.filename);
-    self.memo[self.filename] = self;
+    this.filename = options.entryPoint;
+    this.dirname = path.dirname(this.filename);
+    this.memo[this.filename] = this;
 
-    var source = self.idls[options.entryPoint];
+    var source = this.idls[options.entryPoint];
     if (!source) {
         /* eslint-disable max-len */
-        assert.ok(self.fs, self.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
-        assert.ok(self.filename, 'Thrift must be constructed with a options.entryPoint');
+        assert.ok(this.fs, this.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
+        assert.ok(this.filename, 'Thrift must be constructed with a options.entryPoint');
         /* eslint-enable max-len */
-        self.filename = path.resolve(self.filename);
-        source = self.fs.readFileSync(self.filename, 'ascii');
-        self.idls[self.filename] = source;
+        this.filename = path.resolve(this.filename);
+        source = this.fs.readFileSync(this.filename, 'ascii');
+        this.idls[this.filename] = source;
     }
 
     // Separate compile/link passes permits forward references and cyclic
     // references.
-    self.compile(source);
+    this.compile(source);
     // We only link from the root Thrift object.
     if (!options.noLink) {
-        self.link();
+        this.link();
     }
 
 }
@@ -136,47 +134,42 @@ function Thrift(options) {
 Thrift.prototype.models = 'module';
 
 Thrift.prototype.getType = function getType(name) {
-    var self = this;
-    return self.getTypeResult(name).toValue();
+    return this.getTypeResult(name).toValue();
 };
 
 Thrift.prototype.getTypeResult = function getType(name) {
-    var self = this;
-    var model = self.models[name];
+    var model = this.models[name];
     if (!model || model.models !== 'type') {
         return new Result(new Error(util.format('type %s not found', name)));
     }
-    return new Result(null, model.link(self));
+    return new Result(null, model.link(this));
 };
 
 Thrift.prototype.getSources = function getSources() {
-    var self = this;
-    var filenames = Object.keys(self.idls);
+    var filenames = Object.keys(this.idls);
     var common = lcp.longestCommonPath(filenames);
     var idls = {};
     for (var index = 0; index < filenames.length; index++) {
         var filename = filenames[index];
-        idls[filename.slice(common.length)] = self.idls[filename];
+        idls[filename.slice(common.length)] = this.idls[filename];
     }
-    var entryPoint = self.filename.slice(common.length);
+    var entryPoint = this.filename.slice(common.length);
     return {entryPoint: entryPoint, idls: idls};
 };
 
 Thrift.prototype.getServiceEndpoints = function getServiceEndpoints(target) {
-    var self = this;
     target = target || null;
-    var services = Object.keys(self.services);
-
-    return services.reduce(function getResults(memo, serviceName) {
-        if (!target || target === serviceName) {
-            var methods = Object.keys(self.services[serviceName]);
-            var endpoints = methods.map(function getEndpoint(method) {
-                return util.format('%s::%s', serviceName, method);
-            });
-            return memo.concat(endpoints);
+    var services = Object.keys(this.services);
+    var endpoints = [];
+    for (var i = 0; i < services.length; i++) {
+        var service = this.models[services[i]];
+        if (!target || target === service.name) {
+            for (var j = 0; j < service.functions.length; j++) {
+                endpoints.push(service.name + '::' + service.functions[j].name);
+            }
         }
-        return memo;
-    }, []);
+    }
+    return endpoints;
 };
 
 Thrift.prototype.baseTypes = {
@@ -193,17 +186,15 @@ Thrift.prototype.baseTypes = {
 };
 
 Thrift.prototype.compile = function compile(source) {
-    var self = this;
     var syntax = idl.parse(source);
     assert.equal(syntax.type, 'Program', 'expected a program');
-    self._compile(syntax.headers);
-    self._compile(syntax.definitions);
+    this._compile(syntax.headers);
+    this._compile(syntax.definitions);
 };
 
 Thrift.prototype.define = function define(name, def, model) {
-    var self = this;
-    assert(!self.models[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
-    self.models[name] = model;
+    assert(!this.models[name], 'duplicate reference to ' + name + ' at ' + def.line + ':' + def.column);
+    this.models[name] = model;
 };
 
 Thrift.prototype.compilers = {
@@ -219,27 +210,24 @@ Thrift.prototype.compilers = {
 };
 
 Thrift.prototype._compile = function _compile(defs) {
-    var self = this;
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
-        var compilerName = self.compilers[def.type];
+        var compilerName = this.compilers[def.type];
         // istanbul ignore else
         if (compilerName) {
-            self[compilerName](def);
+            this[compilerName](def);
         }
     }
 };
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
-    var self = this;
-
     if (def.id.lastIndexOf('./', 0) === 0 ||
         def.id.lastIndexOf('../', 0) === 0) {
         var ns = def.namespace && def.namespace.name;
-        var filename = path.join(self.dirname, def.id);
+        var filename = path.join(this.dirname, def.id);
 
         // If include isn't name, get filename sans *.thrift file extension.
-        if (!self.allowIncludeAlias || !ns) {
+        if (!this.allowIncludeAlias || !ns) {
             var basename = path.basename(def.id);
             ns = basename.slice(0, basename.length - 7);
             if (!validThriftIdentifierRE.test(ns)) {
@@ -251,27 +239,27 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 
         var model;
 
-        if (self.memo[filename]) {
-            model = self.memo[filename];
+        if (this.memo[filename]) {
+            model = this.memo[filename];
         } else {
             model = new Thrift({
                 entryPoint: filename,
-                fs: self.fs,
-                idls: self.idls,
-                memo: self.memo,
-                strict: self.strict,
+                fs: this.fs,
+                idls: this.idls,
+                memo: this.memo,
+                strict: this.strict,
                 allowIncludeAlias: true,
                 noLink: true
             });
         }
 
-        self.define(ns, def, model);
+        this.define(ns, def, model);
 
         // Alias if first character is not lower-case
-        self.modules[ns] = model;
+        this.modules[ns] = model;
 
         if (!/^[a-z]/.test(ns)) {
-            self[ns] = model;
+            this[ns] = model;
         }
 
     } else {
@@ -280,86 +268,76 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 };
 
 Thrift.prototype.compileStruct = function compileStruct(def) {
-    var self = this;
-    var model = new ThriftStruct({strict: self.strict});
-    model.compile(def, self);
-    self.define(model.fullName, def, model);
+    var model = new ThriftStruct({strict: this.strict});
+    model.compile(def, this);
+    this.define(model.fullName, def, model);
     return model;
 };
 
 Thrift.prototype.compileException = function compileException(def) {
-    var self = this;
-    var model = new ThriftStruct({strict: self.strict, isException: true});
-    model.compile(def, self);
-    self.define(model.fullName, def, model);
+    var model = new ThriftStruct({strict: this.strict, isException: true});
+    model.compile(def, this);
+    this.define(model.fullName, def, model);
     return model;
 };
 
 Thrift.prototype.compileUnion = function compileUnion(def) {
-    var self = this;
-    var model = new ThriftUnion({strict: self.strict});
-    model.compile(def, self);
-    self.define(model.fullName, def, model);
+    var model = new ThriftUnion({strict: this.strict});
+    model.compile(def, this);
+    this.define(model.fullName, def, model);
     return model;
 };
 
 Thrift.prototype.compileTypedef = function compileTypedef(def) {
-    var self = this;
-    var model = new ThriftTypedef({strict: self.strict});
-    model.compile(def, self);
-    self.define(model.name, def, model);
+    var model = new ThriftTypedef({strict: this.strict});
+    model.compile(def, this);
+    this.define(model.name, def, model);
     return model;
 };
 
 Thrift.prototype.compileService = function compileService(def) {
-    var self = this;
-    var service = new ThriftService({strict: self.strict});
-    service.compile(def, self);
-    self.define(service.name, def.id, service);
+    var service = new ThriftService({strict: this.strict});
+    service.compile(def, this);
+    this.define(service.name, def.id, service);
 };
 
 Thrift.prototype.compileConst = function compileConst(def, model) {
-    var self = this;
     var thriftConst = new ThriftConst(def);
-    self.define(def.id.name, def.id, thriftConst);
+    this.define(def.id.name, def.id, thriftConst);
 };
 
 Thrift.prototype.compileEnum = function compileEnum(def) {
-    var self = this;
     var model = new ThriftEnum();
-    model.compile(def, self);
-    self.define(model.name, def.id, model);
+    model.compile(def, this);
+    this.define(model.name, def.id, model);
 };
 
 Thrift.prototype.link = function link() {
-    var self = this;
-
-    if (self.linked) {
-        return self;
+    if (this.linked) {
+        return this;
     }
-    self.linked = true;
+    this.linked = true;
 
-    var names = Object.keys(self.models);
+    var names = Object.keys(this.models);
     for (var index = 0; index < names.length; index++) {
-        self.models[names[index]].link(self);
+        this.models[names[index]].link(this);
     }
 
-    return self;
+    return this;
 };
 
 Thrift.prototype.resolve = function resolve(def) {
-    var self = this;
     // istanbul ignore else
     if (def.type === 'BaseType') {
-        return new self.baseTypes[def.baseType](def.annotations);
+        return new this.baseTypes[def.baseType](def.annotations);
     } else if (def.type === 'Identifier') {
-        return self.resolveIdentifier(def, def.name, 'type');
+        return this.resolveIdentifier(def, def.name, 'type');
     } else if (def.type === 'List') {
-        return new ThriftList(self.resolve(def.valueType), def.annotations);
+        return new ThriftList(this.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Set') {
-        return new ThriftSet(self.resolve(def.valueType), def.annotations);
+        return new ThriftSet(this.resolve(def.valueType), def.annotations);
     } else if (def.type === 'Map') {
-        return new ThriftMap(self.resolve(def.keyType), self.resolve(def.valueType), def.annotations);
+        return new ThriftMap(this.resolve(def.keyType), this.resolve(def.valueType), def.annotations);
     } else {
         assert.fail(util.format(
             'Can\'t get reader/writer for definition with unknown type %s at %s:%s',
@@ -370,54 +348,50 @@ Thrift.prototype.resolve = function resolve(def) {
 
 // TODO thread type model and validate / coerce
 Thrift.prototype.resolveValue = function resolveValue(def) {
-    var self = this;
     // istanbul ignore else
     if (!def) {
         return null;
     } else if (def.type === 'Literal') {
         return def.value;
     } else if (def.type === 'ConstList') {
-        return self.resolveListConst(def);
+        return this.resolveListConst(def);
     } else if (def.type === 'ConstMap') {
-        return self.resolveMapConst(def);
+        return this.resolveMapConst(def);
     } else if (def.type === 'Identifier') {
         if (def.name === 'true') {
             return true;
         } else if (def.name === 'false') {
             return false;
         }
-        return self.resolveIdentifier(def, def.name, 'value').value;
+        return this.resolveIdentifier(def, def.name, 'value').value;
     } else {
         assert.fail('unrecognized const type ' + def.type);
     }
 };
 
 Thrift.prototype.resolveListConst = function resolveListConst(def) {
-    var self = this;
     var list = [];
     for (var index = 0; index < def.values.length; index++) {
-        list.push(self.resolveValue(def.values[index]));
+        list.push(this.resolveValue(def.values[index]));
     }
     return list;
 };
 
 Thrift.prototype.resolveMapConst = function resolveMapConst(def) {
-    var self = this;
     var map = {};
     for (var index = 0; index < def.entries.length; index++) {
-        map[self.resolveValue(def.entries[index].key)] =
-            self.resolveValue(def.entries[index].value);
+        map[this.resolveValue(def.entries[index].key)] =
+            this.resolveValue(def.entries[index].value);
     }
     return map;
 };
 
 Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, name, models) {
-    var self = this;
     var model;
 
     // short circuit if in global namespace of this thrift.
-    if (self.models[name]) {
-        model = self.models[name].link(self);
+    if (this.models[name]) {
+        model = this.models[name].link(this);
         if (model.models !== models) {
             err = new Error(
                 'type mismatch for ' + def.name + ' at ' + def.line + ':' + def.column +
@@ -433,7 +407,7 @@ Thrift.prototype.resolveIdentifier = function resolveIdentifier(def, name, model
     var parts = name.split('.');
     var err;
 
-    var module = self.modules[parts.shift()];
+    var module = this.modules[parts.shift()];
     if (module) {
         return module.resolveIdentifier(def, parts.join('.'), models);
     } else {

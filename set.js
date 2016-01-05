@@ -26,30 +26,29 @@ var ThriftList = require('./list').ThriftList;
 var TYPE = require('./TYPE');
 
 function ThriftSet(valueType, annotations) {
-    var self = this;
-    ThriftList.call(self, valueType, annotations);
-    self.mode = annotations && annotations['js.type'] || 'array';
-    self.form = null;
-    self.surface = null;
-    if (self.mode === 'object') {
+    ThriftList.call(this, valueType, annotations);
+    this.mode = annotations && annotations['js.type'] || 'array';
+    this.form = null;
+    this.surface = null;
+    if (this.mode === 'object') {
         if (valueType.name === 'string') {
-            self.rw.form = self.objectStringForm;
+            this.rw.form = this.objectStringForm;
         // istanbul ignore else
         } else if (
             valueType.name === 'byte' ||
             valueType.name === 'i16' ||
             valueType.name === 'i32'
         ) {
-            self.rw.form = self.objectNumberForm;
+            this.rw.form = this.objectNumberForm;
         } else {
             assert.fail('sets with js.type of \'object\' must have a value type ' +
                 'of \'string\', \'byte\', \'i16\', or \'i32\'');
         }
-        self.surface = Object;
+        this.surface = Object;
     // istanbul ignore else
-    } else if (self.mode === 'array') {
-        self.rw.form = self.arrayForm;
-        self.surface = Array;
+    } else if (this.mode === 'array') {
+        this.rw.form = this.arrayForm;
+        this.surface = Array;
     } else {
         assert.fail('set must have js.type of object or array (default)');
     }

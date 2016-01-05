@@ -28,19 +28,18 @@ var errors = require('./errors');
 var none = {};
 
 function ThriftMap(keyType, valueType, annotations) {
-    var self = this;
-    self.rw = null;
-    self.surface = null;
+    this.rw = null;
+    this.surface = null;
 
     annotations = annotations || none;
     var type = annotations['js.type'] || 'object';
 
     if (type === 'object') {
-        self.rw = new MapObjectRW(keyType, valueType);
-        self.surface = Object;
+        this.rw = new MapObjectRW(keyType, valueType);
+        this.surface = Object;
     } else if (type === 'entries') {
-        self.rw = new MapEntriesRW(keyType, valueType);
-        self.surface = Array;
+        this.rw = new MapEntriesRW(keyType, valueType);
+        this.surface = Array;
     } else {
         throw errors.UnexpectedMapTypeAnnotation({
             mapType: type

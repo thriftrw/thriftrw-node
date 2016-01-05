@@ -30,32 +30,30 @@ var errors = require('./errors');
 // ktype:1 vtype:1 length:4 (k... v...){length}
 
 function MapEntriesRW(ktype, vtype) {
-    var self = this;
-    self.ktype = ktype;
-    self.vtype = vtype;
+    this.ktype = ktype;
+    this.vtype = vtype;
 
-    if (self.ktype.rw.width && self.vtype.rw.width) {
-        self.byteLength = self.mapFixFixbyteLength;
-    } else if (self.ktype.rw.width) {
-        self.byteLength = self.mapFixVarbyteLength;
-    } else if (self.vtype.rw.width) {
-        self.byteLength = self.mapVarFixbyteLength;
+    if (this.ktype.rw.width && this.vtype.rw.width) {
+        this.byteLength = this.mapFixFixbyteLength;
+    } else if (this.ktype.rw.width) {
+        this.byteLength = this.mapFixVarbyteLength;
+    } else if (this.vtype.rw.width) {
+        this.byteLength = this.mapVarFixbyteLength;
     }
 }
 inherits(MapEntriesRW, bufrw.Base);
 
 MapEntriesRW.prototype.byteLength =
 function mapVarVarByteLength(entries) {
-    var self = this;
     var len = 6; // static overhead
 
     for (var i = 0; i < entries.length; i++) {
-        var res = self.ktype.rw.byteLength(entries[i][0]);
+        var res = this.ktype.rw.byteLength(entries[i][0]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
 
-        res = self.vtype.rw.byteLength(entries[i][1]);
+        res = this.vtype.rw.byteLength(entries[i][1]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -66,10 +64,9 @@ function mapVarVarByteLength(entries) {
 
 MapEntriesRW.prototype.mapVarFixbyteLength =
 function mapVarFixByteLength(entries) {
-    var self = this;
-    var len = 6 + entries.length * self.vtype.rw.width;
+    var len = 6 + entries.length * this.vtype.rw.width;
     for (var i = 0; i < entries.length; i++) {
-        var res = self.ktype.rw.byteLength(entries[i][0]);
+        var res = this.ktype.rw.byteLength(entries[i][0]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -79,10 +76,9 @@ function mapVarFixByteLength(entries) {
 
 MapEntriesRW.prototype.mapFixVarbyteLength =
 function mapFixVarByteLength(entries) {
-    var self = this;
-    var len = 6 + entries.length * self.ktype.rw.width;
+    var len = 6 + entries.length * this.ktype.rw.width;
     for (var i = 0; i < entries.length; i++) {
-        var res = self.vtype.rw.byteLength(entries[i][1]);
+        var res = this.vtype.rw.byteLength(entries[i][1]);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -92,25 +88,22 @@ function mapFixVarByteLength(entries) {
 
 MapEntriesRW.prototype.mapFixFixbyteLength =
 function mapFixFixByteLength(entries) {
-    var self = this;
     var len = 6 +
-        entries.length * self.ktype.rw.width +
-        entries.length * self.vtype.rw.width;
+        entries.length * this.ktype.rw.width +
+        entries.length * this.vtype.rw.width;
     return new bufrw.LengthResult(null, len);
 };
 
 MapEntriesRW.prototype.writeInto =
 function writeInto(entries, buffer, offset) {
-    var self = this;
-
     // ktype:1
-    var res = bufrw.UInt8.writeInto(self.ktype.typeid, buffer, offset);
+    var res = bufrw.UInt8.writeInto(this.ktype.typeid, buffer, offset);
     // istanbul ignore if
     if (res.err) return res;
     offset = res.offset;
 
     // vtype:1
-    res = bufrw.UInt8.writeInto(self.vtype.typeid, buffer, offset);
+    res = bufrw.UInt8.writeInto(this.vtype.typeid, buffer, offset);
     // istanbul ignore if
     if (res.err) return res;
     offset = res.offset;
@@ -126,13 +119,13 @@ function writeInto(entries, buffer, offset) {
         var pair = entries[i];
 
         // k...
-        res = self.ktype.rw.writeInto(pair[0], buffer, offset);
+        res = this.ktype.rw.writeInto(pair[0], buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
 
         // v...
-        res = self.vtype.rw.writeInto(pair[1], buffer, offset);
+        res = this.vtype.rw.writeInto(pair[1], buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
@@ -142,8 +135,6 @@ function writeInto(entries, buffer, offset) {
 };
 
 MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var self = this;
-
     // ktype:1
     var res = bufrw.UInt8.readFrom(buffer, offset);
     // istanbul ignore if
@@ -151,11 +142,11 @@ MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     offset = res.offset;
     var ktypeid = res.value;
 
-    if (ktypeid !== self.ktype.typeid) {
+    if (ktypeid !== this.ktype.typeid) {
         return new bufrw.ReadResult(errors.MapKeyTypeIdMismatch({
             encoded: ktypeid,
-            expected: self.ktype.name,
-            expectedId: self.ktype.typeid
+            expected: this.ktype.name,
+            expectedId: this.ktype.typeid
         }), offset);
     }
 
@@ -166,11 +157,11 @@ MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     offset = res.offset;
     var vtypeid = res.value;
 
-    if (vtypeid !== self.vtype.typeid) {
+    if (vtypeid !== this.vtype.typeid) {
         return new bufrw.ReadResult(errors.MapValTypeIdMismatch({
             encoded: vtypeid,
-            expected: self.vtype.name,
-            expectedId: self.vtype.typeid
+            expected: this.vtype.name,
+            expectedId: this.vtype.typeid
         }), offset);
     }
 
@@ -186,14 +177,14 @@ MapEntriesRW.prototype.readFrom = function readFrom(buffer, offset) {
     for (var i = 0; i < length; i++) {
 
         // k...
-        res = self.ktype.rw.readFrom(buffer, offset);
+        res = this.ktype.rw.readFrom(buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
         var key = res.value;
 
         // v...
-        res = self.vtype.rw.readFrom(buffer, offset);
+        res = this.vtype.rw.readFrom(buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;

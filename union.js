@@ -24,8 +24,7 @@ var util = require('util');
 var ThriftStruct = require('./struct').ThriftStruct;
 
 function ThriftUnion(options) {
-    var self = this;
-    ThriftStruct.call(self, options);
+    ThriftStruct.call(this, options);
 }
 
 util.inherits(ThriftUnion, ThriftStruct);
@@ -35,8 +34,7 @@ ThriftUnion.prototype.models = 'type';
 
 ThriftUnion.prototype.createConstructor = function createConstructor(name, fields) {
     function Union(options) {
-        var self = this;
-        self.type = null;
+        this.type = null;
         if (typeof options !== 'object') {
             return;
         }
@@ -46,8 +44,8 @@ ThriftUnion.prototype.createConstructor = function createConstructor(name, field
                 hasOwnProperty.call(options, type) &&
                 options[type] !== null
             ) {
-                self.type = type;
-                self[type] = options[type];
+                this.type = type;
+                this[type] = options[type];
             }
             // TODO assert no further names
         }

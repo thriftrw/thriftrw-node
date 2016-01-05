@@ -32,23 +32,20 @@ var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
 function ThriftEnum() {
-    var self = this;
-    self.namesToValues = Object.create(null);
-    self.valuesToNames = Object.create(null);
+    this.namesToValues = Object.create(null);
+    this.valuesToNames = Object.create(null);
     // "Interned" names
-    self.namesToNames = Object.create(null);
-    self.surface = self.namesToNames;
-    self.rw = new EnumRW(self);
-    self.linked = false;
+    this.namesToNames = Object.create(null);
+    this.surface = this.namesToNames;
+    this.rw = new EnumRW(this);
+    this.linked = false;
 }
 
 ThriftEnum.prototype.typeid = TYPE.I32;
 ThriftEnum.prototype.models = 'type';
 
 ThriftEnum.prototype.compile = function compile(def, model) {
-    var self = this;
-
-    self.name = def.id.name;
+    this.name = def.id.name;
 
     var value = 0;
     var enumDefs = def.definitions;
@@ -60,14 +57,14 @@ ThriftEnum.prototype.compile = function compile(def, model) {
             value = valueDef.value;
         }
 
-        assert(self.namesToValues[name] === undefined,
-            'duplicate name in enum ' + self.name +
+        assert(this.namesToValues[name] === undefined,
+            'duplicate name in enum ' + this.name +
             ' at ' + def.id.line + ':' + def.id.column);
         assert(value <= 0x7fffffff,
-            'overflow in value in enum ' + self.name +
+            'overflow in value in enum ' + this.name +
             ' at ' + def.id.line + ':' + def.id.column);
 
-        var fullName = self.name + '.' + name;
+        var fullName = this.name + '.' + name;
         var constDef = new ast.Const(
             new ast.Identifier(name),
             null, // TODO infer type for default value validation
@@ -76,58 +73,53 @@ ThriftEnum.prototype.compile = function compile(def, model) {
         var constModel = new ThriftConst(constDef);
         model.consts[fullName] = constModel;
         model.define(fullName, enumDef.id, constModel);
-        self.namesToValues[name] = value;
-        self.namesToNames[name] = name;
-        self.valuesToNames[value] = name;
+        this.namesToValues[name] = value;
+        this.namesToNames[name] = name;
+        this.valuesToNames[value] = name;
         value++;
     }
 };
 
 ThriftEnum.prototype.link = function link(model) {
-    var self = this;
-
-    if (self.linked) {
-        return self;
+    if (this.linked) {
+        return this;
     }
-    self.linked = true;
+    this.linked = true;
 
-    model.enums[self.name] = self.namesToNames;
+    model.enums[this.name] = this.namesToNames;
 
     // Alias if first character is not lower-case
     // istanbul ignore else
-    if (!/^[a-z]/.test(self.name)) {
-        model[self.name] = self.surface;
+    if (!/^[a-z]/.test(this.name)) {
+        model[this.name] = this.surface;
     }
 
-    return self;
+    return this;
 };
 
 function EnumRW(model) {
-    var self = this;
-    self.model = model;
+    this.model = model;
 }
 
 EnumRW.prototype.lengthResult = new LengthResult(null, bufrw.Int32BE.width);
 
 EnumRW.prototype.byteLength = function byteLength() {
-    var self = this;
-    return self.lengthResult;
+    return this.lengthResult;
 };
 
 EnumRW.prototype.writeInto = function writeInto(name, buffer, offset) {
-    var self = this;
     if (typeof name !== 'string') {
         return new WriteResult(errors.InvalidEnumerationTypeError({
-            enumName: self.model.name,
+            enumName: this.model.name,
             name: name,
             nameType: typeof name
         }));
     }
-    var value = self.model.namesToValues[name];
+    var value = this.model.namesToValues[name];
     // istanbul ignore if
     if (value === undefined) {
         return new WriteResult(errors.InvalidEnumerationNameError({
-            enumName: self.model.name,
+            enumName: this.model.name,
             name: name
         }));
     }
@@ -135,7 +127,6 @@ EnumRW.prototype.writeInto = function writeInto(name, buffer, offset) {
 };
 
 EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var self = this;
     var result;
     result = bufrw.Int32BE.readFrom(buffer, offset);
     // istanbul ignore if
@@ -144,10 +135,10 @@ EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
     }
     offset = result.offset;
     var value = result.value;
-    var name = self.model.valuesToNames[value];
+    var name = this.model.valuesToNames[value];
     if (!name) {
         return new ReadResult(errors.InvalidEnumerationValueError({
-            enumName: self.model.name,
+            enumName: this.model.name,
             value: value
         }));
     }

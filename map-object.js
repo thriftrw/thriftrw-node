@@ -30,30 +30,28 @@ var errors = require('./errors');
 // ktype:1 vtype:1 length:4 (k... v...){length}
 
 function MapObjectRW(ktype, vtype) {
-    var self = this;
-    self.ktype = ktype;
-    self.vtype = vtype;
+    this.ktype = ktype;
+    this.vtype = vtype;
 
-    if (self.vtype.rw.width) {
-        self.byteLength = self.mapVarFixbyteLength;
+    if (this.vtype.rw.width) {
+        this.byteLength = this.mapVarFixbyteLength;
     }
 }
 inherits(MapObjectRW, bufrw.Base);
 
 MapObjectRW.prototype.byteLength = function mapVarVarByteLength(obj) {
-    var self = this;
     var keys = obj && Object.keys(obj);
     var len = 6; // static overhead
 
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
         var value = obj[key];
-        var res = self.ktype.rw.byteLength(key);
+        var res = this.ktype.rw.byteLength(key);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
 
-        res = self.vtype.rw.byteLength(value);
+        res = this.vtype.rw.byteLength(value);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -63,13 +61,12 @@ MapObjectRW.prototype.byteLength = function mapVarVarByteLength(obj) {
 };
 
 MapObjectRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
-    var self = this;
     var keys = obj && Object.keys(obj);
-    var len = 6 + keys.length * self.vtype.rw.width;
+    var len = 6 + keys.length * this.vtype.rw.width;
 
     for (var i = 0; i < keys.length; i++) {
         var key = keys[i];
-        var res = self.ktype.rw.byteLength(key);
+        var res = this.ktype.rw.byteLength(key);
         // istanbul ignore if
         if (res.err) return res;
         len += res.length;
@@ -79,16 +76,14 @@ MapObjectRW.prototype.mapVarFixbyteLength = function mapVarFixByteLength(obj) {
 };
 
 MapObjectRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
-    var self = this;
-
     // ktype:1
-    var res = bufrw.UInt8.writeInto(self.ktype.typeid, buffer, offset);
+    var res = bufrw.UInt8.writeInto(this.ktype.typeid, buffer, offset);
     // istanbul ignore if
     if (res.err) return res;
     offset = res.offset;
 
     // vtype:1
-    res = bufrw.UInt8.writeInto(self.vtype.typeid, buffer, offset);
+    res = bufrw.UInt8.writeInto(this.vtype.typeid, buffer, offset);
     // istanbul ignore if
     if (res.err) return res;
     offset = res.offset;
@@ -106,13 +101,13 @@ MapObjectRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
         var value = obj[key];
 
         // k...
-        res = self.ktype.rw.writeInto(key, buffer, offset);
+        res = this.ktype.rw.writeInto(key, buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
 
         // v...
-        res = self.vtype.rw.writeInto(value, buffer, offset);
+        res = this.vtype.rw.writeInto(value, buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
@@ -122,8 +117,6 @@ MapObjectRW.prototype.writeInto = function writeInto(obj, buffer, offset) {
 };
 
 MapObjectRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var self = this;
-
     // ktype:1
     var res = bufrw.UInt8.readFrom(buffer, offset);
     // istanbul ignore if
@@ -131,11 +124,11 @@ MapObjectRW.prototype.readFrom = function readFrom(buffer, offset) {
     offset = res.offset;
     var ktypeid = res.value;
 
-    if (ktypeid !== self.ktype.typeid) {
+    if (ktypeid !== this.ktype.typeid) {
         return new bufrw.ReadResult(errors.MapKeyTypeIdMismatch({
             encoded: ktypeid,
-            expected: self.ktype.name,
-            expectedId: self.ktype.typeid
+            expected: this.ktype.name,
+            expectedId: this.ktype.typeid
         }), offset);
     }
 
@@ -146,11 +139,11 @@ MapObjectRW.prototype.readFrom = function readFrom(buffer, offset) {
     offset = res.offset;
     var vtypeid = res.value;
 
-    if (vtypeid !== self.vtype.typeid) {
+    if (vtypeid !== this.vtype.typeid) {
         return new bufrw.ReadResult(errors.MapValTypeIdMismatch({
             encoded: vtypeid,
-            expected: self.vtype.name,
-            expectedId: self.vtype.typeid
+            expected: this.vtype.name,
+            expectedId: this.vtype.typeid
         }), offset);
     }
 
@@ -166,14 +159,14 @@ MapObjectRW.prototype.readFrom = function readFrom(buffer, offset) {
     for (var i = 0; i < length; i++) {
 
         // k...
-        res = self.ktype.rw.readFrom(buffer, offset);
+        res = this.ktype.rw.readFrom(buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;
         var key = res.value;
 
         // v...
-        res = self.vtype.rw.readFrom(buffer, offset);
+        res = this.vtype.rw.readFrom(buffer, offset);
         // istanbul ignore if
         if (res.err) return res;
         offset = res.offset;

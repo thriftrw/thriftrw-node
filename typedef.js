@@ -21,27 +21,24 @@
 'use strict';
 
 function ThriftTypedef() {
-    var self = this;
-    self.name = null;
-    self.valueDefinition = null;
-    self.to = null;
+    this.name = null;
+    this.valueDefinition = null;
+    this.to = null;
 }
 
 ThriftTypedef.prototype.models = 'type';
 
 ThriftTypedef.prototype.compile = function compile(def, model) {
-    var self = this;
-    self.name = def.id.name;
-    self.valueDefinition = def.valueType;
+    this.name = def.id.name;
+    this.valueDefinition = def.valueType;
 };
 
 ThriftTypedef.prototype.link = function link(model) {
-    var self = this;
-    if (!self.to) {
-        self.to = model.resolve(self.valueDefinition);
+    if (!this.to) {
+        this.to = model.resolve(this.valueDefinition);
     }
-    model.typedefs[self.name] = self.to.surface;
-    return self.to;
+    model.typedefs[this.name] = this.to.surface;
+    return this.to;
 };
 
 module.exports.ThriftTypedef = ThriftTypedef;

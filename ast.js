@@ -43,233 +43,207 @@
 
 module.exports.Program = Program;
 function Program(headers, definitions) {
-    var self = this;
-    self.headers = headers;
-    self.definitions = definitions;
+    this.headers = headers;
+    this.definitions = definitions;
 }
 Program.prototype.type = 'Program';
 
 module.exports.Identifier = Identifier;
 function Identifier(name, line, column) {
-    var self = this;
-    self.name = name;
-    self.line = line;
-    self.column = column;
-    self.as = null;
+    this.name = name;
+    this.line = line;
+    this.column = column;
+    this.as = null;
 }
 Identifier.prototype.type = 'Identifier';
 
 module.exports.Include = Include;
 function Include(id, namespace, line, column) {
-    var self = this;
-    self.id = id;
-    self.namespace = namespace;
-    self.line = line;
-    self.column = column;
+    this.id = id;
+    this.namespace = namespace;
+    this.line = line;
+    this.column = column;
 }
 Include.prototype.type = 'Include';
 
 module.exports.Namespace = Namespace;
 function Namespace(id, scope) {
-    var self = this;
-    self.id = id;
-    self.scope = scope;
+    this.id = id;
+    this.scope = scope;
 }
 Namespace.prototype.type = 'Namespace';
 
 module.exports.Typedef = Typedef;
 function Typedef(type, id, annotations) {
-    var self = this;
-    self.valueType = type;
-    self.id = id;
-    self.annotations = annotations;
+    this.valueType = type;
+    this.id = id;
+    this.annotations = annotations;
 }
 Typedef.prototype.type = 'Typedef';
 
 module.exports.BaseType = BaseType;
 function BaseType(type, annotations) {
-    var self = this;
-    self.baseType = type;
-    self.annotations = annotations;
+    this.baseType = type;
+    this.annotations = annotations;
 }
 BaseType.prototype.type = 'BaseType';
 
 module.exports.Enum = Enum;
 function Enum(id, definitions, annotations) {
-    var self = this;
-    self.id = id;
-    self.definitions = definitions;
-    self.annotations = annotations;
+    this.id = id;
+    this.definitions = definitions;
+    this.annotations = annotations;
 }
 Enum.prototype.type = 'Enum';
 
 module.exports.EnumDefinition = EnumDefinition;
 function EnumDefinition(id, value, annotations) {
-    var self = this;
-    self.id = id;
-    self.value = value;
-    self.annotations = annotations;
+    this.id = id;
+    this.value = value;
+    this.annotations = annotations;
 }
 EnumDefinition.prototype.fieldType = new BaseType('i32');
 EnumDefinition.prototype.type = 'EnumDefinition';
 
 module.exports.Senum = Senum;
 function Senum(id, definitions, annotations) {
-    var self = this;
-    self.id = id;
-    self.senumDefinitions = definitions;
-    self.annotations = annotations;
+    this.id = id;
+    this.senumDefinitions = definitions;
+    this.annotations = annotations;
 }
 Senum.prototype.type = 'Senum';
 
 module.exports.Const = Const;
 function Const(id, fieldType, value) {
-    var self = this;
-    self.id = id;
-    self.fieldType = fieldType;
-    self.value = value;
+    this.id = id;
+    this.fieldType = fieldType;
+    this.value = value;
 }
 Const.prototype.type = 'Const';
 
 module.exports.ConstList = ConstList;
 function ConstList(values) {
-    var self = this;
-    self.values = values;
+    this.values = values;
 }
 ConstList.prototype.type = 'ConstList';
 
 module.exports.ConstMap = ConstMap;
 function ConstMap(entries) {
-    var self = this;
-    self.entries = entries;
+    this.entries = entries;
 }
 ConstMap.prototype.type = 'ConstMap';
 
 module.exports.ConstEntry = ConstEntry;
 function ConstEntry(key, value) {
-    var self = this;
-    self.key = key;
-    self.value = value;
+    this.key = key;
+    this.value = value;
 }
 ConstEntry.prototype.type = 'ConstEntry';
 
 module.exports.Struct = Struct;
 function Struct(id, fields, annotations) {
-    var self = this;
-    self.id = id;
-    self.fields = fields;
-    self.annotations = annotations;
-    self.isArgument = false;
-    self.isResult = false;
+    this.id = id;
+    this.fields = fields;
+    this.annotations = annotations;
+    this.isArgument = false;
+    this.isResult = false;
 }
 Struct.prototype.type = 'Struct';
 
 module.exports.Union = Union;
 function Union(id, fields) {
-    var self = this;
-    self.id = id;
-    self.fields = fields;
+    this.id = id;
+    this.fields = fields;
 }
 Union.prototype.type = 'Union';
 
 module.exports.Exception = Exception;
 function Exception(id, fields, annotations) {
-    var self = this;
-    self.id = id;
-    self.fields = fields;
-    self.annotations = annotations;
+    this.id = id;
+    this.fields = fields;
+    this.annotations = annotations;
 }
 Exception.prototype.type = 'Exception';
 
 module.exports.Service = Service;
 function Service(id, functions, annotations, baseService) {
-    var self = this;
-    self.id = id;
-    self.functions = functions;
-    self.annotations = annotations;
-    self.baseService = baseService;
+    this.id = id;
+    this.functions = functions;
+    this.annotations = annotations;
+    this.baseService = baseService;
 }
 Service.prototype.type = 'Service';
 
 module.exports.FunctionDefinition = FunctionDefinition;
 function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
-    var self = this;
-    self.id = id;
-    self.returns = ft;
-    self.fields = fields;
-    self.fields.isArgument = true;
-    self.throws = _throws;
-    self.annotations = annotations;
-    self.oneway = oneway;
+    this.id = id;
+    this.returns = ft;
+    this.fields = fields;
+    this.fields.isArgument = true;
+    this.throws = _throws;
+    this.annotations = annotations;
+    this.oneway = oneway;
 }
 FunctionDefinition.prototype.type = 'function';
 
 module.exports.Field = Field;
 function Field(id, ft, name, req, fv, annotations) {
-    var self = this;
-    self.id = id;
-    self.name = name;
-    self.valueType = ft;
-    self.required = req === 'required';
-    self.optional = req === 'optional';
-    self.defaultValue = fv;
-    self.annotations = annotations;
+    this.id = id;
+    this.name = name;
+    this.valueType = ft;
+    this.required = req === 'required';
+    this.optional = req === 'optional';
+    this.defaultValue = fv;
+    this.annotations = annotations;
 }
 Field.prototype.type = 'Field';
 
 module.exports.FieldIdentifier = FieldIdentifier;
 function FieldIdentifier(value, line, column) {
-    var self = this;
-    self.value = value;
-    self.line = line;
-    self.column = column;
+    this.value = value;
+    this.line = line;
+    this.column = column;
 }
 FieldIdentifier.prototype.type = 'FieldIdentifier';
 
 module.exports.MapType = MapType;
 function MapType(keyType, valueType, annotations) {
-    var self = this;
-    self.keyType = keyType;
-    self.valueType = valueType;
-    self.annotations = annotations;
+    this.keyType = keyType;
+    this.valueType = valueType;
+    this.annotations = annotations;
 }
 MapType.prototype.type = 'Map';
 
 module.exports.SetType = SetType;
 function SetType(valueType, annotations) {
-    var self = this;
-    self.valueType = valueType;
-    self.annotations = annotations;
+    this.valueType = valueType;
+    this.annotations = annotations;
 }
 SetType.prototype.type = 'Set';
 
 module.exports.ListType = ListType;
 function ListType(valueType, annotations) {
-    var self = this;
-    self.valueType = valueType;
-    self.annotations = annotations;
+    this.valueType = valueType;
+    this.annotations = annotations;
 }
 ListType.prototype.type = 'List';
 
 module.exports.TypeAnnotation = TypeAnnotation;
 function TypeAnnotation(name, value) {
-    var self = this;
-    self.name = name;
-    self.value = value;
+    this.name = name;
+    this.value = value;
 }
 TypeAnnotation.prototype.type = 'TypeAnnotation';
 
 module.exports.Comment = Comment;
 function Comment(value) {
-    var self = this;
-    self.value = value;
+    this.value = value;
 }
 Comment.prototype.type = 'Comment';
 
 module.exports.Literal = Literal;
 function Literal(value) {
-    var self = this;
-    self.value = value;
+    this.value = value;
 }
 Literal.prototype.type = 'Literal';
 

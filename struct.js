@@ -39,55 +39,51 @@ var ReadResult = bufrw.ReadResult;
 var readType = require('./read').readType;
 
 function ThriftField(def, struct) {
-    var self = this;
     assert(def.isResult || def.id.value > 0,
         'field identifier must be greater than 0' +
         ' for ' + JSON.stringify(def.name) +
         ' on ' + JSON.stringify(struct.name) +
         ' at ' + def.id.line + ':' + def.id.column
     );
-    self.id = def.id.value;
-    self.name = def.name;
-    self.required = def.required;
-    self.optional = def.optional;
-    self.annotations = def.annotations;
-    self.valueDefinition = def.valueType;
-    self.valueType = null;
-    self.defaultValueDefinition = def.defaultValue;
-    self.defaultValue = null;
-    self.constructDefaultValue = null;
+    this.id = def.id.value;
+    this.name = def.name;
+    this.required = def.required;
+    this.optional = def.optional;
+    this.annotations = def.annotations;
+    this.valueDefinition = def.valueType;
+    this.valueType = null;
+    this.defaultValueDefinition = def.defaultValue;
+    this.defaultValue = null;
+    this.constructDefaultValue = null;
 }
 
 ThriftField.prototype.link = function link(model) {
-    var self = this;
-    self.valueType = model.resolve(self.valueDefinition);
-    assert(self.valueType, 'value type was defined, as returned by resolve');
+    this.valueType = model.resolve(this.valueDefinition);
+    assert(this.valueType, 'value type was defined, as returned by resolve');
 };
 
 ThriftField.prototype.linkValue = function linkValue(model) {
-    var self = this;
-    self.defaultValue = model.resolveValue(self.defaultValueDefinition);
+    this.defaultValue = model.resolveValue(this.defaultValueDefinition);
 };
 
 function ThriftStruct(options) {
-    var self = this;
     options = options || {};
 
-    self.name = null;
+    this.name = null;
     // Strict mode is on by default. Because we have strict opinions about Thrift.
-    self.strict = options.strict !== undefined ? options.strict : true;
+    this.strict = options.strict !== undefined ? options.strict : true;
     // TODO bring in serviceName
-    self.fields = [];
-    self.fieldNames = [];
-    self.fieldsById = {};
-    self.fieldsByName = {};
-    self.isArgument = null;
-    self.isResult = null;
-    self.isException = options.isException || false;
-    self.Constructor = null;
-    self.surface = null;
-    self.rw = new self.RW(self);
-    self.linked = false;
+    this.fields = [];
+    this.fieldNames = [];
+    this.fieldsById = {};
+    this.fieldsByName = {};
+    this.isArgument = null;
+    this.isResult = null;
+    this.isException = options.isException || false;
+    this.Constructor = null;
+    this.surface = null;
+    this.rw = new this.RW(this);
+    this.linked = false;
 }
 
 ThriftStruct.prototype.name = 'struct';
@@ -97,121 +93,112 @@ ThriftStruct.prototype.isUnion = false;
 ThriftStruct.prototype.models = 'type';
 
 ThriftStruct.prototype.toBuffer = function toBuffer(struct) {
-    var self = this;
-    return bufrw.toBuffer(self.rw, struct);
+    return bufrw.toBuffer(this.rw, struct);
 };
 
 ThriftStruct.prototype.toBufferResult = function toBufferResult(struct) {
-    var self = this;
-    return bufrw.toBufferResult(self.rw, struct);
+    return bufrw.toBufferResult(this.rw, struct);
 };
 
 ThriftStruct.prototype.fromBuffer = function fromBuffer(buffer, offset) {
-    var self = this;
-    return bufrw.fromBuffer(self.rw, buffer, offset);
+    return bufrw.fromBuffer(this.rw, buffer, offset);
 };
 
 ThriftStruct.prototype.fromBufferResult = function fromBufferResult(buffer) {
-    var self = this;
-    return bufrw.fromBufferResult(self.rw, buffer);
+    return bufrw.fromBufferResult(this.rw, buffer);
 };
 
 ThriftStruct.prototype.compile = function compile(def) {
-    var self = this;
     // Struct names must be valid JavaScript. If the Thrift name is not valid
     // in JavaScript, it can be overridden with the js.name annotation.
-    self.name = def.annotations && def.annotations['js.name'] || def.id.name;
-    self.fullName = def.id.as || self.name;
-    self.isArgument = def.isArgument || false;
-    self.isResult = def.isResult || false;
+    this.name = def.annotations && def.annotations['js.name'] || def.id.name;
+    this.fullName = def.id.as || this.name;
+    this.isArgument = def.isArgument || false;
+    this.isResult = def.isResult || false;
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
         var fieldDef = fields[index];
-        var field = new ThriftField(fieldDef, self);
+        var field = new ThriftField(fieldDef, this);
 
         // Field names must be valid JavaScript. If the Thrift name is not
         // valid in JavaScript, it can be overridden with the js.name
         // annotation.
         field.name = field.annotations && field.annotations['js.name'] || field.name;
-        self.fieldsById[field.id] = field;
-        self.fieldsByName[field.name] = field;
-        self.fieldNames[index] = field.name;
-        self.fields.push(field);
+        this.fieldsById[field.id] = field;
+        this.fieldsByName[field.name] = field;
+        this.fieldNames[index] = field.name;
+        this.fields.push(field);
     }
 };
 
 ThriftStruct.prototype.link = function link(model) {
-    var self = this;
-
-    if (self.linked) {
-        return self;
+    if (this.linked) {
+        return this;
     }
-    self.linked = true;
+    this.linked = true;
 
     var index;
 
     // Link default values first since they're used by the constructor
-    for (index = 0; index < self.fields.length; index++) {
-        var field = self.fields[index];
+    for (index = 0; index < this.fields.length; index++) {
+        var field = this.fields[index];
         field.linkValue(model);
 
         // Validate field
-        if (self.strict) {
+        if (this.strict) {
             assert(
                 field.required || field.optional ||
                 field.defaultValue !== null && field.defaultValue !== undefined ||
-                self.isArgument || self.isResult || self.isUnion,
+                this.isArgument || this.isResult || this.isUnion,
                 'every field must be marked optional, required, or have a default value on ' +
-                    self.name + ' including "' + field.name + '" in strict mode'
+                    this.name + ' including "' + field.name + '" in strict mode'
             );
         }
-        if (self.isArgument && field.optional) {
+        if (this.isArgument && field.optional) {
             assert.ok(false, 'no field of an argument struct may be marked ' +
-                'optional including ' + field.name + ' of ' + self.name);
+                'optional including ' + field.name + ' of ' + this.name);
         }
-        field.required = field.required || self.isArgument;
+        field.required = field.required || this.isArgument;
 
     }
 
-    self.Constructor = self.createConstructor(self.name, self.fields);
-    self.Constructor.rw = self.rw;
+    this.Constructor = this.createConstructor(this.name, this.fields);
+    this.Constructor.rw = this.rw;
 
-    self.Constructor.fromBuffer = self.fromBuffer;
-    self.Constructor.fromBufferResult = self.fromBufferResult;
+    this.Constructor.fromBuffer = this.fromBuffer;
+    this.Constructor.fromBufferResult = this.fromBufferResult;
 
-    self.Constructor.toBuffer = self.toBuffer;
-    self.Constructor.toBufferResult = self.toBufferResult;
+    this.Constructor.toBuffer = this.toBuffer;
+    this.Constructor.toBufferResult = this.toBufferResult;
 
-    self.surface = self.Constructor;
+    this.surface = this.Constructor;
 
     // Link field types later since they may depend on the constructor existing
     // first.
-    for (index = 0; index < self.fields.length; index++) {
-        self.fields[index].link(model);
+    for (index = 0; index < this.fields.length; index++) {
+        this.fields[index].link(model);
     }
 
-    if (self.isUnion) {
-        model.unions[self.name] = self.Constructor;
-    } else if (self.isException) {
-        model.exceptions[self.name] = self.Constructor;
+    if (this.isUnion) {
+        model.unions[this.name] = this.Constructor;
+    } else if (this.isException) {
+        model.exceptions[this.name] = this.Constructor;
     } else {
-        model.structs[self.name] = self.Constructor;
+        model.structs[this.name] = this.Constructor;
     }
 
     // Alias if first character is not lower-case
-    if (!/^[a-z]/.test(self.name)) {
-        model[self.name] = self.Constructor;
+    if (!/^[a-z]/.test(this.name)) {
+        model[this.name] = this.Constructor;
     }
 
-    return self;
+    return this;
 };
 
 ThriftStruct.prototype.validateStruct = function validateStruct(struct) {
-    var self = this;
-
     // Validate required fields
-    for (var index = 0; index < self.fields.length; index++) {
-        var field = self.fields[index];
+    for (var index = 0; index < this.fields.length; index++) {
+        var field = this.fields[index];
         if (!field.required || field.defaultValue != null) {
             continue;
         }
@@ -221,7 +208,7 @@ ThriftStruct.prototype.validateStruct = function validateStruct(struct) {
             return errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.name
+                structName: this.name
             });
         }
     }
@@ -254,8 +241,7 @@ ThriftStruct.prototype.createConstructor = function createConstructor(name, fiel
 };
 
 ThriftStruct.prototype.create = function create() {
-    var self = this;
-    return new self.Constructor();
+    return new this.Constructor();
 };
 
 ThriftStruct.prototype.set = function set(struct, key, value) {
@@ -268,16 +254,14 @@ ThriftStruct.prototype.finalize = function finalize(struct) {
 
 function StructRW(model) {
     assert(model, 'model required');
-    var self = this;
-    self.model = model;
+    this.model = model;
 }
 
 StructRW.prototype.byteLength = function byteLength(struct) {
-    var self = this;
     var length = 1; // stop:1
     var result;
-    for (var index = 0; index < self.model.fields.length; index++) {
-        var field = self.model.fields[index];
+    for (var index = 0; index < this.model.fields.length; index++) {
+        var field = this.model.fields[index];
         var value = struct && struct[field.name];
 
         var available = value !== null && value !== undefined;
@@ -286,7 +270,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.model.name,
+                structName: this.model.name,
                 what: struct
             }));
         }
@@ -311,10 +295,9 @@ StructRW.prototype.byteLength = function byteLength(struct) {
 };
 
 StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
-    var self = this;
     var result;
-    for (var index = 0; index < self.model.fields.length; index++) {
-        var field = self.model.fields[index];
+    for (var index = 0; index < this.model.fields.length; index++) {
+        var field = this.model.fields[index];
         var value = struct && struct[field.name];
         var available = value !== null && value !== undefined;
 
@@ -322,7 +305,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
             return new LengthResult(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
-                structName: self.model.name,
+                structName: this.model.name,
                 what: struct
             }));
         }
@@ -364,8 +347,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 };
 
 StructRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var self = this;
-    var struct = self.model.create();
+    var struct = this.model.create();
     var result;
 
     for (;;) {
@@ -391,7 +373,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         // keep unrecognized files from the future if it could be an
         // unrecognized exception.
-        if (!self.model.fieldsById[id] && self.model.isResult) {
+        if (!this.model.fieldsById[id] && this.model.isResult) {
             result = readType(buffer, offset, typeid);
             // result = skipType(buffer, offset, typeid);
             // istanbul ignore if
@@ -399,7 +381,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
                 return result;
             }
             offset = result.offset;
-            self.model.set(
+            this.model.set(
                 struct,
                 'failure',
                 new ThriftUnrecognizedException(result.value)
@@ -408,7 +390,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
 
         // skip unrecognized fields from THE FUTURE
-        if (!self.model.fieldsById[id]) {
+        if (!this.model.fieldsById[id]) {
             result = skipType(buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
@@ -418,7 +400,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             continue;
         }
 
-        var field = self.model.fieldsById[id];
+        var field = this.model.fieldsById[id];
         if (
             field.valueType.typeid !== typeid &&
             field.valueType.altTypeid !== typeid // deprecated, see set.js
@@ -426,7 +408,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             return new ReadResult(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
-                structName: self.model.name,
+                structName: this.model.name,
                 typeid: typeid,
                 typeName: NAMES[typeid],
                 expectedTypeid: field.valueType.typeid,
@@ -441,16 +423,16 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         offset = result.offset;
         // TODO promote return error of set to a ReadResult error
-        self.model.set(struct, field.name, result.value);
+        this.model.set(struct, field.name, result.value);
     }
 
     // Validate required fields
-    var err = self.model.validateStruct(struct);
+    var err = this.model.validateStruct(struct);
     if (err) {
         return new ReadResult(err);
     }
 
-    return new ReadResult(null, offset, self.model.finalize(struct));
+    return new ReadResult(null, offset, this.model.finalize(struct));
 };
 
 module.exports.ThriftField = ThriftField;
