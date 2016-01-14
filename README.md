@@ -514,7 +514,7 @@ timestamps.
 
 [TCurl]: https://github.com/uber/tcurl
 
-## Releated
+## Related
 
 [thriftrw-python] is the sister library for Python.
 
