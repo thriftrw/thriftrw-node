@@ -50,77 +50,77 @@ function TStructRW(opts) {
 }
 inherits(TStructRW, bufrw.Base);
 
-TStructRW.prototype.byteLength = function byteLength(struct) {
+TStructRW.prototype.poolByteLength = function poolByteLength(destResult, struct) {
     var length = 1; // STOP byte
     var t;
     for (var i = 0; i < struct.fields.length; i++) {
         var field = struct.fields[i];
         var type = this.ttypes[field.typeid];
         if (!type) {
-            return new bufrw.LengthResult(errors.InvalidTypeidError({
+            return destResult.reset(errors.InvalidTypeidError({
                 typeid: field.typeid, what: 'field::type'
             }));
         }
 
         length += 3; // field header length
 
-        t = type.byteLength(field.val);
+        t = type.poolByteLength(destResult, field.val);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         length += t.length;
     }
-    return new bufrw.LengthResult(null, length);
+    return destResult.reset(null, length);
 };
 
-TStructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
+TStructRW.prototype.poolWriteInto = function poolWriteInto(destResult, struct, buffer, offset) {
     var t;
     for (var i = 0; i < struct.fields.length; i++) {
         var field = struct.fields[i];
         var type = this.ttypes[field.typeid];
         if (!type) {
-            return new bufrw.WriteResult(errors.InvalidTypeidError({
+            return destResult.reset(errors.InvalidTypeidError({
                 typeid: field.typeid, what: 'field::type'
             }));
         }
 
-        t = bufrw.Int8.writeInto(field.typeid, buffer, offset);
+        t = bufrw.Int8.poolWriteInto(destResult, field.typeid, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = bufrw.Int16BE.writeInto(field.id, buffer, offset);
+        t = bufrw.Int16BE.poolWriteInto(destResult, field.id, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = type.writeInto(field.val, buffer, offset);
+        t = type.poolWriteInto(destResult, field.val, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
     }
-    t = bufrw.Int8.writeInto(TYPE.STOP, buffer, offset);
+    t = bufrw.Int8.poolWriteInto(destResult, TYPE.STOP, buffer, offset);
     // istanbul ignore if
     if (t.err) {
         return t;
     }
     offset = t.offset;
-    return new bufrw.WriteResult(null, offset);
+    return destResult.reset(null, offset);
 };
 
-TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
+TStructRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     /* eslint no-constant-condition:[0] */
     var struct = new TStruct();
     var t;
     while (true) {
-        t = bufrw.Int8.readFrom(buffer, offset);
+        t = bufrw.Int8.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -132,10 +132,10 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         }
         var type = this.ttypes[typeid];
         if (!type) {
-            return new bufrw.ReadResult(errors.InvalidTypeidError({
+            return destResult.reset(errors.InvalidTypeidError({
                 typeid: typeid,
                 what: 'field::type'
-            }));
+            }), offset);
         }
 
         t = bufrw.Int16BE.readFrom(buffer, offset);
@@ -146,7 +146,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         var id = t.value;
 
-        t = type.readFrom(buffer, offset);
+        t = type.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -155,7 +155,7 @@ TStructRW.prototype.readFrom = function readFrom(buffer, offset) {
         var val = t.value;
         struct.fields.push(TField(typeid, id, val));
     }
-    return new bufrw.ReadResult(null, offset, struct);
+    return destResult.reset(null, offset, struct);
 };
 
 module.exports.TStruct = TStruct;

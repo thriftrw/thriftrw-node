@@ -29,6 +29,7 @@ var TYPE = require('./TYPE');
 var NAMES = require('./names');
 var errors = require('./errors');
 var skipType = require('./skip').skipType;
+var util = require('util');
 var ThriftUnrecognizedException = require('./unrecognized-exception')
     .ThriftUnrecognizedException;
 
@@ -260,9 +261,13 @@ ThriftStruct.prototype.finalize = function finalize(struct) {
 function StructRW(model) {
     assert(model, 'model required');
     this.model = model;
+
+    bufrw.Base.call(this);
 }
 
-StructRW.prototype.byteLength = function byteLength(struct) {
+util.inherits(StructRW, bufrw.Base);
+
+StructRW.prototype.poolByteLength = function poolByteLength(destResult, struct) {
     var length = 1; // stop:1
     var result;
     for (var index = 0; index < this.model.fields.length; index++) {
@@ -272,7 +277,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
         var available = value !== null && value !== undefined;
 
         if (!available && field.required) {
-            return new LengthResult(errors.FieldRequiredError({
+            return destResult.reset(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
                 structName: this.model.name,
@@ -289,17 +294,17 @@ StructRW.prototype.byteLength = function byteLength(struct) {
         // field.id:2
         length += 3;
 
-        result = field.valueType.rw.poolByteLength(lengthResult, value);
+        result = field.valueType.rw.poolByteLength(destResult, value);
         // istanbul ignore if
         if (result.err) {
             return result;
         }
         length += result.length;
     }
-    return new LengthResult(null, length);
+    return destResult.reset(null, length);
 };
 
-StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
+StructRW.prototype.poolWriteInto = function poolWriteInto(destResult, struct, buffer, offset) {
     var result;
     for (var index = 0; index < this.model.fields.length; index++) {
         var field = this.model.fields[index];
@@ -307,7 +312,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         var available = value !== null && value !== undefined;
 
         if (!available && field.required) {
-            return new LengthResult(errors.FieldRequiredError({
+            return destResult.reset(errors.FieldRequiredError({
                 name: field.name,
                 id: field.id,
                 structName: this.model.name,
@@ -320,21 +325,21 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 
         // TODO maybe suppress defaultValue on the wire
 
-        result = bufrw.Int8.poolWriteInto(writeResult, field.valueType.typeid, buffer, offset);
+        result = bufrw.Int8.poolWriteInto(destResult, field.valueType.typeid, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
         }
         offset = result.offset;
 
-        result = bufrw.Int16BE.poolWriteInto(writeResult, field.id, buffer, offset);
+        result = bufrw.Int16BE.poolWriteInto(destResult, field.id, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
         }
         offset = result.offset;
 
-        result = field.valueType.rw.poolWriteInto(writeResult, value, buffer, offset);
+        result = field.valueType.rw.poolWriteInto(destResult, value, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -342,21 +347,21 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         offset = result.offset;
     }
 
-    result = bufrw.Int8.poolWriteInto(writeResult, TYPE.STOP, buffer, offset);
+    result = bufrw.Int8.poolWriteInto(destResult, TYPE.STOP, buffer, offset);
     // istanbul ignore if
     if (result.err) {
         return result;
     }
     offset = result.offset;
-    return new WriteResult(null, offset);
+    return destResult.reset(null, offset);
 };
 
-StructRW.prototype.readFrom = function readFrom(buffer, offset) {
+StructRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var struct = this.model.create();
     var result;
 
     for (;;) {
-        result = bufrw.Int8.poolReadFrom(readResult, buffer, offset);
+        result = bufrw.Int8.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -368,7 +373,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             break;
         }
 
-        result = bufrw.Int16BE.poolReadFrom(readResult, buffer, offset);
+        result = bufrw.Int16BE.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -379,7 +384,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
         // keep unrecognized files from the future if it could be an
         // unrecognized exception.
         if (!this.model.fieldsById[id] && this.model.isResult) {
-            result = readType(buffer, offset, typeid);
+            result = readType(destResult, buffer, offset, typeid);
             // result = skipType(buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
@@ -396,7 +401,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         // skip unrecognized fields from THE FUTURE
         if (!this.model.fieldsById[id]) {
-            result = skipType(buffer, offset, typeid);
+            result = skipType(destResult, buffer, offset, typeid);
             // istanbul ignore if
             if (result.err) {
                 return result;
@@ -410,7 +415,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             field.valueType.typeid !== typeid &&
             field.valueType.altTypeid !== typeid // deprecated, see set.js
         ) {
-            return new ReadResult(errors.UnexpectedFieldValueTypeidError({
+            return destResult.reset(errors.UnexpectedFieldValueTypeidError({
                 fieldId: id,
                 fieldName: field.name,
                 structName: this.model.name,
@@ -418,7 +423,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
                 typeName: NAMES[typeid],
                 expectedTypeid: field.valueType.typeid,
                 expectedTypeName: NAMES[field.valueType.typeid]
-            }));
+            }), offset);
         }
 
         result = field.valueType.rw.poolReadFrom(readResult, buffer, offset);
@@ -434,10 +439,10 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     // Validate required fields
     var err = this.model.validateStruct(struct);
     if (err) {
-        return new ReadResult(err);
+        return destResult.reset(err);
     }
 
-    return new ReadResult(null, offset, this.model.finalize(struct));
+    return destResult.reset(null, offset, this.model.finalize(struct));
 };
 
 module.exports.ThriftField = ThriftField;

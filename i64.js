@@ -41,7 +41,7 @@ I64RW.prototype.poolByteLength = function poolByteLength(destResult, value) {
     return destResult.reset(null, 8);
 };
 
-I64RW.prototype.poolWriteInto = function writeInto(destResult, value, buffer, offset) {
+I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer, offset) {
     if (value instanceof Buffer) {
         value.copy(buffer, offset, 0, 8);
         return destResult.reset(null, offset + 8);
