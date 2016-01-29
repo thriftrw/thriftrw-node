@@ -22,6 +22,10 @@
 
 /* global Buffer */
 
+var WriteResult = require('bufrw/base').WriteResult;
+var ReadResult = require('bufrw/base').ReadResult;
+var LengthResult = require('bufrw/base').LengthResult;
+
 function JsonCase(args) {
     this.payload = args.payload;
     this.verify = args.verify;
@@ -42,11 +46,14 @@ function ThriftCase(args) {
     this.rw = args.rw;
 }
 
+var lenRes = new LengthResult();
+var writeRes = new WriteResult();
+var readRes = new ReadResult();
 ThriftCase.prototype.bench = function benchThriftCase() {
-    var lenRes = this.rw.byteLength(this.payload);
+    this.rw.poolByteLength(lenRes, this.payload);
     var buffer = new Buffer(lenRes.length);
-    this.rw.writeInto(this.payload, buffer, 0);
-    this.rw.readFrom(buffer, 0);
+    this.rw.poolWriteInto(writeRes, this.payload, buffer, 0);
+    this.rw.poolReadFrom(readRes, buffer, 0);
 };
 
 module.exports.JsonCase = JsonCase;
