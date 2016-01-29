@@ -25,6 +25,7 @@ var bufrw = require('bufrw');
 var assert = require('assert');
 var TYPE = require('./TYPE');
 var errors = require('./errors');
+var util = require('util');
 
 function ThriftList(valueType, annotations) {
     this.valueType = valueType;
@@ -39,7 +40,11 @@ ThriftList.prototype.models = 'type';
 function ListRW(valueType, model) {
     this.valueType = valueType;
     this.model = model;
+
+    bufrw.Base.call(this);
 }
+
+util.inherits(ListRW, bufrw.Base);
 
 ListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 
@@ -56,7 +61,7 @@ ListRW.prototype.form = {
     }
 };
 
-ListRW.prototype.byteLength = function byteLength(list) {
+ListRW.prototype.poolByteLength = function poolByteLength(destResult, list) {
     var valueType = this.valueType;
 
     list = this.form.toArray(list);
@@ -64,22 +69,22 @@ ListRW.prototype.byteLength = function byteLength(list) {
     var length = 5; // header length
     var t;
     for (var i = 0; i < list.length; i++) {
-        t = valueType.rw.byteLength(list[i]);
+        t = valueType.rw.poolByteLength(destResult, list[i]);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         length += t.length;
     }
-    return new bufrw.LengthResult(null, length);
+    return destResult.reset(null, length);
 };
 
-ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
+ListRW.prototype.poolWriteInto = function poolWriteInto(destResult, list, buffer, offset) {
     var valueType = this.valueType;
 
     list = this.form.toArray(list);
 
-    var t = this.headerRW.writeInto([valueType.typeid, list.length],
+    var t = this.headerRW.poolWriteInto(destResult, [valueType.typeid, list.length],
         buffer, offset);
     // istanbul ignore if
     if (t.err) {
@@ -88,20 +93,20 @@ ListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
     offset = t.offset;
 
     for (var i = 0; i < list.length; i++) {
-        t = valueType.rw.writeInto(list[i], buffer, offset);
+        t = valueType.rw.poolWriteInto(destResult, list[i], buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
     }
-    return new bufrw.WriteResult(null, offset);
+    return destResult.reset(null, offset);
 };
 
-ListRW.prototype.readFrom = function readFrom(buffer, offset) {
+ListRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var valueType = this.valueType;
 
-    var t = this.headerRW.readFrom(buffer, offset);
+    var t = this.headerRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (t.err) {
         return t;
@@ -111,24 +116,24 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var size = t.value[1];
 
     if (valueTypeid !== valueType.typeid) {
-        return new bufrw.ReadResult(errors.TypeIdMismatch({
+        return destResult.reset(errors.TypeIdMismatch({
             encoded: valueTypeid,
             expectedId: valueType.typeid,
             expected: valueType.name,
             what: this.model.name
-        }));
+        }), offset, null);
     }
     if (size < 0) {
-        return new bufrw.ReadResult(errors.InvalidSizeError({
+        return destResult.reset(errors.InvalidSizeError({
             size: size,
             what: this.model.name
-        }));
+        }), offset, null);
     }
 
     var list = this.form.create();
 
     for (var i = 0; i < size; i++) {
-        t = valueType.rw.readFrom(buffer, offset);
+        t = valueType.rw.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -136,7 +141,7 @@ ListRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         this.form.add(list, t.value);
     }
-    return new bufrw.ReadResult(null, offset, list);
+    return destResult.reset(null, offset, list);
 };
 
 module.exports.ListRW = ListRW;
