@@ -24,6 +24,7 @@
 var test = require('tape');
 var formatError = require('bufrw/interface').formatError;
 var skip = require('../skip').skipField;
+var ReadResult = require('bufrw/base').ReadResult;
 
 test('skips a bool', createCase([
     0x02, // typeid:1 -- 2, BOOL
@@ -163,7 +164,8 @@ test('skip map of strings to i32s', createCase([
 
 function createCase(bytes) {
     return function t(assert) {
-        var result = skip(new Buffer(bytes), 0);
+        var res = new ReadResult();
+        var result = skip(res, new Buffer(bytes), 0);
         if (result.err) {
             assert.comment(formatError(result.err), {color: true});
             return assert.end(result.err);
