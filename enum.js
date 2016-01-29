@@ -142,7 +142,7 @@ EnumRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset
         return destResult.reset(errors.InvalidEnumerationValueError({
             enumName: this.model.name,
             value: value
-        }), null, null);
+        }), offset, null);
     }
     return destResult.reset(null, offset, name);
 };

@@ -429,7 +429,7 @@ StructRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offs
         result = field.valueType.rw.poolReadFrom(readResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
-            return result;
+            return destResult.reset(result.err, offset);
         }
         offset = result.offset;
         // TODO promote return error of set to a ReadResult error
@@ -439,7 +439,7 @@ StructRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offs
     // Validate required fields
     var err = this.model.validateStruct(struct);
     if (err) {
-        return destResult.reset(err);
+        return destResult.reset(err, offset);
     }
 
     return destResult.reset(null, offset, this.model.finalize(struct));
