@@ -36,6 +36,11 @@ var LengthResult = bufrw.LengthResult;
 var WriteResult = bufrw.WriteResult;
 var ReadResult = bufrw.ReadResult;
 
+// Shared result instances
+var lengthResult = new LengthResult();
+var readResult = new ReadResult();
+var writeResult = new WriteResult();
+
 var readType = require('./read').readType;
 
 function ThriftField(def, struct) {
@@ -284,7 +289,7 @@ StructRW.prototype.byteLength = function byteLength(struct) {
         // field.id:2
         length += 3;
 
-        result = field.valueType.rw.byteLength(value);
+        result = field.valueType.rw.poolByteLength(lengthResult, value);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -315,21 +320,21 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
 
         // TODO maybe suppress defaultValue on the wire
 
-        result = bufrw.Int8.writeInto(field.valueType.typeid, buffer, offset);
+        result = bufrw.Int8.poolWriteInto(writeResult, field.valueType.typeid, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
         }
         offset = result.offset;
 
-        result = bufrw.Int16BE.writeInto(field.id, buffer, offset);
+        result = bufrw.Int16BE.poolWriteInto(writeResult, field.id, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
         }
         offset = result.offset;
 
-        result = field.valueType.rw.writeInto(value, buffer, offset);
+        result = field.valueType.rw.poolWriteInto(writeResult, value, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -337,7 +342,7 @@ StructRW.prototype.writeInto = function writeInto(struct, buffer, offset) {
         offset = result.offset;
     }
 
-    result = bufrw.Int8.writeInto(TYPE.STOP, buffer, offset);
+    result = bufrw.Int8.poolWriteInto(writeResult, TYPE.STOP, buffer, offset);
     // istanbul ignore if
     if (result.err) {
         return result;
@@ -351,7 +356,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
     var result;
 
     for (;;) {
-        result = bufrw.Int8.readFrom(buffer, offset);
+        result = bufrw.Int8.poolReadFrom(readResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -363,7 +368,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             break;
         }
 
-        result = bufrw.Int16BE.readFrom(buffer, offset);
+        result = bufrw.Int16BE.poolReadFrom(readResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -416,7 +421,7 @@ StructRW.prototype.readFrom = function readFrom(buffer, offset) {
             }));
         }
 
-        result = field.valueType.rw.readFrom(buffer, offset);
+        result = field.valueType.rw.poolReadFrom(readResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;

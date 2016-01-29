@@ -26,10 +26,9 @@ var TYPE = require('./TYPE');
 var errors = require('./errors');
 var ThriftConst = require('./const').ThriftConst;
 var ast = require('./ast');
+var inherits = require('util').inherits;
 
 var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
 
 function ThriftEnum() {
     this.namesToValues = Object.create(null);
@@ -99,36 +98,39 @@ ThriftEnum.prototype.link = function link(model) {
 
 function EnumRW(model) {
     this.model = model;
+    bufrw.Base.call(this);
 }
+
+inherits(EnumRW, bufrw.Base);
 
 EnumRW.prototype.lengthResult = new LengthResult(null, bufrw.Int32BE.width);
 
-EnumRW.prototype.byteLength = function byteLength() {
-    return this.lengthResult;
+EnumRW.prototype.poolByteLength = function poolByteLength(destResult) {
+    return destResult.reset(null, bufrw.Int32BE.width);
 };
 
-EnumRW.prototype.writeInto = function writeInto(name, buffer, offset) {
+EnumRW.prototype.poolWriteInto = function poolWriteInto(destResult, name, buffer, offset) {
     if (typeof name !== 'string') {
-        return new WriteResult(errors.InvalidEnumerationTypeError({
+        return destResult.reset(errors.InvalidEnumerationTypeError({
             enumName: this.model.name,
             name: name,
             nameType: typeof name
-        }));
+        }), null);
     }
     var value = this.model.namesToValues[name];
     // istanbul ignore if
     if (value === undefined) {
-        return new WriteResult(errors.InvalidEnumerationNameError({
+        return destResult.reset(errors.InvalidEnumerationNameError({
             enumName: this.model.name,
             name: name
-        }));
+        }), null);
     }
-    return bufrw.Int32BE.writeInto(value, buffer, offset);
+    return bufrw.Int32BE.poolWriteInto(destResult, value, buffer, offset);
 };
 
-EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
+EnumRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var result;
-    result = bufrw.Int32BE.readFrom(buffer, offset);
+    result = bufrw.Int32BE.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (result.err) {
         return result;
@@ -137,12 +139,12 @@ EnumRW.prototype.readFrom = function readFrom(buffer, offset) {
     var value = result.value;
     var name = this.model.valuesToNames[value];
     if (!name) {
-        return new ReadResult(errors.InvalidEnumerationValueError({
+        return destResult.reset(errors.InvalidEnumerationValueError({
             enumName: this.model.name,
             value: value
-        }));
+        }), null, null);
     }
-    return new ReadResult(null, offset, name);
+    return destResult.reset(null, offset, name);
 };
 
 module.exports.ThriftEnum = ThriftEnum;
