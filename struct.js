@@ -33,15 +33,6 @@ var util = require('util');
 var ThriftUnrecognizedException = require('./unrecognized-exception')
     .ThriftUnrecognizedException;
 
-var LengthResult = bufrw.LengthResult;
-var WriteResult = bufrw.WriteResult;
-var ReadResult = bufrw.ReadResult;
-
-// Shared result instances
-var lengthResult = new LengthResult();
-var readResult = new ReadResult();
-var writeResult = new WriteResult();
-
 var readType = require('./read').readType;
 
 function ThriftField(def, struct) {
@@ -426,7 +417,7 @@ StructRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offs
             }), offset);
         }
 
-        result = field.valueType.rw.poolReadFrom(readResult, buffer, offset);
+        result = field.valueType.rw.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return destResult.reset(result.err, offset);
