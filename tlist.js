@@ -43,10 +43,10 @@ inherits(TListRW, bufrw.Base);
 
 TListRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int32BE]);
 
-TListRW.prototype.byteLength = function byteLength(list) {
+TListRW.prototype.poolByteLength = function poolByteLength(destResult, list) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return new bufrw.LengthResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
         }));
@@ -55,26 +55,26 @@ TListRW.prototype.byteLength = function byteLength(list) {
     var length = 5; // header length
     var t;
     for (var i = 0; i < list.elements.length; i++) {
-        t = etype.byteLength(list.elements[i]);
+        t = etype.poolByteLength(destResult, list.elements[i]);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         length += t.length;
     }
-    return new bufrw.LengthResult(null, length);
+    return destResult.reset(null, length);
 };
 
-TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
+TListRW.prototype.poolWriteInto = function poolWriteInto(destResult, list, buffer, offset) {
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return new bufrw.WriteResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
         }));
     }
 
-    var t = this.headerRW.writeInto([list.etypeid, list.elements.length],
+    var t = this.headerRW.poolWriteInto(destResult, [list.etypeid, list.elements.length],
         buffer, offset);
     // istanbul ignore if
     if (t.err) {
@@ -83,18 +83,18 @@ TListRW.prototype.writeInto = function writeInto(list, buffer, offset) {
     offset = t.offset;
 
     for (var i = 0; i < list.elements.length; i++) {
-        t = etype.writeInto(list.elements[i], buffer, offset);
+        t = etype.poolWriteInto(destResult, list.elements[i], buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
     }
-    return new bufrw.WriteResult(null, offset);
+    return destResult.reset(null, offset);
 };
 
-TListRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var t = this.headerRW.readFrom(buffer, offset);
+TListRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
+    var t = this.headerRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (t.err) {
         return t;
@@ -103,23 +103,23 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
     var etypeid = t.value[0];
     var size = t.value[1];
     if (size < 0) {
-        return new bufrw.ReadResult(errors.InvalidSizeError({
+        return destResult.reset(errors.InvalidSizeError({
             size: size,
             what: 'list::size'
-        }));
+        }), offset);
     }
 
     var list = new TList(etypeid);
     var etype = this.ttypes[list.etypeid];
     if (!etype) {
-        return new bufrw.ReadResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             typeid: list.etypeid,
             what: 'list::etype'
-        }));
+        }), offset);
     }
 
     for (var i = 0; i < size; i++) {
-        t = etype.readFrom(buffer, offset);
+        t = etype.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -127,7 +127,7 @@ TListRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         list.elements.push(t.value);
     }
-    return new bufrw.ReadResult(null, offset, list);
+    return destResult.reset(null, offset, list);
 };
 
 module.exports.TList = TList;

@@ -30,97 +30,99 @@ var errors = require('bufrw/errors');
 
 // istanbul ignore next
 function I64RW() {
+    bufrw.Base.call(this);
 }
+
+util.inherits(I64RW, bufrw.Base);
 
 I64RW.prototype.lengthResult = bufrw.LengthResult.just(8);
 
-I64RW.prototype.byteLength = function byteLength(value) {
-    return this.lengthResult;
+I64RW.prototype.poolByteLength = function poolByteLength(destResult, value) {
+    return destResult.reset(null, 8);
 };
 
-I64RW.prototype.writeInto = function writeInto(value, buffer, offset) {
+I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer, offset) {
     if (value instanceof Buffer) {
         value.copy(buffer, offset, 0, 8);
-        return new bufrw.WriteResult(null, offset + 8);
+        return destResult.reset(null, offset + 8);
     } else if (typeof value === 'number') {
         buffer.writeInt32BE(value / Math.pow(2, 32), offset, true);
         buffer.writeInt32BE(value, offset + 4, true);
-        return new bufrw.WriteResult(null, offset + 8);
+        return destResult.reset(null, offset + 8);
     } else if (Array.isArray(value)) {
-        return this.writeArrayInt64Into(value, buffer, offset);
+        return this.writeArrayInt64Into(destResult, value, buffer, offset);
     } else if (typeof value === 'string') {
-        return this.writeStringInt64Into(value, buffer, offset);
+        return this.writeStringInt64Into(destResult, value, buffer, offset);
     } else if (value && typeof value === 'object') {
-        return this.writeObjectInt64Into(value, buffer, offset);
+        return this.writeObjectInt64Into(destResult, value, buffer, offset);
     } else {
-        return bufrw.WriteResult.error(errors.expected(value,
-            'i64 representation'));
+        return destResult.reset(errors.expected(value, 'i64 representation'));
     }
 };
 
 I64RW.prototype.writeObjectInt64Into =
-function writeObjectInt64Into(value, buffer, offset) {
+function writeObjectInt64Into(destResult, value, buffer, offset) {
     if (typeof value.high !== 'number' && typeof value.hi !== 'number') {
-        return bufrw.WriteResult.error(errors.expected(value,
-            '{hi[gh], lo[w]} with high bits, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            '{hi[gh], lo[w]} with high bits, or other i64 representation'), null);
     }
     if (typeof value.low !== 'number' && typeof value.lo !== 'number') {
-        return bufrw.WriteResult.error(errors.expected(value,
-            '{hi[gh], lo[w]} with low bits, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            '{hi[gh], lo[w]} with low bits, or other i64 representation'), null);
     }
     // Does not validate range of hi or lo value
     buffer.writeInt32BE(value.high || value.hi, offset, true);
     buffer.writeInt32BE(value.low || value.lo, offset + 4, true);
-    return new bufrw.WriteResult(null, offset + 8);
+    return destResult.reset(null, offset + 8);
 };
 
 I64RW.prototype.writeArrayInt64Into =
-function writeArrayInt64Into(value, buffer, offset) {
+function writeArrayInt64Into(destResult, value, buffer, offset) {
     if (value.length !== 8) {
-        return new bufrw.WriteResult(errors.expected(value,
-            'an array of 8 bytes, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            'an array of 8 bytes, or other i64 representation'), null);
     }
     // Does not validate individual byte values, particularly allowing unsigned
     // or signed byte values without discrimination.
     for (var index = 0; index < 8; index++) {
         buffer[offset + index] = value[index] & 0xFF;
     }
-    return new bufrw.WriteResult(null, offset + 8);
+    return destResult.reset(null, offset + 8);
 };
 
 I64RW.prototype.writeStringInt64Into =
-function writeStringInt64Into(value, buffer, offset) {
+function writeStringInt64Into(destResult, value, buffer, offset) {
     if (value.length !== 16) {
-        return new bufrw.WriteResult(errors.expected(value,
-            'a string of 16 hex characters, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            'a string of 16 hex characters, or other i64 representation'), null);
     }
 
     var hi = parseInt(value.slice(0, 8), 16);
     if (hi !== hi) { // NaN
-        return new bufrw.WriteResult(errors.expected(value,
-            'a string of hex characters, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            'a string of hex characters, or other i64 representation'), null);
     }
     var lo = parseInt(value.slice(8, 16), 16);
     if (lo !== lo) { // NaN
-        return new bufrw.WriteResult(errors.expected(value,
-            'a string of hex characters, or other i64 representation'));
+        return destResult.reset(errors.expected(value,
+            'a string of hex characters, or other i64 representation'), null);
     }
 
     buffer.writeInt32BE(hi, offset);
     buffer.writeInt32BE(lo, offset + 4);
-    return new bufrw.WriteResult(null, offset + 8);
+    return destResult.reset(null, offset + 8);
 };
 
 function I64LongRW() {}
 
 util.inherits(I64LongRW, I64RW);
 
-I64LongRW.prototype.readFrom = function readFrom(buffer, offset) {
+I64LongRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var value = Long.fromBits(
         buffer.readInt32BE(offset + 4, 4, true),
         buffer.readInt32BE(offset, 4, true)
     );
-    return new bufrw.ReadResult(null, offset + 8, value);
+    return destResult.reset(null, offset + 8, value);
 };
 
 var i64LongRW = new I64LongRW();
@@ -129,22 +131,22 @@ function I64DateRW() {}
 
 util.inherits(I64DateRW, I64RW);
 
-I64DateRW.prototype.readFrom = function readFrom(buffer, offset) {
+I64DateRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var long = Long.fromBits(
         buffer.readInt32BE(offset + 4, 4, true),
         buffer.readInt32BE(offset + 0, 4, true)
     );
     var ms = long.toNumber();
     var value = new Date(ms);
-    return new bufrw.ReadResult(null, offset + 8, value);
+    return destResult.reset(null, offset + 8, value);
 };
 
-I64DateRW.prototype.writeInto = function writeInto(value, buffer, offset) {
+I64DateRW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer, offset) {
     if (typeof value === 'string') {
         value = Date.parse(value);
     }
     value = Long.fromNumber(+value);
-    return this.writeObjectInt64Into(value, buffer, offset);
+    return this.writeObjectInt64Into(destResult, value, buffer, offset);
 };
 
 var i64DateRW = new I64DateRW();
@@ -153,10 +155,10 @@ function I64BufferRW() {}
 
 util.inherits(I64BufferRW, I64RW);
 
-I64BufferRW.prototype.readFrom = function readTInt64From(buffer, offset) {
+I64BufferRW.prototype.poolReadFrom = function poolReadTInt64From(destResult, buffer, offset) {
     var value = new Buffer(8);
     buffer.copy(value, 0, offset, offset + 8);
-    return new bufrw.ReadResult(null, offset + 8, value);
+    return destResult.reset(null, offset + 8, value);
 };
 
 var i64BufferRW = new I64BufferRW();

@@ -22,7 +22,6 @@
 'use strict';
 
 var TYPE = require('./TYPE');
-var ReadResult = require('bufrw/base').ReadResult;
 var bufrwErrors = require('bufrw/errors');
 var bufrw = require('bufrw');
 var errors = require('./errors');
@@ -48,12 +47,12 @@ readVar[TYPE.MAP] = readMap;
 readVar[TYPE.SET] = readList;
 readVar[TYPE.LIST] = readList;
 
-function readType(buffer, offset, typeid) {
+function readType(destResult, buffer, offset, typeid) {
     var result;
 
     // istanbul ignore else
     if (readVar[typeid] !== undefined) {
-        result = readVar[typeid](buffer, offset);
+        result = readVar[typeid](destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -63,58 +62,59 @@ function readType(buffer, offset, typeid) {
     } else if (widths[typeid] !== undefined) {
         var length = widths[typeid];
         if (offset + length > buffer.length) {
-            return new ReadResult(bufrwErrors.ShortBuffer({
+            return destResult.reset(bufrwErrors.ShortBuffer({
                 expected: offset + length,
                 actual: buffer.length,
                 buffer: buffer,
                 offset: offset
-            }));
+            }), offset);
         }
         offset += length;
 
     } else {
-        return new ReadResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             typeid: typeid,
             what: 'field::type'
-        }));
+        }), offset);
     }
 
-    return new ReadResult(null, offset, result && result.value);
+    return destResult.reset(null, offset, result && result.value);
 }
 
-function readBool(buffer, offset) {
-    return BooleanRW.readFrom(buffer, offset);
+function readBool(destResult, buffer, offset) {
+    return BooleanRW.poolReadFrom(destResult, buffer, offset);
 }
 
-function readDouble(buffer, offset) {
-    return bufrw.DoubleBE.readFrom(buffer, offset);
+function readDouble(destResult, buffer, offset) {
+    return bufrw.DoubleBE.poolReadFrom(destResult, buffer, offset);
 }
 
-function readI8(buffer, offset) {
-    return bufrw.Int8.readFrom(buffer, offset);
+function readI8(destResult, buffer, offset) {
+    return bufrw.Int8.poolReadFrom(destResult, buffer, offset);
 }
 
-function readI16(buffer, offset) {
-    return bufrw.Int16BE.readFrom(buffer, offset);
+function readI16(destResult, buffer, offset) {
+    return bufrw.Int16BE.poolReadFrom(destResult, buffer, offset);
 }
 
-function readI32(buffer, offset) {
-    return bufrw.Int32BE.readFrom(buffer, offset);
+function readI32(destResult, buffer, offset) {
+    return bufrw.Int32BE.poolReadFrom(destResult, buffer, offset);
 }
 
-function readI64(buffer, offset) {
-    return bufrw.FixedWidth(8).readFrom(buffer, offset);
+var fix8 = bufrw.FixedWidth(8);
+function readI64(destResult, buffer, offset) {
+    return fix8.poolReadFrom(destResult, buffer, offset);
 }
 
-function readString(buffer, offset) {
-    return StringRW.readFrom(buffer, offset);
+function readString(destResult, buffer, offset) {
+    return StringRW.poolReadFrom(destResult, buffer, offset);
 }
 
-function readStruct(buffer, offset) {
+function readStruct(destResult, buffer, offset) {
     var result;
     var struct = {};
     for (;;) {
-        result = bufrw.Int8.readFrom(buffer, offset);
+        result = bufrw.Int8.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -123,10 +123,10 @@ function readStruct(buffer, offset) {
         var typeid = result.value;
 
         if (typeid === TYPE.STOP) {
-            return new ReadResult(null, offset, struct);
+            return destResult.reset(null, offset, struct);
         }
 
-        result = bufrw.Int16BE.readFrom(buffer, offset);
+        result = bufrw.Int16BE.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -134,7 +134,7 @@ function readStruct(buffer, offset) {
         offset = result.offset;
         var id = result.value;
 
-        result = readType(buffer, offset, typeid);
+        result = readType(destResult, buffer, offset, typeid);
         struct[id] = result.value;
         // istanbul ignore if
         if (result.err) {
@@ -144,13 +144,13 @@ function readStruct(buffer, offset) {
     }
 }
 
-function readMap(buffer, offset) {
+function readMap(destResult, buffer, offset) {
     var result;
     var map = {};
     var key;
 
     // map headers
-    result = TMapHeaderRW.readFrom(buffer, offset);
+    result = TMapHeaderRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (result.err) {
         return result;
@@ -164,7 +164,7 @@ function readMap(buffer, offset) {
 
     // each entry
     for (var index = 0; index < length; index++) {
-        result = readType(buffer, offset, ktypeid);
+        result = readType(destResult, buffer, offset, ktypeid);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -172,7 +172,7 @@ function readMap(buffer, offset) {
         offset = result.offset;
         key = result.value;
 
-        result = readType(buffer, offset, vtypeid);
+        result = readType(destResult, buffer, offset, vtypeid);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -181,14 +181,14 @@ function readMap(buffer, offset) {
         map[key] = result.value;
     }
 
-    return new ReadResult(null, offset, map);
+    return destResult.reset(null, offset, map);
 }
 
-function readList(buffer, offset) {
+function readList(destResult, buffer, offset) {
     var result;
     var list = [];
     // list/set headers
-    result = TListHeaderRW.readFrom(buffer, offset);
+    result = TListHeaderRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (result.err) {
         return result;
@@ -201,7 +201,7 @@ function readList(buffer, offset) {
 
     // each value
     for (var index = 0; index < length; index++) {
-        result = readType(buffer, offset, vtypeid);
+        result = readType(destResult, buffer, offset, vtypeid);
         // istanbul ignore if
         if (result.err) {
             return result;
@@ -210,7 +210,7 @@ function readList(buffer, offset) {
         list.push(result.value);
     }
 
-    return new ReadResult(null, offset, list);
+    return destResult.reset(null, offset, list);
 }
 
 module.exports.readType = readType;

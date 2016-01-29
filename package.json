@@ -17,7 +17,7 @@
     }
   ],
   "dependencies": {
-    "bufrw": "^0.9.4",
+    "bufrw": "^1.2.0",
     "error": "7.0.2",
     "long": "^2.4.0",
     "pegjs": "^0.8.0"

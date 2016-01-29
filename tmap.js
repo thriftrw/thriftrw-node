@@ -48,22 +48,24 @@ function TMapRW(opts) {
         return new TMapRW(opts);
     }
     this.ttypes = opts.ttypes;
+
+    bufrw.Base.call(this);
 }
 inherits(TMapRW, bufrw.Base);
 
 TMapRW.prototype.headerRW = bufrw.Series([bufrw.Int8, bufrw.Int8, bufrw.Int32BE]);
 
-TMapRW.prototype.byteLength = function byteLength(map) {
+TMapRW.prototype.poolByteLength = function poolByteLength(destResult, map) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return new bufrw.LengthResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
         }));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return new bufrw.LengthResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
         }));
@@ -74,40 +76,40 @@ TMapRW.prototype.byteLength = function byteLength(map) {
     for (var i = 0; i < map.pairs.length; i++) {
         var pair = map.pairs[i];
 
-        t = ktype.byteLength(pair.key);
+        t = ktype.poolByteLength(destResult, pair.key);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         length += t.length;
 
-        t = vtype.byteLength(pair.val);
+        t = vtype.poolByteLength(destResult, pair.val);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         length += t.length;
     }
-    return new bufrw.LengthResult(null, length);
+    return destResult.reset(null, length);
 };
 
-TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
+TMapRW.prototype.poolWriteInto = function poolWriteInto(destResult, map, buffer, offset) {
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return new bufrw.WriteResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
         }));
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return new bufrw.WriteResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
         }));
     }
 
-    var t = this.headerRW.writeInto(
+    var t = this.headerRW.poolWriteInto(destResult,
         [map.ktypeid, map.vtypeid, map.pairs.length], buffer, offset);
     // istanbul ignore if
     if (t.err) {
@@ -118,25 +120,25 @@ TMapRW.prototype.writeInto = function writeInto(map, buffer, offset) {
     for (var i = 0; i < map.pairs.length; i++) {
         var pair = map.pairs[i];
 
-        t = ktype.writeInto(pair.key, buffer, offset);
+        t = ktype.poolWriteInto(destResult, pair.key, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
 
-        t = vtype.writeInto(pair.val, buffer, offset);
+        t = vtype.poolWriteInto(destResult, pair.val, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
         }
         offset = t.offset;
     }
-    return new bufrw.WriteResult(null, offset);
+    return destResult.reset(null, offset);
 };
 
-TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
-    var t = this.headerRW.readFrom(buffer, offset);
+TMapRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
+    var t = this.headerRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (t.err) {
         return t;
@@ -146,30 +148,30 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
     var vtypeid = t.value[1];
     var size = t.value[2];
     if (size < 0) {
-        return new bufrw.ReadResult(errors.InvalidSizeError({
+        return destResult.reset(errors.InvalidSizeError({
             size: size,
             what: 'map::size'
-        }));
+        }), offset);
     }
 
     var map = new TMap(ktypeid, vtypeid);
     var ktype = this.ttypes[map.ktypeid];
     if (!ktype) {
-        return new bufrw.ReadResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::ktype',
             typeid: map.ktypeid
-        }));
+        }), offset);
     }
     var vtype = this.ttypes[map.vtypeid];
     if (!vtype) {
-        return new bufrw.ReadResult(errors.InvalidTypeidError({
+        return destResult.reset(errors.InvalidTypeidError({
             what: 'map::vtype',
             typeid: map.vtypeid
-        }));
+        }), offset);
     }
 
     for (var i = 0; i < size; i++) {
-        t = ktype.readFrom(buffer, offset);
+        t = ktype.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -177,7 +179,7 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
         offset = t.offset;
         var key = t.value;
 
-        t = vtype.readFrom(buffer, offset);
+        t = vtype.poolReadFrom(destResult, buffer, offset);
         // istanbul ignore if
         if (t.err) {
             return t;
@@ -187,7 +189,7 @@ TMapRW.prototype.readFrom = function readFrom(buffer, offset) {
 
         map.pairs.push(TPair(key, val));
     }
-    return new bufrw.ReadResult(null, offset, map);
+    return destResult.reset(null, offset, map);
 };
 
 module.exports.TPair = TPair;

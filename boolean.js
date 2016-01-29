@@ -27,14 +27,15 @@ var TYPE = require('./TYPE');
 var BooleanRW = bufrw.Base(
     booleanByteLength,
     readTBooleanFrom,
-    writeTBooleanInto);
+    writeTBooleanInto,
+    true);
 
-function booleanByteLength() {
-    return new bufrw.LengthResult(null, bufrw.UInt8.width);
+function booleanByteLength(destResult) {
+    return destResult.reset(null, bufrw.UInt8.width);
 }
 
-function readTBooleanFrom(buffer, offset) {
-    var res = bufrw.UInt8.readFrom(buffer, offset);
+function readTBooleanFrom(destResult, buffer, offset) {
+    var res = bufrw.UInt8.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore else
     if (!res.err) {
         res.value = Boolean(res.value);
@@ -42,11 +43,11 @@ function readTBooleanFrom(buffer, offset) {
     return res;
 }
 
-function writeTBooleanInto(bool, buffer, offset) {
+function writeTBooleanInto(destResult, bool, buffer, offset) {
     if (typeof bool !== 'boolean') {
-        return new bufrw.WriteResult(errors.expected(bool, 'a boolean'), offset);
+        return destResult.reset(errors.expected(bool, 'a boolean'), offset);
     }
-    return bufrw.UInt8.writeInto(Number(bool), buffer, offset);
+    return bufrw.UInt8.poolWriteInto(destResult, Number(bool), buffer, offset);
 }
 
 function ThriftBoolean() { }
