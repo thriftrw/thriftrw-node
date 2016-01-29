@@ -36,6 +36,8 @@ function MapObjectRW(ktype, vtype) {
     if (this.vtype.rw.width) {
         this.byteLength = this.mapVarFixbyteLength;
     }
+
+    bufrw.Base.call(this);
 }
 inherits(MapObjectRW, bufrw.Base);
 
