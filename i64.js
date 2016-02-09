@@ -43,8 +43,7 @@ I64RW.prototype.poolByteLength = function poolByteLength(destResult, value) {
 
 I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer, offset) {
     if (value instanceof Buffer) {
-        value.copy(buffer, offset, 0, 8);
-        return destResult.reset(null, offset + 8);
+        return this.writeBufferInt64Into(destResult, value, buffer, offset);
     } else if (typeof value === 'number') {
         buffer.writeInt32BE(value / Math.pow(2, 32), offset, true);
         buffer.writeInt32BE(value, offset + 4, true);
@@ -58,6 +57,11 @@ I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer
     } else {
         return destResult.reset(errors.expected(value, 'i64 representation'));
     }
+};
+
+I64RW.prototype.writeBufferInt64Into = function writeBufferInt64Into(destResult, value, buffer, offset) {
+    value.copy(buffer, offset, 0, 8);
+    return destResult.reset(null, offset + 8);
 };
 
 I64RW.prototype.writeObjectInt64Into =
@@ -142,6 +146,12 @@ I64DateRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, off
 };
 
 I64DateRW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer, offset) {
+    if (value instanceof Buffer) {
+        return this.writeBufferInt64Into(destResult, value, buffer, offset);
+    }
+    if (Array.isArray(value)) {
+        return this.writeArrayInt64Into(destResult, value, buffer, offset);
+    }
     if (typeof value === 'string') {
         value = Date.parse(value);
     }

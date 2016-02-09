@@ -195,4 +195,22 @@ test('coerce number to date', function t(assert) {
     assert.end();
 });
 
+test('Accepts buffer as date', function t(assert) {
+    var outBuffer = new Buffer(8);
+    outBuffer.fill(0xff);
+    var inbuffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    dateRW.writeInto(inbuffer, outBuffer, 0);
+    assert.deepEquals(outBuffer, inbuffer, 'accepts date buffer');
+    assert.end();
+});
+
+test('Accepts array as date', function t(assert) {
+    var outBuffer = new Buffer(8);
+    outBuffer.fill(0xff);
+    var inArray = [1, 2, 3, 4, 5, 6, 7, 8];
+    dateRW.writeInto(inArray, outBuffer, 0);
+    assert.deepEquals(outBuffer, new Buffer(inArray), 'accepts date buffer');
+    assert.end();
+});
+
 test('ThriftI64', testThrift(ThriftI64, bufferRW, TYPE.I64));
