@@ -518,7 +518,7 @@ timestamps.
 
 [thriftrw-python] is the sister library for Python.
 
-[thriftrw-python]: https://github.com/uber/thriftrw-python
+[thriftrw-python]: https://github.com/thriftrw/thriftrw-python
 
 ## Installation
 
@@ -550,8 +550,8 @@ timestamps.
   [build]: https://travis-ci.org/uber/thriftrw
   [cover-png]: https://coveralls.io/repos/uber/thriftrw/badge.png
   [cover]: https://coveralls.io/r/uber/thriftrw
-  [dep-png]: https://david-dm.org/uber/thriftrw.png
-  [dep]: https://david-dm.org/uber/thriftrw
+  [dep-png]: https://david-dm.org/thriftrw/thriftrw-node.png
+  [dep]: https://david-dm.org/thriftrw/thriftrw-node
   [test-png]: https://ci.testling.com/uber/thriftrw.png
   [tes]: https://ci.testling.com/uber/thriftrw
   [npm-png]: https://nodei.co/npm/thriftrw.png?stars&downloads
