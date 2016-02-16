@@ -258,6 +258,14 @@ function StructRW(model) {
 
 util.inherits(StructRW, bufrw.Base);
 
+StructRW.prototype.toBuffer = function toBuffer(struct) {
+    return bufrw.toBufferResult(this, struct);
+};
+
+StructRW.prototype.fromBuffer = function fromBuffer(buffer, offset) {
+    return bufrw.fromBufferResult(this, buffer, offset);
+};
+
 StructRW.prototype.poolByteLength = function poolByteLength(destResult, struct) {
     var length = 1; // stop:1
     var result;

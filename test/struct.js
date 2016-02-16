@@ -61,7 +61,7 @@ thriftHealth.link(thriftMock);
 
 var Health = thriftHealth.Constructor;
 
-test('HealthRW', testRW.cases(Health.rw, [
+var cases = [
 
     // good
     [new Health({ok: true}), [
@@ -79,7 +79,21 @@ test('HealthRW', testRW.cases(Health.rw, [
         0x00                       // type:1 -- 0 -- stop
     ]]
 
-]));
+];
+
+test('HealthRW', testRW.cases(Health.rw, cases));
+
+test('HealthRW to Buffer', function t(assert) {
+    var res = Health.rw.toBuffer(cases[0][0]);
+    assert.deepEqual(res.value, new Buffer(cases[0][1]), 'buffer matches');
+    assert.end();
+});
+
+test('HealthRW from Buffer', function t(assert) {
+    var res = Health.rw.fromBuffer(new Buffer(cases[0][1]));
+    assert.deepEqual(res.value, cases[0][0], 'object matches');
+    assert.end();
+});
 
 test('complains of missing required field', function t(assert) {
     var res = Health.rw.readFrom(new Buffer([
