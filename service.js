@@ -42,7 +42,6 @@ ThriftFunction.prototype.compile = function process(def, model) {
     var argsStruct = new ast.Struct(argsId, def.fields);
     argsStruct.isArgument = true;
     this.args = model.compileStruct(argsStruct);
-    this.Arguments = this.args.Constructor;
 
     var returnType = def.returns;
     var resultFields = def.throws || [];
@@ -60,7 +59,6 @@ ThriftFunction.prototype.compile = function process(def, model) {
     var resultStruct = new ast.Struct(resultId, resultFields);
     resultStruct.isResult = true;
     this.result = model.compileStruct(resultStruct);
-    this.Result = this.result.Constructor;
 
     this.annotations = def.annotations;
     this.oneway = def.oneway;
@@ -69,6 +67,9 @@ ThriftFunction.prototype.compile = function process(def, model) {
 ThriftFunction.prototype.link = function link(model) {
     this.args.link(model);
     this.result.link(model);
+
+    this.Arguments = this.args.Constructor;
+    this.Result = this.result.Constructor;
 };
 
 function ThriftService(args) {
