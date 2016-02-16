@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.3.0
 
 ThriftRW is now in its own organization on Github!
 
