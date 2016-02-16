@@ -507,7 +507,8 @@ typedef i64 (js.type = 'Date') timestamp
 
 This will reify timestamps as a JavaScript Date and ThriftRW will accept an
 ISO-8601 timestamp or milliseconds since the epoch (as returned by
-`Date.now()`) in place of a Date.
+`Date.now()`) in place of a Date, as well as the equivalent in buffers or
+arrays of bytes.
 
 For [TCurl][], this means that you can both read and write ISO-8601 for
 timestamps.
