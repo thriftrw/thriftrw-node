@@ -1,3 +1,6 @@
+{
+    var ast = require('./ast');
+}
 
 Program
   = __ hs:Header* ds:Definition* {
