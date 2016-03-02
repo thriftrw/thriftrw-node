@@ -1,4 +1,3 @@
-
 struct Struct {
     1: required i32 number
 }

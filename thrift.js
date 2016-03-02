@@ -49,6 +49,8 @@ var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
+var Message = require('./message').Message;
+
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
@@ -132,6 +134,8 @@ function Thrift(options) {
 }
 
 Thrift.prototype.models = 'module';
+
+Thrift.prototype.Message = Message;
 
 Thrift.prototype.getType = function getType(name) {
     return this.getTypeResult(name).toValue();

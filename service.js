@@ -21,6 +21,8 @@
 'use strict';
 
 var ast = require('./ast');
+var Message = require('./message').Message;
+var MessageRW = require('./message').MessageRW;
 
 function ThriftFunction(args) {
     this.name = args.name;
@@ -70,6 +72,24 @@ ThriftFunction.prototype.link = function link(model) {
 
     this.Arguments = this.args.Constructor;
     this.Result = this.result.Constructor;
+
+    // TODO cover oneway, if we ever have use for it
+    // istanbul ignore next
+    var type = this.oneway ? 'ONEWAY' : 'CALL';
+    this.ArgumentsMessage = this.makeMessageConstructor(this.name, type);
+    this.ResultMessage = this.makeMessageConstructor(this.name, 'RESULT');
+
+    this.argumentsMessageRW = new MessageRW(this.args.rw);
+    this.resultMessageRW = new MessageRW(this.result.rw);
+};
+
+ThriftFunction.prototype.makeMessageConstructor = function makeMessageConstructor(name, type) {
+    function FunctionMessage(message) {
+        Message.call(this, message);
+        this.name = name;
+        this.type = type;
+    }
+    return FunctionMessage;
 };
 
 function ThriftService(args) {

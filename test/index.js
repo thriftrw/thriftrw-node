@@ -55,3 +55,4 @@ require('./include.js');
 require('./type-mismatch');
 require('./lcp');
 require('./idls');
+require('./message');
