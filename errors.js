@@ -114,3 +114,23 @@ module.exports.InvalidEnumerationValueError = TypedError({
     enumName: null,
     value: null
 });
+
+// Thrift Message Envelope
+
+module.exports.UnrecognizedMessageEnvelopeVersion = TypedError({
+    type: 'thrift-unrecognized-message-envelope-version',
+    message: 'unrecognized Thrift message envelope version: {version}',
+    version: null
+});
+
+module.exports.UnrecognizedMessageEnvelopeType = TypedError({
+    type: 'thrift-unrecognized-message-envelope-type',
+    message: 'unrecognized Thrift message envelope type: {value}',
+    value: null
+});
+
+module.exports.InvalidMessageEnvelopeTypeName = TypedError({
+    type: 'thrift-invalid-message-envelope-type-name',
+    message: 'invalid Thrift message envelope type name: {name}',
+    name: null
+});
