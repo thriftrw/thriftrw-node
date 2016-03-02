@@ -71,11 +71,6 @@ test('round-trip a non-strict message', function t(assert) {
 });
 
 test('round-trip a non-strict message', function t(assert) {
-    thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'thrift.thrift'),
-        allowFilesystemAccess: true
-    });
-
     var message = new thrift.Service.foo.ArgumentsMessage({
         version: 1,
         id: 0,
