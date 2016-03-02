@@ -25,6 +25,7 @@
 
 var assert = require('assert');
 var bufrw = require('bufrw');
+var RW = require('./rw');
 var TYPE = require('./TYPE');
 var NAMES = require('./names');
 var errors = require('./errors');
@@ -253,18 +254,10 @@ function StructRW(model) {
     assert(model, 'model required');
     this.model = model;
 
-    bufrw.Base.call(this);
+    RW.call(this);
 }
 
-util.inherits(StructRW, bufrw.Base);
-
-StructRW.prototype.toBuffer = function toBuffer(struct) {
-    return bufrw.toBufferResult(this, struct);
-};
-
-StructRW.prototype.fromBuffer = function fromBuffer(buffer, offset) {
-    return bufrw.fromBufferResult(this, buffer, offset);
-};
+util.inherits(StructRW, RW);
 
 StructRW.prototype.poolByteLength = function poolByteLength(destResult, struct) {
     var length = 1; // stop:1
