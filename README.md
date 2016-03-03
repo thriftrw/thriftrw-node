@@ -141,6 +141,30 @@ var struct2 = bufrw.fromBuffer(thriftrw.TStructRW, buf);
 console.log('created a TStruct from a binary buffer', struct2);
 ```
 
+## Readers and Writers
+
+Readers and Writers, or RWs, are objects that capture the methods necessary to
+read and write a particular value to and from a buffer.
+RW objects implement:
+
+- `toBuffer(value):Result{err, buffer}`
+- `fromBuffer(buffer, offset=0):Result{err, value}`
+
+- `readFrom(buffer, offset):ReadResult{err, offset, value}`
+- `writeInto(value, buffer, offset):WriteResult{err, offset, value}`
+- `byteLength(value):LengthResult{err, length}`
+
+- `poolReadFrom(result, buffer, offset):ReadResult{err, offset, value}`
+- `poolWriteInto(result, value, buffer, offset):WriteResult{err, offset, value}`
+- `poolByteLength(result, value):LengthResult{err, length}`
+
+All of these methods return result objects, which will either have their `err`
+populated with an error, or other properties for the success value.
+The pool* methods also accept a result object for reuse.
+That result object must implement `reset(err, ...properties)`.
+
+The RW is the both the building block and the public interface of ThriftRW.
+
 
 ## Thrift Model
 
@@ -170,6 +194,91 @@ ThriftService instances are not expected to be useful outside the process of
 compiling and linking the Thrift IDL, but you can use the services object to
 check for the existence of a service by its name.
 
+### Messages
+
+Apache Thrift over HTTP envelopes arguments and result structs with a message
+that contains a sequence number, the function name, a message type, and
+followed by the message body.
+
+Thrift over TChannel does not use Thrift envelopes.
+TChannel does not need or use the Thrift sequence number, since it abstracts
+multiplexing with its own transport frame identifiers.
+The function name is expressed as Service::function in TChannel's arg1.
+The message type corresponds to the TChannel frame type.
+The message body corresponds to TChannel's arg3.
+
+Since HTTP/1.1 only allows one outstanding request and response on the wire at
+any time, and HTTP/1.1 with the ill-fated "pipeline" mode allows requests and
+responses to be sent FIFO but forbids out-of-order responses, the sequence
+number is useless.
+HTTP/2.0 does support multiplexing, but does not require sequence identifiers
+in the request or response body to do so.
+Despite this folly, HTTP request handlers are obliged to use envelopes and
+match the number of a response to the number of a request, but callers are not
+obliged to choose sensible sequence numbers.
+
+By default, services dispatch on the given function name. Services that
+implement multiple Thrift services have the option of requiring the Thrift
+service name and function name in the message envelope, with an arbitrary
+delimiter, typically a single colon, e.g., "Service:function".
+Over TChannel, this corresponds to the frame's arg1 and is always
+"Service::function", the service name and function name delimited by two
+colons.
+
+The message type is an enumeration of one of 'CALL', 'ONEWAY', 'RESULT', or
+'EXCEPTION'.
+'CALL' and 'ONEWAY' are appropriate for requests, where 'ONEWAY' is for
+functions with the `oneway` Thrift IDL modifier keyword, implying they expect
+no response.
+'RESULT' is for both Thrift success and exception cases.
+For exceptions that cannot be captured by the Thrift result struct, the
+'EXCEPTION' message type implies that the body is a Thrift exception struct of
+the following shape instead of the result struct from the IDL.
+
+```thrift
+enum ExceptionType {
+  UNKNOWN = 0
+  UNKNOWN_METHOD = 1
+  INVALID_MESSAGE_TYPE = 2
+  WRONG_METHOD_NAME = 3
+  BAD_SEQUENCE_ID = 4
+  MISSING_RESULT = 5
+  INTERNAL_ERROR = 6
+  PROTOCOL_ERROR = 7
+  INVALID_TRANSFORM = 8
+  INVALID_PROTOCOL = 9
+  UNSUPPORTED_CLIENT_TYPE = 10
+}
+
+struct TApplicationException {
+  1: optional string message
+  2: optional ExceptionType type
+}
+```
+
+These cases are expressed in TChannel instead with an Error frame with the
+corresponding TChannel transport error code and an arbitrary message.
+
+The base message envelope constructor is available as the `thrift.Message`,
+that is also a copy constructor.
+Messages have the following properties:
+
+- `version` defaults to 0. Version 1 has a more elaborate message header that
+  expresses the message envelope version number and provides no additional
+  value. There may or may never be another message envelope version.
+- `type` is one of 'CALL', 'ONEWAY', 'RESULT', or 'EXCEPTION'
+- `id` is a sequence number. Really, it is any number. If you are a client, you
+  can pick. If you are a server, you must respect the client's choice and send
+  back the same id in the response message.
+- `body` is either your result object, or a `TApplicationException`.
+
+ThriftRW provides reader/writer objects for the arguments and result message
+envelopes on the function model.
+The function model is addressable as `thrift.{Service}.{function}`.
+
+- `argumentsMessageRW`
+- `resultMessageRW`
+
 ### Structs
 
 ThriftStruct models can be constructed with an optional object of specified
@@ -195,11 +304,6 @@ var result = new ResultStruct({success: {ok: true}});
 ```
 
 Each constructor has a `rw` property that reveals the reader/writer instance.
-RW objects imlement `byteLength(value)`, `readFrom(buffer, offset)`, and
-`writeInto(value, buffer, offset)`.
-The value may be any object of the requisite shape, though using the given
-constructors increases the probability V8 optimization.
-
 Each constructor also hosts `toBuffer(value)`, `fromBuffer(buffer)`,
 `toBufferResult(value)`, and `fromBufferResult(buffer)`.
 
