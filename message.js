@@ -25,7 +25,10 @@
 
 var RW = require('./rw');
 var util = require('util');
+var Struct = require('./struct').Struct;
 var errors = require('./errors');
+
+var EMPTY_OBJECT = {};
 
 var types = {
     CALL: 1,
@@ -33,9 +36,7 @@ var types = {
     EXCEPTION: 3,
     ONEWAY: 4
 };
-
 // <-> inverse
-
 var typeNames = {
     1: 'CALL',
     2: 'REPLY',
@@ -43,7 +44,53 @@ var typeNames = {
     4: 'ONEWAY'
 };
 
-var EMPTY_OBJECT = {};
+// These are elided syntax trees, to avoid IDL parsing at start time.
+
+var exceptionTypesDef = {
+    type: 'Enum',
+    id: {name: 'ThriftMessageEnvelopeExceptionType'},
+    definitions: [
+        {id: {name: 'UNKNOWN'},                 value: {value: 0}},
+        {id: {name: 'UNKNOWN_METHOD'},          value: {value: 1}},
+        {id: {name: 'INVALID_MESSAGE_TYPE'},    value: {value: 2}},
+        {id: {name: 'WRONG_METHOD_NAME'},       value: {value: 3}},
+        {id: {name: 'BAD_SEQUENCE_ID'},         value: {value: 4}},
+        {id: {name: 'MISSING_RESULT'},          value: {value: 5}},
+        {id: {name: 'INTERNAL_ERROR'},          value: {value: 6}},
+        {id: {name: 'PROTOCOL_ERROR'},          value: {value: 7}},
+        {id: {name: 'INVALID_TRANSFORM'},       value: {value: 8}},
+        {id: {name: 'INVALID_PROTOCOL'},        value: {value: 9}},
+        {id: {name: 'UNSUPPORTED_CLIENT_TYPE'}, value: {value: 10}}
+    ]
+};
+
+// AST for the implicit exception struct
+var exceptionDef = {
+    type: 'Struct',
+    id: {name: 'ThriftMessageEnvelopeException'},
+    fields: [
+        {
+            id: {value: 1},
+            name: 'message',
+            valueType: {
+                type: 'BaseType',
+                baseType: 'string'
+            },
+            optional: true,
+            required: false
+        },
+        {
+            id: {value: 2},
+            name: 'type',
+            valueType: {
+                type: 'Identifier',
+                name: 'ThriftMessageEnvelopeExceptionType'
+            },
+            optional: true,
+            required: false
+        }
+    ]
+};
 
 function Message(message) {
     message = message || EMPTY_OBJECT;
@@ -54,8 +101,9 @@ function Message(message) {
     this.version = message.version || 0; // >0 implies strict
 }
 
-function MessageRW(body) {
+function MessageRW(body, exception) {
     this.body = body;
+    this.exception = exception;
     RW.call(this);
 }
 util.inherits(MessageRW, RW);
@@ -70,6 +118,15 @@ MessageRW.prototype.poolByteLength = function poolByteLength(result, message) {
     } else { // legacy non-strict message header
         // name~4 type:1 id:4
         length += 9;
+    }
+
+    if (message.type === 'EXCEPTION') {
+        result = this.exception.poolByteLength(result, message.body);
+        if (result.err) {
+            return result;
+        }
+        length += result.length;
+        return result.reset(null, length);
     }
 
     // body
@@ -92,6 +149,10 @@ MessageRW.prototype.poolWriteInto = function poolWriteInto(result, message, buff
         return result;
     }
     offset = result.offset;
+
+    if (message.type === 'EXCEPTION') {
+        return this.exception.poolWriteInto(result, message.body, buffer, offset);
+    }
 
     // write body
     return this.body.poolWriteInto(result, message.body, buffer, offset);
@@ -171,8 +232,14 @@ MessageRW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset)
     offset = result.offset;
 
     if (message.type === 'EXCEPTION') {
-        // TODO parse body as exception struct
-        return result.reset(new Error('Thrift exception'));
+        result = this.exception.poolReadFrom(result, buffer, offset);
+        if (result.err) {
+            return result;
+        }
+        message.body = result.value;
+        // Decode the enumeration
+        offset += result.offset;
+        return result.reset(message.body, offset, message);
     }
 
     // body
@@ -262,3 +329,5 @@ module.exports.Message = Message;
 module.exports.MessageRW = MessageRW;
 module.exports.types = types;
 module.exports.typeNames = typeNames;
+module.exports.exceptionDef = exceptionDef;
+module.exports.exceptionTypesDef = exceptionTypesDef;

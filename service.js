@@ -77,17 +77,17 @@ ThriftFunction.prototype.link = function link(model) {
     // istanbul ignore next
     var type = this.oneway ? 'ONEWAY' : 'CALL';
     this.ArgumentsMessage = this.makeMessageConstructor(this.name, type);
-    this.ResultMessage = this.makeMessageConstructor(this.name, 'RESULT');
+    this.ResultMessage = this.makeMessageConstructor(this.name, 'REPLY');
 
-    this.argumentsMessageRW = new MessageRW(this.args.rw);
-    this.resultMessageRW = new MessageRW(this.result.rw);
+    this.argumentsMessageRW = new MessageRW(this.args.rw, model.exception.rw);
+    this.resultMessageRW = new MessageRW(this.result.rw, model.exception.rw);
 };
 
 ThriftFunction.prototype.makeMessageConstructor = function makeMessageConstructor(name, type) {
     function FunctionMessage(message) {
         Message.call(this, message);
-        this.name = name;
-        this.type = type;
+        this.name = message.name || name;
+        this.type = message.type || type;
     }
     return FunctionMessage;
 };
