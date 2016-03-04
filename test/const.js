@@ -24,6 +24,7 @@ var test = require('tape');
 
 var Thrift = require('..').Thrift;
 var fs = require('fs');
+var Long = require('long');
 var path = require('path');
 var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
 var thrift;
@@ -32,6 +33,25 @@ test('consts parse', function t(assert) {
     thrift = new Thrift({source: source});
     assert.equal(thrift.consts.ten, 10, 'ten constant');
     assert.equal(thrift.consts.tenForward, 10, 'forward reference');
+
+    assert.deepEqual(
+        thrift.consts.longI64,
+        Long.fromString('9223372036854775807'),
+        'i64 coerced to Long'
+    );
+
+    assert.deepEqual(
+        thrift.consts.bufferI64,
+        new Buffer([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x2a]),
+        'i64 coerced to Buffer'
+    );
+
+    assert.deepEqual(
+        thrift.consts.dateI64,
+        new Date(1457123436268),
+        'i64 coerced to Date'
+    );
+
     assert.deepEqual(thrift.consts.edges, {0: 1, 1: 2}, 'map constant');
     assert.deepEqual(thrift.consts.names, ['a', 'ab', 'abc'], 'list constant');
     assert.deepEqual(thrift.consts.tens, [10, 10, 10], 'list of identifiers');
