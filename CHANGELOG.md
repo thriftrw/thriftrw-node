@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.4.0
 
 - Implements Thrift message envelopes, including Thrift exceptions.
 - Ships with pre-compiled IDL parser module and relaxes dependency on PEGJS to
