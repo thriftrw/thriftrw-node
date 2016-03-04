@@ -1,3 +1,9 @@
+# vNEXT // FIXME
+
+- Implements Thrift message envelopes, including Thrift exceptions.
+- Ships with pre-compiled IDL parser module and relaxes dependency on PEGJS to
+  during development only.
+
 # v3.3.0
 
 ThriftRW is now in its own organization on Github!
