@@ -50,6 +50,8 @@ var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
 
 var Message = require('./message').Message;
+var messageExceptionDef = require('./message').exceptionDef;
+var messageExceptionTypesDef = require('./message').exceptionTypesDef;
 
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
@@ -123,6 +125,8 @@ function Thrift(options) {
         this.idls[this.filename] = source;
     }
 
+    this.exception = null;
+
     // Separate compile/link passes permits forward references and cyclic
     // references.
     this.compile(source);
@@ -130,7 +134,6 @@ function Thrift(options) {
     if (!options.noLink) {
         this.link();
     }
-
 }
 
 Thrift.prototype.models = 'module';
@@ -194,6 +197,8 @@ Thrift.prototype.compile = function compile(source) {
     assert.equal(syntax.type, 'Program', 'expected a program');
     this._compile(syntax.headers);
     this._compile(syntax.definitions);
+    this.compileEnum(messageExceptionTypesDef);
+    this.exception = this.compileStruct(messageExceptionDef);
 };
 
 Thrift.prototype.define = function define(name, def, model) {
@@ -326,6 +331,8 @@ Thrift.prototype.link = function link() {
     for (var index = 0; index < names.length; index++) {
         this.models[names[index]].link(this);
     }
+
+    this.exception.link(this);
 
     return this;
 };
