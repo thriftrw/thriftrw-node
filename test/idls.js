@@ -24,6 +24,7 @@ var test = require('tape');
 var fs = require('fs');
 var path = require('path');
 var Thrift = require('../thrift').Thrift;
+var IDL = require('./thrift-idl');
 
 test('can round trip a thrift file through sources', function t(assert) {
 
@@ -45,4 +46,3 @@ test('can round trip a thrift file through sources', function t(assert) {
 
     assert.end();
 });
-
