@@ -22,13 +22,18 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
+var path = require('path');
+var fs = require('fs');
+var Thrift = require('../thrift').Thrift;
 
-var ThriftList = require('../list').ThriftList;
-var ThriftString = require('../string').ThriftString;
-var ThriftI8 = require('../i8').ThriftI8;
+var thrift = new Thrift({
+    entryPoint: path.join(__dirname, 'list.thrift'),
+    fs: fs
+});
 
-var byteList = new ThriftList(new ThriftI8());
-var stringList = new ThriftList(new ThriftString());
+var byteList = thrift.models.ListOfI8;
+var stringList = thrift.models.ListOfString;
+var listList = thrift.models.ListOfListOfStruct;
 
 test('ThriftList.rw: list of bytes', testRW.cases(byteList.rw, [
 
@@ -93,5 +98,31 @@ test('ThriftList.rw: list of strings', testRW.cases(stringList.rw, [
         0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
         0x61, 0x62, 0x63         // chars     -- "abc"
     ]]
+
+]));
+
+test('ThriftList.rw: list of list of structs', testRW.cases(thrift.Service.function.result.rw, [
+
+    [
+        new thrift.Service.function.Result({success: [[], [], [], [], []]}),
+        [
+                         //       | STRUCT
+            15,          // 0     | success: LIST
+            0, 0,        // 1-2   | field id 0 success
+            15,          // 3     | element type LIST
+            0, 0, 0, 5,  // 3-6   | length 5
+            12,          // 8     | 0: element type STRUCT
+            0, 0, 0, 0,  // 9-12  | length: 0
+            12,          // 13    | 1: element type STRUCT
+            0, 0, 0, 0,  // 14-17 | length: 0
+            12,          // .     | 2: element type STRUCT
+            0, 0, 0, 0,  // .     | length: 0
+            12,          // .     | 3: element type STRUCT
+            0, 0, 0, 0,  //       | length: 0
+            12,          //       | 4: element type STRUCT
+            0, 0, 0, 0,  //       | length: 0
+            0            //       | STOP
+        ]
+    ]
 
 ]));
