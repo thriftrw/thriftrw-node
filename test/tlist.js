@@ -52,6 +52,27 @@ test('TListRW', testRW.cases(TListRW, [
         0x00                    // el[2] type:1       -- stop
     ]],
 
+    [TList(15, [
+        TList(12, []),
+        TList(12, []),
+        TList(12, []),
+        TList(12, []),
+        TList(12, [])
+    ]), [
+        0x0f,                   // 3     | el_type:1       -- list
+        0x00, 0x00, 0x00, 0x05, // 3-6   | length:4        -- 5
+        0x0c,                   // 8     | el[0] el_type:1 -- STRUCT
+        0x00, 0x00, 0x00, 0x00, // 9-12  | el[0] length:4  -- 0
+        0x0c,                   // 13    | el[1] el_type:1 -- STRUCT
+        0x00, 0x00, 0x00, 0x00, // 14-17 | el[1] length:4  -- 0
+        0x0c,                   // .     | el[2] el_type:1 -- STRUCT
+        0x00, 0x00, 0x00, 0x00, // .     | el[2] length:4  -- 0
+        0x0c,                   // .     | el[3] el_type:1 -- STRUCT
+        0x00, 0x00, 0x00, 0x00, //       | el[3] length:4  -- 0
+        0x0c,                   //       | el[4] el_type:1 -- STRUCT
+        0x00, 0x00, 0x00, 0x00, //       | el[4] length:4  -- 0
+    ]],
+
     {
         readTest: {
             bytes: [
