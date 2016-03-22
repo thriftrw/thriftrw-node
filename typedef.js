@@ -24,6 +24,7 @@ function ThriftTypedef() {
     this.name = null;
     this.valueDefinition = null;
     this.to = null;
+    this.rw = null;
 }
 
 ThriftTypedef.prototype.models = 'type';
@@ -37,6 +38,7 @@ ThriftTypedef.prototype.link = function link(model) {
     if (!this.to) {
         this.to = model.resolve(this.valueDefinition);
     }
+    this.rw = this.to.rw;
     model.typedefs[this.name] = this.to.surface;
     return this.to;
 };
