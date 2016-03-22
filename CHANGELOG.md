@@ -1,3 +1,9 @@
+# vNEXT // FIXME
+
+# v3.4.1
+
+- Fix list of lists regression introduced in v3.2.0.
+
 # v3.4.0
 
 - Implements Thrift message envelopes, including Thrift exceptions.
