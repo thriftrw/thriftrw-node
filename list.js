@@ -106,10 +106,6 @@ ListRW.prototype.poolWriteInto = function poolWriteInto(destResult, list, buffer
 ListRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
     var valueType = this.valueType;
 
-    // The following ensures that bufrw does *not* reuse the prior result
-    // value, which previously made this function non-reentrant.
-    destResult.value = [0, 0];
-
     var t = this.headerRW.poolReadFrom(destResult, buffer, offset);
     // istanbul ignore if
     if (t.err) {
