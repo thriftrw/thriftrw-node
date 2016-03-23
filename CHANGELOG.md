@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.4.2
 
 - Upgrade version of bufrw for a more rigorous fix for the regression
   introduced for lists of lists.
