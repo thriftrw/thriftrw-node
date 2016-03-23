@@ -1,5 +1,10 @@
 # vNEXT // FIXME
 
+- Upgrade version of bufrw for a more rigorous fix for the regression
+  introduced for lists of lists.
+  The fix in bufrw should cover this and possibly other cases, and
+  allows us to remove the work-around introduced in v3.4.1
+
 # v3.4.1
 
 - Fix list of lists regression introduced in v3.2.0.
