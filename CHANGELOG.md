@@ -1,3 +1,9 @@
+# vNEXT // FIXME
+
+- Fixed support for maps with i8, i16, and i32 key types.
+  i64 is not yet supported.
+  string is the only other key type expressly supported.
+
 # v3.4.2
 
 - Upgrade version of bufrw for a more rigorous fix for the regression
