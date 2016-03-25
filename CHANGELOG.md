@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.4.3
 
 - Fixed support for maps with i8, i16, and i32 key types.
   i64 is not yet supported.
