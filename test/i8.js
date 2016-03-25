@@ -36,7 +36,30 @@ var Buffer = require('buffer').Buffer;
 
 var validTestCases = [
     [0x00, [0x00]], // min: 0
-    [0x7f, [0x7f]]  // max: 127
+    [0x7f, [0x7f]],  // max: 127
+    {
+        writeTest: {
+            value: '1',
+            bytes: [0x01]
+        }
+    },
+    {
+        writeTest: {
+            value: '0',
+            bytes: [0x00]
+        }
+    },
+    {
+        writeTest: {
+            value: 0xff,
+            bytes: [0xff],
+            error: {
+                message: 'value 255 out of range, min: -128 max: 127',
+                name: 'BufrwRangeErrorError',
+                type: 'bufrw.range-error'
+            }
+        }
+    },
 ];
 
 var invalidArgumentTestCases = [
@@ -83,8 +106,8 @@ var testCases = [].concat(
     outOfRangeTestCases
 );
 
-test('I8RW', testRW.cases(I8RW, testCases));
-test('ThriftI8', testThrift(ThriftI8, I8RW, TYPE.BYTE));
+test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
+test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
 
 test('Thrift i8 IDL', function t(assert) {
     var thrift = new Thrift({
@@ -92,6 +115,6 @@ test('Thrift i8 IDL', function t(assert) {
         allowFilesystemAccess: true
     });
     assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
-    assert.equal(thrift.models.piecesOf8.to.rw, I8RW, 'should refer to I8 rw');
+    assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
     assert.end();
 });

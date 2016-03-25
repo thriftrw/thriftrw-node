@@ -26,21 +26,15 @@ var path = require('path');
 var fs = require('fs');
 var ThriftMap = require('../map').ThriftMap;
 var Thrift = require('../thrift').Thrift;
-var thrift;
 
-var ThriftString = require('../string').ThriftString;
-var ThriftI16 = require('../i16').ThriftI16;
+var filename = path.join(__dirname, 'map.thrift');
+var source = fs.readFileSync(filename, 'ascii');
+var thrift = new Thrift({source: source});
 
-test('thrift parses', function t(assert) {
-    var filename = path.join(__dirname, 'map.thrift');
-    var source = fs.readFileSync(filename, 'ascii');
-    thrift = new Thrift({source: source});
-    thrift.getType('Graph');
-    assert.pass('thrift parses');
-    assert.end();
-});
+var strI16Map = thrift.models.Graph.fieldsByName.stringsToI16s.valueType;
+var strI16MapEntries = thrift.models.Graph.fieldsByName.stringsToI16Entries.valueType;
+var i16I16Map = thrift.models.Graph.fieldsByName.i16sToI16s;
 
-var strI16Map = new ThriftMap(new ThriftString(), new ThriftI16(), {});
 test('ThriftMap: strI16MapRW', testRW.cases(strI16Map.rw, [
     [{}, [
         0x0b,                  // key_type:1 -- 11, string
@@ -104,8 +98,6 @@ test('ThriftMap: strI16MapRW', testRW.cases(strI16Map.rw, [
 
 ]));
 
-var strI16MapEntries = new ThriftMap(new ThriftString(), new ThriftI16(),
-    {'js.type': 'entries'});
 test('ThriftMap: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
     [[], [
         0x0b,                  // key_type:1 -- 11, string
@@ -167,6 +159,36 @@ test('ThriftMap: strI16MapRW', testRW.cases(strI16MapEntries.rw, [
         }
     }
 
+]));
+
+test('map<i8, i8>', testRW.cases(thrift.models.MapI8I8.rw, [
+    [{2: 3}, [
+        0x03,                   // key_type:1 -- 3, i8
+        0x03,                   // val_type:1 -- 3, i8
+        0x00, 0x00, 0x00, 0x01, // length:4   -- 1
+        0x02,                   // [0] key -- 2
+        0x03                    // [1] value -- 3
+    ]]
+]));
+
+test('map<i16, i16>', testRW.cases(thrift.models.MapI16I16.rw, [
+    [{2: 3}, [
+        0x06,                   // key_type:1 -- 6, i16
+        0x06,                   // val_type:1 -- 6, i16
+        0x00, 0x00, 0x00, 0x01, // length:4   -- 1
+        0x00, 0x02,             // [0] key -- 2
+        0x00, 0x03              // [1] value -- 3
+    ]]
+]));
+
+test('map<i32, i32>', testRW.cases(thrift.models.MapI32I32.rw, [
+    [{2: 3}, [
+        0x08,                   // key_type:1 -- 8, i32
+        0x08,                   // val_type:1 -- 8, i32
+        0x00, 0x00, 0x00, 0x01, // length:4   -- 1
+        0x00, 0x00, 0x00, 0x02, // [0] key -- 2
+        0x00, 0x00, 0x00, 0x03  // [1] value -- 3
+    ]]
 ]));
 
 test('invalid map type annotation', function t(assert) {

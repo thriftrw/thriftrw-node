@@ -30,16 +30,59 @@ var ThriftI32 = thriftrw.ThriftI32;
 var TYPE = require('../TYPE');
 
 /*eslint-disable space-in-brackets*/
-var validTestCases = [
+var testCases = [
     [-0x12345678, [0xed, 0xcb, 0xa9, 0x88]],
     [ 0x00000000, [0x00, 0x00, 0x00, 0x00]],
-    [ 0x12345678, [0x12, 0x34, 0x56, 0x78]]
+    [ 0x12345678, [0x12, 0x34, 0x56, 0x78]],
+
+    {
+        writeTest: {
+            value: '10',
+            bytes: [0x00, 0x00, 0x00, 0x0a]
+        }
+    },
+    {
+        writeTest: {
+            value: '+255',
+            bytes: [0x00, 0x00, 0x00, 0xff]
+        }
+    },
+
+    {
+        readTest: {
+            bytes: [],
+            error: {
+                // message: 'short read, 4 bytes needed after consuming 0'
+                // TODO validate message (currently incorrect)
+                name: 'BufrwShortReadError',
+                type: 'bufrw.short-read'
+            }
+        }
+    },
+
+    {
+        writeTest: {
+            value: 0xffffffff,
+            bytes: [0xff, 0xff, 0xff, 0xff],
+            error: {
+                message: 'value 4294967295 out of range, min: -2147483648 max: 2147483647',
+                name: 'BufrwRangeErrorError',
+                type: 'bufrw.range-error'
+            }
+        }
+    },
+    {
+        writeTest: {
+            value: 'hello',
+            error: {
+                type: 'bufrw.invalid-argument',
+                name: 'BufrwInvalidArgumentError',
+                message: 'invalid argument, expected a number'
+            }
+        }
+    }
 ];
 /*eslint-enable space-in-brackets*/
 
-var testCases = [].concat(
-    validTestCases
-);
-
-test('I32RW', testRW.cases(I32RW, testCases));
-test('ThriftI32', thriftTest(ThriftI32, I32RW, TYPE.I32));
+test('I32RW', testRW.cases(new I32RW(), testCases));
+test('ThriftI32', thriftTest(ThriftI32, ThriftI32.prototype.rw, TYPE.I32));
