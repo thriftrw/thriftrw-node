@@ -21,13 +21,59 @@
 'use strict';
 
 var bufrw = require('bufrw');
+var ebufrw = require('bufrw/errors');
+var util = require('util');
 var TYPE = require('./TYPE');
+var errors = require('./errors');
 
-var I32RW = bufrw.Int32BE;
+function I32RW() {
+}
 
-function ThriftI32() { }
+util.inherits(I32RW, bufrw.Base);
 
-ThriftI32.prototype.rw = I32RW;
+I32RW.prototype.name = 'i32';
+I32RW.prototype.width = 4;
+I32RW.prototype.min = -0x7fffffff - 1;
+I32RW.prototype.max = 0x7fffffff;
+
+I32RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
+    var value = buffer.readInt32BE(offset, true);
+    return result.reset(null, offset + this.width, value);
+};
+
+I32RW.prototype.poolWriteInto = function poolWriteInto(result, value, buffer, offset) {
+    var coerced = +value;
+    if ((typeof value !== 'string' && typeof value !== 'number') || !isFinite(coerced)) {
+        return result.reset(new ebufrw.InvalidArgument({
+            expected: 'a number'
+        }));
+    }
+
+    var remain = buffer.length - offset;
+    // istanbul ignore if
+    if (remain < this.width) {
+        return bufrw.WriteResult.poolShortError(result, this.width, remain, offset);
+    }
+
+    if (value < this.min || value > this.max) {
+        return result.reset(new ebufrw.RangeError({
+            value: coerced,
+            min: this.min,
+            max: this.max
+        }));
+    }
+
+    buffer.writeInt32BE(coerced, offset, true);
+    return result.reset(null, offset + this.width);
+};
+
+I32RW.prototype.poolByteLength = function poolByteLength(result, value) {
+    return result.reset(null, this.width);
+};
+
+function ThriftI32() {}
+
+ThriftI32.prototype.rw = new I32RW();
 ThriftI32.prototype.name = 'i32';
 ThriftI32.prototype.typeid = TYPE.I32;
 ThriftI32.prototype.surface = Number;
