@@ -34,7 +34,7 @@
     "pegjs": "^0.8.0",
     "pre-commit": "0.0.9",
     "tape": "^2.0.0",
-    "uber-licence": "^1.2.0"
+    "uber-licence": "^2.0.0"
   },
   "licenses": [
     {
