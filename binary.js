@@ -26,7 +26,9 @@ var TYPE = require('./TYPE');
 
 var BinaryRW = new bufrw.VariableBuffer(bufrw.Int32BE);
 
-function ThriftBinary() { }
+function ThriftBinary(annotations) {
+    this.annotations = annotations;
+}
 
 ThriftBinary.prototype.rw = BinaryRW;
 ThriftBinary.prototype.name = 'binary';

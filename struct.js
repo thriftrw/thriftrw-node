@@ -47,12 +47,12 @@ function ThriftField(def, struct) {
     this.name = def.name;
     this.required = def.required;
     this.optional = def.optional;
-    this.annotations = def.annotations;
     this.valueDefinition = def.valueType;
     this.valueType = null;
     this.defaultValueDefinition = def.defaultValue;
     this.defaultValue = null;
     this.constructDefaultValue = null;
+    this.annotations = def.annotations;
 }
 
 ThriftField.prototype.link = function link(model) {
@@ -83,6 +83,7 @@ function ThriftStruct(options) {
     this.rw = new this.RW(this);
     this.thrift = null;
     this.linked = false;
+    this.annotations = null;
 }
 
 ThriftStruct.prototype.name = 'struct';
@@ -129,6 +130,7 @@ ThriftStruct.prototype.compile = function compile(def, thrift) {
         this.fieldNames[index] = field.name;
         this.fields.push(field);
     }
+    this.annotations = def.annotations;
 };
 
 ThriftStruct.prototype.link = function link(model) {

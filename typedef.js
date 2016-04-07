@@ -25,6 +25,7 @@ function ThriftTypedef() {
     this.valueDefinition = null;
     this.to = null;
     this.rw = null;
+    this.annotations = null;
 }
 
 ThriftTypedef.prototype.models = 'type';
@@ -32,6 +33,7 @@ ThriftTypedef.prototype.models = 'type';
 ThriftTypedef.prototype.compile = function compile(def, model) {
     this.name = def.id.name;
     this.valueDefinition = def.valueType;
+    this.annotations = def.annotations;
 };
 
 ThriftTypedef.prototype.link = function link(model) {
