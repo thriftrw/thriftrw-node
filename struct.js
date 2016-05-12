@@ -81,6 +81,7 @@ function ThriftStruct(options) {
     this.Constructor = null;
     this.surface = null;
     this.rw = new this.RW(this);
+    this.thrift = null;
     this.linked = false;
 }
 
@@ -106,13 +107,14 @@ ThriftStruct.prototype.fromBufferResult = function fromBufferResult(buffer) {
     return bufrw.fromBufferResult(this.rw, buffer);
 };
 
-ThriftStruct.prototype.compile = function compile(def) {
+ThriftStruct.prototype.compile = function compile(def, thrift) {
     // Struct names must be valid JavaScript. If the Thrift name is not valid
     // in JavaScript, it can be overridden with the js.name annotation.
     this.name = def.annotations && def.annotations['js.name'] || def.id.name;
     this.fullName = def.id.as || this.name;
     this.isArgument = def.isArgument || false;
     this.isResult = def.isResult || false;
+    this.thrift = thrift;
     var fields = def.fields;
     for (var index = 0; index < fields.length; index++) {
         var fieldDef = fields[index];
@@ -142,6 +144,33 @@ ThriftStruct.prototype.link = function link(model) {
         var field = this.fields[index];
         field.linkValue(model);
 
+        // Evidently with Apache Thrift, arguments are always optional,
+        // regardless of how they are marked.
+        // They are optional in Go by virtue of defaulting to the zero value
+        // for their type, and it is not possible to distinguish a missing
+        // field from the zero value.
+        if (this.isArgument) {
+            if (this.thrift.allowOptionalArguments) {
+                // Once this flag is enabled, all ThriftRW language
+                // implementations agree that fields are optional unless marked
+                // required.  If they are marked required, that contract is
+                // respected for both inbound and outbound messages.
+                if (!field.required && !field.optional && field.defaultValue === undefined) {
+                    field.optional = true;
+                }
+            } else if (field.optional) {
+                // Until version 3.4.3, when we introduced the
+                // allowOptionalArguments opt-in, all arguments were always
+                // required.  RPC handlers were written to depend on all
+                // argument fields being implicitly required.
+                assert.ok(false, 'no field of an argument struct may be marked ' +
+                    'optional including ' + field.name + ' of ' + this.name + '; ' +
+                    'consider new Thrift({allowOptionalArguments: true}).');
+            } else {
+                field.required = true;
+            }
+        }
+
         // Validate field
         if (this.strict) {
             assert(
@@ -152,12 +181,6 @@ ThriftStruct.prototype.link = function link(model) {
                     this.name + ' including "' + field.name + '" in strict mode'
             );
         }
-        if (this.isArgument && field.optional) {
-            assert.ok(false, 'no field of an argument struct may be marked ' +
-                'optional including ' + field.name + ' of ' + this.name);
-        }
-        field.required = field.required || this.isArgument;
-
     }
 
     this.Constructor = this.createConstructor(this.name, this.fields);

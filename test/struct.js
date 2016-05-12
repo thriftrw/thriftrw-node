@@ -24,6 +24,7 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
+var Thrift = require('../thrift').Thrift;
 var ThriftStruct = require('../struct').ThriftStruct;
 var ThriftBoolean = require('../boolean').ThriftBoolean;
 
@@ -55,7 +56,7 @@ thriftHealth.compile({
             required: true
         }
     ]
-});
+}, {});
 
 thriftHealth.link(thriftMock);
 
@@ -370,13 +371,59 @@ test('arguments must not be marked optional', function t(assert) {
                     optional: true
                 }
             ]
-        });
+        }, {});
         argStruct.link(thriftMock);
         assert.fail('should fail to write');
     } catch (err) {
         assert.equal(err.message, 'no field of an argument struct may be ' +
-            'marked optional including name of foo_args');
+            'marked optional including name of foo_args; ' +
+            'consider new Thrift({allowOptionalArguments: true}).');
     }
+    assert.end();
+});
+
+test('arguments may now be marked optional', function t(assert) {
+    var argStruct = new ThriftStruct({strict: false});
+    argStruct.compile({
+        id: {name: 'foo_args'},
+        isArgument: true,
+        fields: [
+            {
+                id: {value: 1},
+                name: 'name',
+                valueType: {
+                    type: 'BaseType',
+                    baseType: 'i64'
+                },
+                required: false,
+                optional: true
+            }
+        ]
+    }, {allowOptionalArguments: true});
+    argStruct.link(thriftMock);
+    assert.end();
+});
+
+test('arguments are now optional by default', function t(assert) {
+    var argStruct = new ThriftStruct({strict: false});
+    argStruct.compile({
+        id: {name: 'foo_args'},
+        isArgument: true,
+        fields: [
+            {
+                id: {value: 1},
+                name: 'name',
+                valueType: {
+                    type: 'BaseType',
+                    baseType: 'i64'
+                },
+                required: false,
+                optional: false
+            }
+        ]
+    }, {allowOptionalArguments: true});
+    argStruct.link(thriftMock);
+    assert.ok(argStruct.fieldsByName.name.optional, 'argument field defaults to optional');
     assert.end();
 });
 
@@ -396,7 +443,7 @@ test('skips optional elided arguments', function t(assert) {
                 required: false
             }
         ]
-    });
+    }, {});
     thrift.link(thriftMock);
     var health = new thrift.Constructor();
 
@@ -429,7 +476,7 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
                 required: false
             }
         ]
-    });
+    }, {});
     thrift.link(thriftMock);
 
     var byteLengthRes = thrift.rw.byteLength(null);
@@ -462,7 +509,7 @@ test('enforces ordinal identifiers', function t(assert) {
                     required: false
                 }
             ]
-        });
+        }, {});
         assert.fail('should throw');
     } catch (err) {
         assert.equal(err.message, 'field identifier must be greater than 0 for "ok" on "Health" at 1:4');
