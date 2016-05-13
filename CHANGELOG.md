@@ -1,3 +1,14 @@
+# vNEXT // FIXME
+
+- Introduced an `allowOptionalArguments` flag that opts-in to
+  the same semantics used by other ThriftRW libraries.
+  That is, arguments are optional by default.
+  Enabling this flag is backward-incompatible.
+  Consult the README for details.
+- A note regarding default values
+- Add flag to allow optional arguments
+- (c) 2016
+
 # v3.4.3
 
 - Fixed support for maps with i8, i16, and i32 key types.
