@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.5.0
 
 - Introduced an `allowOptionalArguments` flag that opts-in to
   the same semantics used by other ThriftRW libraries.
