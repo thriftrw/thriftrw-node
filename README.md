@@ -183,6 +183,26 @@ add run-time checks for null arguments since changing a field from optional to
 required would be backward incompatible.
 
 
+### Regarding Default Values
+
+Default values are inferred when reading a struct with a missing field,
+typically by inbound request handlers in servers.
+
+If a client uses the provided constructor for the struct, the constructor will
+populate the default value as well, so in that sense clients also infer the
+default value.
+
+However, callers are not obliged to use the constructor for the struct. In that
+case, if the value is missing, ThriftRW does not write it to the wire and
+instead depends on the server to infer the default.
+
+ThriftRW libraries would be within their rights to detect that a given value matches
+the default and leave it off the byte buffer when writing.
+ThriftRW does not yet attempt this because there is no demonstrated need, it
+could be slow for compound objects, and it could lead to strange behavior if
+the client and server disagree about the default.
+
+
 ### Without Thrift IDL
 
 ThriftRW provides `T` prefixed types for encoding and decoding the wire
