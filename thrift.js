@@ -109,6 +109,7 @@ function Thrift(options) {
 
     this.linked = false;
     this.allowIncludeAlias = options.allowIncludeAlias || false;
+    this.allowOptionalArguments = options.allowOptionalArguments || false;
 
     this.filename = options.entryPoint;
     this.dirname = path.dirname(this.filename);
@@ -258,6 +259,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 memo: this.memo,
                 strict: this.strict,
                 allowIncludeAlias: true,
+                allowOptionalArguments: this.allowOptionalArguments,
                 noLink: true
             });
         }

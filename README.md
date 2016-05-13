@@ -49,7 +49,11 @@ var fs = require('fs');
 var path = require('path');
 var Thrift = require('thriftrw').Thrift;
 var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'ascii');
-var thrift = new Thrift({source: source, strict: true});
+var thrift = new Thrift({
+    source: source,
+    strict: true,
+    allowOptionalArguments: true
+});
 ```
 
 Consider `meta.thrift`
@@ -111,6 +115,72 @@ application author to take arguments and call back with a result when using
 the Thrift argument scheme and a given Thrift IDL.
 
 [TChannelAsThrift]: https://github.com/uber/tchannel-node/blob/master/as/thrift.js
+
+
+### Regarding Fields of Argument Structs
+
+To avoid hazards, every Thrift method should accept a single required argument,
+numbered 1.
+
+```thrift
+service Service {
+    void method(1: required MethodArgument arg)
+}
+
+struct MethodArgument {
+    // ...
+}
+```
+
+Protobuf gets arguments right.
+A method receives a single, required message struct.
+This has very clear semantics in every language.
+
+Thrift methods receive an arguments struct.
+This struct is special and treated uniquely in each language.
+Unlike other structs, the field numbers must be consecutive and map to
+positional arguments in some languages including Go and JavaScript.
+The argument struct may not even be a named struct.
+
+With the code generated for various languages by Apache Thrift, fields of an
+argument struct are always optional.
+The code generator will warn you that marking a field as optional is
+redundant.
+If you mark an argument as required, that mark will be silently ignored.
+
+Each language has its own treatment on how to deal with a missing, optional
+field.
+In Go, a missing value will be represented as the zero value for its type,
+effectively having an implicit default value.
+There is no way to distinguish missing from the zero value.
+In other languages, it's necessary to check for a missing value (null or None)
+to avoid exceptions.
+
+The initial version of ThriftRW Node sought to avoid this problem by making
+all argument fields required, with no recourse for making them optional.
+In this world, it is not possible to add an argument to an existing method.
+It is necessary to create a new method.
+This would be acceptable, except that none of the other ThriftRW
+implementations were on board with enforcing this.
+
+Consequently, the ThriftRW-node Thrift model constructor accepts an option,
+`allowOptionalArguments`, which brings Node.js into alignment with ThriftRW for
+Python and Go.
+All arguments are optional by default, but can be marked required.
+This flag is recommended for all future work.
+
+To enable this flag, it is necessary to review all existing methods.
+For methods that were only previously implemented in Node.js, it is sufficient
+to mark the arguments as required.
+This is backward compatible only because they were previously implicitly
+required.
+ThriftRW will continue denying requests with the missing arguments.
+You can then add additional, optional arguments to existing methods, with logic
+branching on whether the arguments are provided.
+
+For methods that were handled in other languages as well, it is necessary to
+add run-time checks for null arguments since changing a field from optional to
+required would be backward incompatible.
 
 
 ### Without Thrift IDL
