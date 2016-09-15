@@ -3,6 +3,7 @@ instrumentation:
     excludes:
         - benchmarks/**
         - thrift-idl.js
+        - thrift2json.js
 check:
     global:
         statements: 100

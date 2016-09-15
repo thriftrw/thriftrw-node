@@ -42,6 +42,9 @@
       "url": "http://github.com/thriftrw/thriftrw-node/raw/master/LICENSE"
     }
   ],
+  "bin": {
+      "thrift2json": "./thrift2json.js"
+  },
   "scripts": {
     "add-licence": "uber-licence",
     "build-parser": "pegjs --allowed-start-rules Program --cache thrift-idl.pegjs && uber-licence --file thrift-idl.js > /dev/null",

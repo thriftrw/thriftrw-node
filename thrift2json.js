@@ -1,4 +1,6 @@
-// Copyright (c) 2016 Uber Technologies, Inc.
+#!/usr/bin/env node
+
+// Copyright (c) 2015 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,40 +22,23 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
+var Thrift = require('./thrift').Thrift;
+var fs = require('fs');
+var path = require('path');
+
+function main() {
+    try {
+        var thrift = new Thrift({
+            entryPoint: path.resolve(process.argv[2]),
+            allowFilesystemAccess: true
+        });
+        console.log(JSON.stringify(thrift.toJSON()));
+    } catch (error) {
+        console.log(error);
+        process.exit(-1);
+    }
+}
+
+if (require.main === module) {
+    main();
+}

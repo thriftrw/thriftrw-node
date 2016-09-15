@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint max-statements:[1, 40] */
+/* eslint max-statements:[1, 42] */
 'use strict';
 
 var assert = require('assert');
@@ -69,6 +69,8 @@ function Thrift(options) {
 
     // filename to source
     this.idls = options.idls || Object.create(null);
+    // filename to ast
+    this.asts = options.asts || Object.create(null);
     // filename to Thrift instance
     this.memo = options.memo || Object.create(null);
 
@@ -115,10 +117,11 @@ function Thrift(options) {
     this.dirname = path.dirname(this.filename);
     this.memo[this.filename] = this;
 
+    var ast = this.asts[options.entryPoint];
     var source = this.idls[options.entryPoint];
-    if (!source) {
+    if (!source && !ast) {
         /* eslint-disable max-len */
-        assert.ok(this.fs, this.filename + ': Thrift must be constructed with either a complete set of options.idls or options.fs access');
+        assert.ok(this.fs, this.filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
         assert.ok(this.filename, 'Thrift must be constructed with a options.entryPoint');
         /* eslint-enable max-len */
         this.filename = path.resolve(this.filename);
@@ -165,6 +168,18 @@ Thrift.prototype.getSources = function getSources() {
     return {entryPoint: entryPoint, idls: idls};
 };
 
+Thrift.prototype.toJSON = function toJSON() {
+    var filenames = Object.keys(this.idls);
+    var common = lcp.longestCommonPath(filenames);
+    var asts = {};
+    for (var index = 0; index < filenames.length; index++) {
+        var filename = filenames[index];
+        asts[filename.slice(common.length)] = this.asts[filename];
+    }
+    var entryPoint = this.filename.slice(common.length);
+    return {entryPoint: entryPoint, asts: asts};
+};
+
 Thrift.prototype.getServiceEndpoints = function getServiceEndpoints(target) {
     target = target || null;
     var services = Object.keys(this.services);
@@ -194,7 +209,11 @@ Thrift.prototype.baseTypes = {
 };
 
 Thrift.prototype.compile = function compile(source) {
-    var syntax = idl.parse(source);
+    var syntax = this.asts[this.filename];
+    if (!syntax) {
+        syntax = idl.parse(source);
+        this.asts[this.filename] = syntax;
+    }
     assert.equal(syntax.type, 'Program', 'expected a program');
     this._compile(syntax.headers);
     this._compile(syntax.definitions);
@@ -256,6 +275,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 entryPoint: filename,
                 fs: this.fs,
                 idls: this.idls,
+                asts: this.asts,
                 memo: this.memo,
                 strict: this.strict,
                 allowIncludeAlias: true,
