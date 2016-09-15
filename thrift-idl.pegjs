@@ -20,23 +20,23 @@ Header
   / 'smalltalk_prefix' Identifier
   / 'java_package' Identifier
   / 'cocoa_package' Identifier
-  / 'xsd_namespace' Literal
+  / 'xsd_namespace' String
   / 'csharp_namespace' Identifier
 
 Include
-  = IncludeToken namespace:Identifier? __ id:Literal {
+  = IncludeToken namespace:Identifier? __ id:String {
     return new ast.Include(id, namespace, line(), column());
   }
 
 CppInclude
-  = CppIncludeToken Literal 
+  = CppIncludeToken String
 
 Namespace
   = NamespaceToken scope:NamespaceScope __ id:Identifier { return new ast.Namespace(id, scope); }
   / NamespaceToken 'smalltalk.category' __ STIdentifier
   / NamespaceToken 'smalltalk.prefix' __ Identifier
-  / 'php_namespace' __ Literal
-  / 'xsd_namespace' __ Literal
+  / 'php_namespace' __ String
+  / 'xsd_namespace' __ String
   / NamespaceToken scope:'*' __ Identifier { return; }
   / NamespaceToken scope:Identifier id:Identifier { return; }
 
@@ -99,7 +99,7 @@ Senum
   }
 
 SenumDefinition
-  = s:Literal ListSeparator? { return s; }
+  = s:String ListSeparator? { return s; }
 
 Const
   = ConstToken ft:FieldType id:Identifier '=' __ cv:ConstValue ListSeparator? __ {
@@ -261,7 +261,7 @@ ListType
   }
 
 cppType
-  = 'cpp_type' __ i:Literal
+  = 'cpp_type' __ i:String
 
 TypeAnnotations
   = '(' __ entries:TypeAnnotation* __ ')' __ {
@@ -273,7 +273,7 @@ TypeAnnotations
   }
 
 TypeAnnotation
-  = name:IdentifierName v:('=' __ l:Literal { return l })? ListSeparator? {
+  = name:IdentifierName v:('=' __ l:String { return l })? ListSeparator? {
     return new ast.TypeAnnotation(name, v);
   }
 
@@ -335,10 +335,6 @@ STIdentifierName
   = !container_type_tokens word /* ('a'..'z' | 'A'..'Z' | '-')
     ('.' | 'a'..'z' | 'A'..'Z' | '_' | '0'..'9' | '-')* */
 
-Literal
-  = '"' l:[^"]* '"' __ { return l.join('') }
-  / "'" l:[^']* "'" __ { return l.join('') }
-
 // Mandatory whitespace
 __
   = (WhiteSpace / LineTerminatorSequence / Comment)*
@@ -396,11 +392,16 @@ UnixComment
   }
 
 StringLiteral 'string'
-  = '"' chars:DoubleStringCharacter* '"' {
-      return new ast.Literal(chars.join(''));
+    = str:String {
+        return new ast.Literal(str)
     }
-  / "'" chars:SingleStringCharacter* "'" {
-      return new ast.Literal(chars.join(''));
+
+String 'string'
+  = '"' chars:DoubleStringCharacter* '"' __ {
+      return chars.join('');
+    }
+  / "'" chars:SingleStringCharacter* "'" __ {
+      return chars.join('');
     }
 
 DoubleStringCharacter
