@@ -1,3 +1,8 @@
+# v3.6.0
+
+- Support caching IDL AST as JSON.
+- Fixes escapes in IDL strings.
+
 # v3.5.0
 
 - Introduced an `allowOptionalArguments` flag that opts-in to

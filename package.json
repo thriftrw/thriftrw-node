@@ -43,7 +43,7 @@
     }
   ],
   "bin": {
-      "thrift2json": "./thrift2json.js"
+    "thrift2json": "./thrift2json.js"
   },
   "scripts": {
     "add-licence": "uber-licence",
