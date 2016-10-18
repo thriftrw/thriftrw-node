@@ -1,3 +1,7 @@
+# vNEXT // FIXME
+
+- Thread annotations for individual enum definitions
+
 # v3.7.0
 
 - Annotations are exposed on all type models and nodes of the syntax tree.
