@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.7.0
 
 - Annotations are exposed on all type models and nodes of the syntax tree.
   (#135)
