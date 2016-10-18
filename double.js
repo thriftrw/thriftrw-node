@@ -25,7 +25,9 @@ var TYPE = require('./TYPE');
 
 var DoubleRW = bufrw.DoubleBE;
 
-function ThriftDouble() { }
+function ThriftDouble(annotations) {
+    this.annotations = annotations;
+}
 
 ThriftDouble.prototype.rw = DoubleRW;
 ThriftDouble.prototype.name = 'double';

@@ -71,7 +71,9 @@ I16RW.prototype.poolByteLength = function poolByteLength(result, value) {
     return result.reset(null, this.width);
 };
 
-function ThriftI16() { }
+function ThriftI16(annotations) {
+    this.annotations = annotations;
+}
 
 ThriftI16.prototype.rw = new I16RW();
 ThriftI16.prototype.name = 'i16';

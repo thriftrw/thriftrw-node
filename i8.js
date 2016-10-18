@@ -71,7 +71,9 @@ I8RW.prototype.poolByteLength = function poolByteLength(result, value) {
 };
 
 
-function ThriftI8() { }
+function ThriftI8(annotations) {
+    this.annotations = annotations;
+}
 
 ThriftI8.prototype.rw = new I8RW();
 ThriftI8.prototype.name = 'i8';

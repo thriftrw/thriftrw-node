@@ -184,6 +184,7 @@ function ThriftI64(annotations) {
         this.rw = i64BufferRW;
         this.surface = Buffer;
     }
+    this.annotations = annotations;
 }
 
 ThriftI64.prototype.name = 'i64';

@@ -62,8 +62,8 @@ ThriftFunction.prototype.compile = function process(def, model) {
     resultStruct.isResult = true;
     this.result = model.compileStruct(resultStruct);
 
-    this.annotations = def.annotations;
     this.oneway = def.oneway;
+    this.annotations = def.annotations;
 };
 
 ThriftFunction.prototype.link = function link(model) {
@@ -100,6 +100,7 @@ function ThriftService(args) {
     this.strict = args.strict;
     this.baseService = null;
     this.linked = false;
+    this.annotations = null;
 }
 
 ThriftService.prototype.models = 'service';
@@ -110,6 +111,7 @@ ThriftService.prototype.compile = function process(def, model) {
         this.compileFunction(def.functions[index], model);
     }
     this.baseService = def.baseService;
+    this.annotations = def.annotations;
 };
 
 ThriftService.prototype.compileFunction = function processFunction(def, model) {

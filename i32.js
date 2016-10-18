@@ -71,7 +71,9 @@ I32RW.prototype.poolByteLength = function poolByteLength(result, value) {
     return result.reset(null, this.width);
 };
 
-function ThriftI32() {}
+function ThriftI32(annotations) {
+    this.annotations = annotations;
+}
 
 ThriftI32.prototype.rw = new I32RW();
 ThriftI32.prototype.name = 'i32';

@@ -1,3 +1,7 @@
+# next
+
+- Annotations are exposed on all type models and nodes of the syntax tree.
+
 # v3.6.0
 
 - Support caching IDL AST as JSON.

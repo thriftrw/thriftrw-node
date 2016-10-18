@@ -50,7 +50,10 @@ function writeTBooleanInto(destResult, bool, buffer, offset) {
     return bufrw.UInt8.poolWriteInto(destResult, Number(bool), buffer, offset);
 }
 
-function ThriftBoolean() { }
+function ThriftBoolean(annotations) {
+    this.annotations = annotations;
+}
+
 ThriftBoolean.prototype.rw = BooleanRW;
 ThriftBoolean.prototype.name = 'boolean';
 ThriftBoolean.prototype.typeid = TYPE.BOOL;

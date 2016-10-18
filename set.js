@@ -52,6 +52,7 @@ function ThriftSet(valueType, annotations) {
     } else {
         assert.fail('set must have js.type of object or array (default)');
     }
+    this.annotations = annotations;
 }
 
 util.inherits(ThriftSet, ThriftList);

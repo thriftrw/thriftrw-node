@@ -174,8 +174,8 @@ module.exports = (function() {
         peg$c99 = function(id, fs, ta) {
             return new ast.Struct(id, fs, ta);
           },
-        peg$c100 = function(id, fs) {
-            return new ast.Union(id, fs);
+        peg$c100 = function(id, fs, ta) {
+            return new ast.Union(id, fs, ta);
           },
         peg$c101 = "xsd_all",
         peg$c102 = { type: "literal", value: "xsd_all", description: "\"xsd_all\"" },
@@ -2478,7 +2478,7 @@ module.exports = (function() {
     }
 
     function peg$parseUnion() {
-      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10;
+      var s0, s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11;
 
       var key    = peg$currPos * 118 + 21,
           cached = peg$cache[key];
@@ -2529,9 +2529,18 @@ module.exports = (function() {
                       if (s9 !== peg$FAILED) {
                         s10 = peg$parse__();
                         if (s10 !== peg$FAILED) {
-                          peg$reportedPos = s0;
-                          s1 = peg$c100(s2, s7);
-                          s0 = s1;
+                          s11 = peg$parseTypeAnnotations();
+                          if (s11 === peg$FAILED) {
+                            s11 = peg$c25;
+                          }
+                          if (s11 !== peg$FAILED) {
+                            peg$reportedPos = s0;
+                            s1 = peg$c100(s2, s7, s11);
+                            s0 = s1;
+                          } else {
+                            peg$currPos = s0;
+                            s0 = peg$c0;
+                          }
                         } else {
                           peg$currPos = s0;
                           s0 = peg$c0;

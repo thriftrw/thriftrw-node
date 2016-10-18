@@ -36,6 +36,7 @@ function ThriftEnum() {
     // "Interned" names
     this.namesToNames = Object.create(null);
     this.surface = this.namesToNames;
+    this.annotations = null;
     this.rw = new EnumRW(this);
     this.linked = false;
 }
@@ -77,6 +78,8 @@ ThriftEnum.prototype.compile = function compile(def, model) {
         this.valuesToNames[value] = name;
         value++;
     }
+
+    this.annotations = def.annotations;
 };
 
 ThriftEnum.prototype.link = function link(model) {

@@ -134,8 +134,8 @@ Struct
   }
 
 Union
-  = UnionToken id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ {
-    return new ast.Union(id, fs);
+  = UnionToken id:Identifier xsdAll? __ '{' __ fs:Field* __ '}' __ ta:TypeAnnotations? {
+    return new ast.Union(id, fs, ta);
   }
 
 xsdAll

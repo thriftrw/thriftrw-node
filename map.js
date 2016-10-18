@@ -25,13 +25,10 @@ var MapObjectRW = require('./map-object').MapObjectRW;
 var MapEntriesRW = require('./map-entries').MapEntriesRW;
 var errors = require('./errors');
 
-var none = {};
-
 function ThriftMap(keyType, valueType, annotations) {
     this.rw = null;
     this.surface = null;
 
-    annotations = annotations || none;
     var type = annotations['js.type'] || 'object';
 
     if (type === 'object') {
@@ -45,6 +42,8 @@ function ThriftMap(keyType, valueType, annotations) {
             mapType: type
         });
     }
+
+    this.annotations = annotations;
 }
 
 ThriftMap.prototype.name = 'map';

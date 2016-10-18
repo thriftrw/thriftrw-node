@@ -41,6 +41,8 @@
 /* eslint max-params:[1, 10] */
 'use strict';
 
+var none = {};
+
 module.exports.Program = Program;
 function Program(headers, definitions) {
     this.type = 'Program';
@@ -78,14 +80,14 @@ function Typedef(type, id, annotations) {
     this.type = 'Typedef';
     this.valueType = type;
     this.id = id;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.BaseType = BaseType;
 function BaseType(type, annotations) {
     this.type = 'BaseType';
     this.baseType = type;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.Enum = Enum;
@@ -93,7 +95,7 @@ function Enum(id, definitions, annotations) {
     this.type = 'Enum';
     this.id = id;
     this.definitions = definitions;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.EnumDefinition = EnumDefinition;
@@ -102,7 +104,7 @@ function EnumDefinition(id, value, annotations) {
     this.fieldType = new BaseType('i32');
     this.id = id;
     this.value = value;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.Senum = Senum;
@@ -110,7 +112,7 @@ function Senum(id, definitions, annotations) {
     this.type = 'Senum';
     this.id = id;
     this.senumDefinitions = definitions;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.Const = Const;
@@ -145,16 +147,17 @@ function Struct(id, fields, annotations) {
     this.type = 'Struct';
     this.id = id;
     this.fields = fields;
-    this.annotations = annotations;
     this.isArgument = false;
     this.isResult = false;
+    this.annotations = annotations || none;
 }
 
 module.exports.Union = Union;
-function Union(id, fields) {
+function Union(id, fields, annotations) {
     this.type = 'Union';
     this.id = id;
     this.fields = fields;
+    this.annotations = annotations || none;
 }
 
 module.exports.Exception = Exception;
@@ -162,7 +165,7 @@ function Exception(id, fields, annotations) {
     this.type = 'Exception';
     this.id = id;
     this.fields = fields;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.Service = Service;
@@ -170,8 +173,8 @@ function Service(id, functions, annotations, baseService) {
     this.type = 'Service';
     this.id = id;
     this.functions = functions;
-    this.annotations = annotations;
     this.baseService = baseService;
+    this.annotations = annotations || none;
 }
 
 module.exports.FunctionDefinition = FunctionDefinition;
@@ -182,8 +185,8 @@ function FunctionDefinition(id, fields, ft, _throws, annotations, oneway) {
     this.fields = fields;
     this.fields.isArgument = true;
     this.throws = _throws;
-    this.annotations = annotations;
     this.oneway = oneway;
+    this.annotations = annotations || none;
 }
 
 module.exports.Field = Field;
@@ -195,7 +198,7 @@ function Field(id, ft, name, req, fv, annotations) {
     this.required = req === 'required';
     this.optional = req === 'optional';
     this.defaultValue = fv;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.FieldIdentifier = FieldIdentifier;
@@ -211,21 +214,21 @@ function MapType(keyType, valueType, annotations) {
     this.type = 'Map';
     this.keyType = keyType;
     this.valueType = valueType;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.SetType = SetType;
 function SetType(valueType, annotations) {
     this.type = 'Set';
     this.valueType = valueType;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.ListType = ListType;
 function ListType(valueType, annotations) {
     this.type = 'List';
     this.valueType = valueType;
-    this.annotations = annotations;
+    this.annotations = annotations || none;
 }
 
 module.exports.TypeAnnotation = TypeAnnotation;

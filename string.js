@@ -25,9 +25,10 @@ var TYPE = require('./TYPE');
 
 var StringRW = new bufrw.String(bufrw.Int32BE, 'utf-8');
 
-function ThriftString() {
+function ThriftString(annotations) {
     // This is where we would decide which RW to use if there is an annotation
     // for an alternative to utf-8.
+    this.annotations = annotations;
 }
 
 ThriftString.prototype.rw = StringRW;

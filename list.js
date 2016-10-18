@@ -30,6 +30,7 @@ var util = require('util');
 function ThriftList(valueType, annotations) {
     this.valueType = valueType;
     this.rw = new ListRW(valueType, this);
+    this.annotations = annotations;
 }
 
 ThriftList.prototype.name = 'list';

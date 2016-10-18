@@ -25,7 +25,8 @@ var TYPE = require('./TYPE');
 
 var VoidRW = bufrw.Null;
 
-function ThriftVoid() {
+function ThriftVoid(annotations) {
+    this.annotations = annotations;
 }
 
 ThriftVoid.prototype.rw = VoidRW;
