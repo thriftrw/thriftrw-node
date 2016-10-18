@@ -35,6 +35,7 @@ function ThriftEnum() {
     this.valuesToNames = Object.create(null);
     // "Interned" names
     this.namesToNames = Object.create(null);
+    this.namesToAnnotations = Object.create(null);
     this.surface = this.namesToNames;
     this.annotations = null;
     this.rw = new EnumRW(this);
@@ -76,6 +77,7 @@ ThriftEnum.prototype.compile = function compile(def, model) {
         this.namesToValues[name] = value;
         this.namesToNames[name] = name;
         this.valuesToNames[value] = name;
+        this.namesToAnnotations[name] = enumDef.annotations;
         value++;
     }
 

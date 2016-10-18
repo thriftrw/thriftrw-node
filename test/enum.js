@@ -37,6 +37,13 @@ tape('parse enum.thrift', function t(assert) {
     assert.end();
 });
 
+tape('can access enum def annotations', function t(assert) {
+    var MAE = thrift.models.MyAnnotatedEnum;
+    assert.deepEqual(MAE.annotations, {'aka': 'my.annotated.enum'});
+    assert.deepEqual(MAE.namesToAnnotations.MAE_A, {'aka': 'my.annotated.enum.a'});
+    assert.end();
+});
+
 tape('round trip an enum', function t(assert) {
     var inStruct = {me2_2: 'ME2_2', me3_n2: 'ME3_N2', me3_d1: 'ME3_D1'};
     var buffer = MyStruct.toBuffer(inStruct);

@@ -64,6 +64,10 @@ enum MyEnum4 {
   // represented with an i32.
 }
 
+enum MyAnnotatedEnum {
+  MAE_A (aka = "my.annotated.enum.a")
+} (aka = "my.annotated.enum")
+
 struct MyStruct {
   1: MyEnum2 me2_2 = MyEnum2.ME2_2
   2: MyEnum3 me3_n2 = MyEnum3.ME3_N2
