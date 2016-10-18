@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.8.0
 
 - Thread annotations for individual enum definitions
 
