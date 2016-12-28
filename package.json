@@ -47,7 +47,7 @@
   },
   "scripts": {
     "add-licence": "uber-licence",
-    "build-parser": "pegjs --allowed-start-rules Program --cache thrift-idl.pegjs && uber-licence --file thrift-idl.js > /dev/null",
+    "build-parser": "pegjs --allowed-start-rules Program thrift-idl.pegjs && uber-licence --file thrift-idl.js > /dev/null",
     "check-cover": "istanbul check-coverage",
     "check-licence": "uber-licence --dry",
     "check-ls": "npm ls 1>/dev/null",
