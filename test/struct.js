@@ -551,7 +551,6 @@ test('allows undefined as default', function t(assert) {
         ]
     }, {allowOptionalArguments: true});
     defaultStruct.link(tMock);
-    console.log(defaultStruct);
     assert.true(defaultStruct.fieldsByName.testDefault.defaultValue === undefined, 'Default value is undefined');
     assert.end();
 });
