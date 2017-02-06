@@ -204,6 +204,24 @@ test('respects default as undefined', function t(assert) {
     assert.end();
 });
 
+test('defaults to null default value', function t(assert) {
+    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true
+    });
+    var valueDefinition = thrift.defaultValueDefinition;
+    assert.true(
+        valueDefinition.type === 'Literal',
+        'Correct value definition type'
+    );
+    assert.true(
+        valueDefinition.value === null,
+        'Correct value definition value'
+    );
+    assert.end();
+});
+
 test('get endpoints multi service target', function t(assert) {
     var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
     thrift = new Thrift({
