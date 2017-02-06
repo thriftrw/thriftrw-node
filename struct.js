@@ -49,9 +49,8 @@ function ThriftField(def, struct) {
     this.optional = def.optional;
     this.valueDefinition = def.valueType;
     this.valueType = null;
-    this.defaultValueDefinition = def.defaultValue;
+    this.defaultValueDefinition = def.defaultValue || struct.defaultValueDefinition;
     this.defaultValue = null;
-    this.constructDefaultValue = null;
     this.annotations = def.annotations;
 }
 
@@ -70,6 +69,7 @@ function ThriftStruct(options) {
     this.name = null;
     // Strict mode is on by default. Because we have strict opinions about Thrift.
     this.strict = options.strict !== undefined ? options.strict : true;
+    this.defaultValueDefinition = options.defaultValueDefinition;
     // TODO bring in serviceName
     this.fields = [];
     this.fieldNames = [];
@@ -249,7 +249,7 @@ ThriftStruct.prototype.createConstructor = function createConstructor(name, fiel
         source += '    this.' + field.name + ' = null;\n';
         source += '    if (options && typeof options.' + field.name + ' !== "undefined") ' +
             '{ this.' + field.name + ' = options.' + field.name + '; }\n';
-        if (field.defaultValue !== null) {
+        if (field.defaultValue !== null && field.defaultValue !== undefined) {
             source += '    else { this.' + field.name +
                 ' = ' + JSON.stringify(field.defaultValue) + '; }\n';
         }

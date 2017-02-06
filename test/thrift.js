@@ -185,6 +185,25 @@ test('get endpoints multi service', function t(assert) {
     assert.end();
 });
 
+test('respects default as undefined', function t(assert) {
+    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
+    thrift = new Thrift({
+        entryPoint: filename,
+        allowFilesystemAccess: true,
+        defaultAsUndefined: true
+    });
+    var valueDefinition = thrift.defaultValueDefinition;
+    assert.true(
+        valueDefinition.type === 'Literal',
+        'Correct value definition type'
+    );
+    assert.true(
+        valueDefinition.value === undefined,
+        'Correct value definition value'
+    );
+    assert.end();
+});
+
 test('get endpoints multi service target', function t(assert) {
     var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
     thrift = new Thrift({
