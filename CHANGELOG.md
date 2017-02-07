@@ -1,3 +1,11 @@
+# vNEXT // FIXME
+
+- Allow undefined to be default value rather than null
+- (c) 2017 (#146)
+
+# v3.9.0
+- revert thrift-idl cache option
+
 # v3.8.0
 
 - Thread annotations for individual enum definitions

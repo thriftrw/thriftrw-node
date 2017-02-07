@@ -52,7 +52,8 @@ var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'ascii');
 var thrift = new Thrift({
     source: source,
     strict: true,
-    allowOptionalArguments: true
+    allowOptionalArguments: true,
+    defaultAsUndefined: false
 });
 ```
 
@@ -190,7 +191,8 @@ typically by inbound request handlers in servers.
 
 If a client uses the provided constructor for the struct, the constructor will
 populate the default value as well, so in that sense clients also infer the
-default value.
+default value. The default value used is the null object unless the `defaultAsUndefined`
+flag is set in the user-defined options. In such a case, undefined will be used, instead.
 
 However, callers are not obliged to use the constructor for the struct. In that
 case, if the value is missing, ThriftRW does not write it to the wire and
@@ -383,8 +385,8 @@ var result = new ResultStruct({
 })
 ```
 
-Unspecified properties will default to null or an instance of the default value
-specified in the Thrift IDL.
+Unspecified properties will default to null (undefined if defaultAsUndefined flag was set)
+or an instance of the default value specified in the Thrift IDL.
 Nested structs can be expressed with JSON or POJO equivalents.
 The constructors perform no validation.
 Invalid objects are revealed only in the attempt to write one to a buffer.

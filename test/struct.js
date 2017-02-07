@@ -24,11 +24,15 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
+var Literal = require('../ast').Literal;
 var Thrift = require('../thrift').Thrift;
 var ThriftStruct = require('../struct').ThriftStruct;
 var ThriftBoolean = require('../boolean').ThriftBoolean;
 
 var thriftHealth = new ThriftStruct();
+
+var undefinedDefault = new Literal(undefined);
+var nullDefault = new Literal(null);
 
 // Manually drive compile(idl) and link(thrift). This would be done by the Spec.
 
@@ -516,3 +520,72 @@ test('enforces ordinal identifiers', function t(assert) {
     }
     assert.end();
 });
+
+test('allows undefined as default', function t(assert) {
+    var defaultStruct = new ThriftStruct({strict: false, defaultValueDefinition: undefinedDefault});
+    var tMock = {
+        structs: {},
+        resolve: function resolve() {
+            return new ThriftBoolean();
+        },
+        resolveValue: function resolveValue(valueDef) {
+            assert.equal(valueDef.type, 'Literal', 'Value definition is a literal');
+            assert.true(valueDef.hasOwnProperty('value'), 'Has defined value property');
+            assert.true(valueDef.value === undefined, 'Value is undefined');
+            return Thrift.prototype.resolveValue(valueDef);
+        }
+    };
+    defaultStruct.compile({
+        id: {name: 'NewDefault'},
+        fields: [
+            {
+                id: {value: 1},
+                name: 'testDefault',
+                valueType: {
+                    type: 'BaseType',
+                    baseType: 'boolean'
+                },
+                required: false,
+                optional: false
+            }
+        ]
+    }, {allowOptionalArguments: true});
+    defaultStruct.link(tMock);
+    assert.true(defaultStruct.fieldsByName.testDefault.defaultValue === undefined, 'Default value is undefined');
+    assert.end();
+});
+
+test('defaults to null as default value', function t(assert) {
+    var defaultStruct = new ThriftStruct({strict: false, defaultValueDefinition: nullDefault});
+    var tMock = {
+        structs: {},
+        resolve: function resolve() {
+            return new ThriftBoolean();
+        },
+        resolveValue: function resolveValue(valueDef) {
+            assert.equal(valueDef.type, 'Literal', 'Value definition is a literal');
+            assert.true(valueDef.hasOwnProperty('value'), 'Has defined value property');
+            assert.true(valueDef.value === null, 'Value is null');
+            return Thrift.prototype.resolveValue(valueDef);
+        }
+    };
+    defaultStruct.compile({
+        id: {name: 'NewDefault'},
+        fields: [
+            {
+                id: {value: 1},
+                name: 'testDefault',
+                valueType: {
+                    type: 'BaseType',
+                    baseType: 'boolean'
+                },
+                required: false,
+                optional: false
+            }
+        ]
+    }, {allowOptionalArguments: true});
+    defaultStruct.link(tMock);
+    assert.true(defaultStruct.fieldsByName.testDefault.defaultValue === null, 'Default value value is null');
+    assert.end();
+});
+

@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint max-statements:[1, 42] */
+/* eslint max-statements:[1, 43] */
 'use strict';
 
 var assert = require('assert');
@@ -48,6 +48,8 @@ var ThriftSet = require('./set').ThriftSet;
 var ThriftMap = require('./map').ThriftMap;
 var ThriftConst = require('./const').ThriftConst;
 var ThriftTypedef = require('./typedef').ThriftTypedef;
+
+var Literal = require('./ast').Literal;
 
 var Message = require('./message').Message;
 var messageExceptionDef = require('./message').exceptionDef;
@@ -82,6 +84,7 @@ function Thrift(options) {
     }
 
     this.strict = options.strict !== undefined ? options.strict : true;
+    this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
 
     // [name] :Thrift* implementing {compile, link, &c}
     // Heterogenous Thrift model objects by name in a consolidated name-space
@@ -299,7 +302,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
 };
 
 Thrift.prototype.compileStruct = function compileStruct(def) {
-    var model = new ThriftStruct({strict: this.strict});
+    var model = new ThriftStruct({strict: this.strict, defaultValueDefinition: this.defaultValueDefinition});
     model.compile(def, this);
     this.define(model.fullName, def, model);
     return model;
