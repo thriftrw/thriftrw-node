@@ -1,10 +1,15 @@
 # vNEXT // FIXME
 
-- Allow undefined to be default value rather than null
-- (c) 2017 (#146)
+- Adds an `defaultAsUndefined` option to the Thrift constructor that causes
+  the default for absent values to be `undefined` instead of `null`.
+  This greatly abbreviates the result of JSON.stringify on structs with
+  many absent keys.
 
 # v3.9.0
-- revert thrift-idl cache option
+- Reverts a change to how PEGJS generates a Thrift IDL parser, disabling
+  caching of intermediate nodes for back-tracking.  This feature, while
+  making parsing theoretically faster, caused production tests with many IDL
+  files to bloat the heap and take minutes to run.
 
 # v3.8.0
 
