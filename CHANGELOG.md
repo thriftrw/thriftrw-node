@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.10.0
 
 - Adds an `defaultAsUndefined` option to the Thrift constructor that causes
   the default for absent values to be `undefined` instead of `null`.
