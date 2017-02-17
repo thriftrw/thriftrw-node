@@ -5,4 +5,5 @@ struct Health {
     3: string message = 'OK'
     4: string name = 'alright'
     5: list<i32> numbers = numbers
+    6: optional string respected
 }

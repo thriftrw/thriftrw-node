@@ -35,6 +35,14 @@ test('default values on structs work', function t(assert) {
     assert.equals(health.notOk, false, 'default false value passes through');
     assert.equals(health.message, 'OK', 'default string passes through');
     assert.equals(health.name, 'grand', 'option overrides default');
+    assert.equals(health.respected, null, 'null is default value');
     assert.deepEquals(health.numbers, [1, 2, 3], 'complex defaults serialize');
+    assert.end();
+});
+
+test('default value as undefined respected in constructor', function t(assert) {
+    model = new Thrift({source: source, defaultAsUndefined: true});
+    var health = new model.Health({name: 'grand'});
+    assert.equals(health.respected, undefined, 'undefined as default value');
     assert.end();
 });

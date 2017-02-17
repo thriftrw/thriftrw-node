@@ -246,13 +246,10 @@ ThriftStruct.prototype.createConstructor = function createConstructor(name, fiel
     source = '(function thriftrw_' + name + '(options) {\n';
     for (var index = 0; index < fields.length; index++) {
         var field = fields[index];
-        source += '    this.' + field.name + ' = null;\n';
         source += '    if (options && typeof options.' + field.name + ' !== "undefined") ' +
             '{ this.' + field.name + ' = options.' + field.name + '; }\n';
-        if (field.defaultValue !== null && field.defaultValue !== undefined) {
-            source += '    else { this.' + field.name +
-                ' = ' + JSON.stringify(field.defaultValue) + '; }\n';
-        }
+        source += '    else { this.' + field.name +
+            ' = ' + JSON.stringify(field.defaultValue) + '; }\n';
     }
     source += '})\n';
     // eval is an operator that captures the lexical scope of the calling
