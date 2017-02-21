@@ -1,3 +1,8 @@
+# vNEXT // FIXME
+
+- Fix constructor support for undefined default values. This allows either
+  undefined or null to be used in the constructor.
+
 # v3.10.0
 
 - Adds an `defaultAsUndefined` option to the Thrift constructor that causes
