@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.11.0
 
 - Fix constructor support for undefined default values. This allows either
   undefined or null to be used in the constructor.
