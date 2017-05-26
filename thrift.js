@@ -85,6 +85,7 @@ function Thrift(options) {
 
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
+    this.defaultAsUndefined = options.defaultAsUndefined;
 
     // [name] :Thrift* implementing {compile, link, &c}
     // Heterogenous Thrift model objects by name in a consolidated name-space
@@ -283,7 +284,8 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 strict: this.strict,
                 allowIncludeAlias: true,
                 allowOptionalArguments: this.allowOptionalArguments,
-                noLink: true
+                noLink: true,
+                defaultAsUndefined: this.defaultAsUndefined
             });
         }
 
