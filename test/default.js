@@ -25,24 +25,26 @@ var test = require('tape');
 var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'default.thrift'), 'ascii');
+var entryIdl = path.join(__dirname, 'default.thrift');
 var model;
 
 test('default values on structs work', function t(assert) {
-    model = new Thrift({source: source});
+    model = new Thrift({entryPoint: entryIdl, allowFilesystemAccess: true});
     var health = new model.Health({name: 'grand'});
     assert.equals(health.ok, true, 'default truth value passes through');
     assert.equals(health.notOk, false, 'default false value passes through');
     assert.equals(health.message, 'OK', 'default string passes through');
     assert.equals(health.name, 'grand', 'option overrides default');
     assert.equals(health.respected, null, 'null is default value');
+    assert.equals(health.ragdoll, null, 'null is default value for dependent thrifts');
     assert.deepEquals(health.numbers, [1, 2, 3], 'complex defaults serialize');
     assert.end();
 });
 
 test('default value as undefined respected in constructor', function t(assert) {
-    model = new Thrift({source: source, defaultAsUndefined: true});
+    model = new Thrift({entryPoint: entryIdl, allowFilesystemAccess: true, defaultAsUndefined: true});
     var health = new model.Health({name: 'grand'});
     assert.equals(health.respected, undefined, 'undefined as default value');
+    assert.equals(health.ragdoll, undefined, 'undefined as default value for dependent thrifts');
     assert.end();
 });
