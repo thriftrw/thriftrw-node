@@ -1,4 +1,4 @@
-# vNEXT // FIXME
+# v3.11.1
 
 - Propagate defaultAsUndefined to dependent Thrift constructors so that imported structs
   will respect the configuration of the root Thrift object.
