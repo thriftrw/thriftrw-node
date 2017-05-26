@@ -118,7 +118,6 @@ function Thrift(options) {
     this.allowOptionalArguments = options.allowOptionalArguments || false;
 
     this.filename = options.entryPoint;
-
     this.dirname = path.dirname(this.filename);
     this.memo[this.filename] = this;
 
