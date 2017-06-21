@@ -123,6 +123,7 @@ Thrift.prototype._init = function _init(options) {
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
     this.defaultAsUndefined = options.defaultAsUndefined;
+    this.encoding = options.encoding || 'utf-8';
 
     // [name] :Thrift* implementing {compile, link, &c}
     // Heterogenous Thrift model objects by name in a consolidated name-space
@@ -220,7 +221,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
         /* eslint-disable max-len */
         assert.ok(this.fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
         /* eslint-enable max-len */
-        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), 'ascii');
+        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), this.encoding);
     }
 
     if (!this.asts[filename]) {
@@ -390,6 +391,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
     } else {
         model = new Thrift({
             entryPoint: filename,
+            encoding: this.encoding,
             parsed: this.parsed,
             idls: this.idls,
             asts: this.asts,
