@@ -18,43 +18,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+/* eslint no-new:[0] */
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
-require('./utf8comment')
+var tape = require('tape');
+var path = require('path');
+var Thrift = require('../').Thrift;
+
+tape('parse utf8comment.thrift', function t(assert) {
+    var thrift = new Thrift({
+        entryPoint: path.join(__dirname, 'utf8comment.thrift'),
+        allowFilesystemAccess: true
+    })
+    var MyEnum = thrift.getType('MyEnum');
+    assert.end();
+});

@@ -129,7 +129,7 @@ function Thrift(options) {
         assert.ok(this.filename, 'Thrift must be constructed with a options.entryPoint');
         /* eslint-enable max-len */
         this.filename = path.resolve(this.filename);
-        source = this.fs.readFileSync(this.filename, 'ascii');
+        source = this.fs.readFileSync(this.filename, 'utf-8');
         this.idls[this.filename] = source;
     }
 

@@ -18,43 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-'use strict';
-
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
-require('./utf8comment')
+enum MyEnum {
+    TEST = 1 // 重視
+}
