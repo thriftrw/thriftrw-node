@@ -75,6 +75,8 @@ function Thrift(options) {
     this.asts = options.asts || Object.create(null);
     // filename to Thrift instance
     this.memo = options.memo || Object.create(null);
+    // file encoding
+    this.encoding = options.encoding || 'ascii'
 
     // Grant file system access for resolving includes, as opposed to lifting
     // includes from provided options.idls alone.
@@ -129,7 +131,7 @@ function Thrift(options) {
         assert.ok(this.filename, 'Thrift must be constructed with a options.entryPoint');
         /* eslint-enable max-len */
         this.filename = path.resolve(this.filename);
-        source = this.fs.readFileSync(this.filename, 'utf-8');
+        source = this.fs.readFileSync(this.filename, this.encoding);
         this.idls[this.filename] = source;
     }
 
@@ -285,7 +287,8 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 allowIncludeAlias: true,
                 allowOptionalArguments: this.allowOptionalArguments,
                 noLink: true,
-                defaultAsUndefined: this.defaultAsUndefined
+                defaultAsUndefined: this.defaultAsUndefined,
+                encoding: this.encoding
             });
         }
 

@@ -18,19 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint no-new:[0] */
-'use strict';
-
-var tape = require('tape');
-var path = require('path');
-var Thrift = require('../').Thrift;
-
-tape('parse utf8comment.thrift', function t(assert) {
-    var thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'utf8comment_a.thrift'),
-        encoding: 'utf-8',
-        allowFilesystemAccess: true
-    })
-    var MyEnum = thrift.getType('MyEnum');
-    assert.end();
-});
+enum MyEnumB {
+    TEST = 1 // 重視
+}
