@@ -111,6 +111,8 @@ Thrift.prototype._init = function _init(options) {
     this.asts = options.asts || Object.create(null);
     // filename to Thrift instance
     this.memo = options.memo || Object.create(null);
+    // file encoding
+    this.encoding = options.encoding || 'ascii'
 
     // Grant file system access for resolving includes, as opposed to lifting
     // includes from provided options.idls alone.
@@ -178,13 +180,13 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
         return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
     }
 
-    model.fs.readFile(filename, function (err, source) {
+    model.fs.readFile(filename, this.encoding, function (err, source) {
         if (err) {
             return cb(err);
         }
         model.idls[filename] = source;
         model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
-    })
+    }, this.encoding)
 }
 
 Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, allowIncludeAlias, cb) {

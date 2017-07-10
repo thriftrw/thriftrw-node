@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+include "./utf8comment_b.thrift"
+
 enum MyEnum {
     TEST = 1 // 重視
 }
