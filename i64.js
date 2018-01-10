@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2018 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,7 +45,11 @@ I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer
     if (value instanceof Buffer) {
         return this.writeBufferInt64Into(destResult, value, buffer, offset);
     } else if (typeof value === 'number') {
-        buffer.writeInt32BE(value / Math.pow(2, 32), offset, true);
+        var upperBits = value / Math.pow(2, 32);
+        if (upperBits < 0 && upperBits > -1) {
+            upperBits = -1;
+        }
+        buffer.writeInt32BE(upperBits, offset, true);
         buffer.writeInt32BE(value, offset + 4, true);
         return destResult.reset(null, offset + 8);
     } else if (Array.isArray(value)) {
