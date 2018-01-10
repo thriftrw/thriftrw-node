@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Uber Technologies, Inc.
+// Copyright (c) 2018 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -146,12 +146,30 @@ test('coerce small number', function t(assert) {
     assert.end();
 });
 
+test('coerce small negative number', function (assert) {
+    var buffer = new Buffer(8);
+    var res = bufferRW.writeInto(-10, buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('fffffffffffffff6', 'hex'), 'written value');
+    assert.end();
+});
+
 test('coerce large number', function t(assert) {
     var buffer = new Buffer(8);
     var res = bufferRW.writeInto(Math.pow(2, 50), buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
     assert.deepEquals(buffer, new Buffer('0004000000000000', 'hex'), 'written value');
+    assert.end();
+});
+
+test('coerce large negative number', function (assert) {
+    var buffer = new Buffer(8);
+    var res = bufferRW.writeInto(-Math.pow(2, 50), buffer, 0);
+    assert.ifError(res.err, 'write into buffer');
+    assert.equals(res.offset, 8, 'offset after write');
+    assert.deepEquals(buffer, new Buffer('fffc000000000000', 'hex'), 'written value');
     assert.end();
 });
 
