@@ -45,8 +45,9 @@ I64RW.prototype.poolWriteInto = function poolWriteInto(destResult, value, buffer
     if (value instanceof Buffer) {
         return this.writeBufferInt64Into(destResult, value, buffer, offset);
     } else if (typeof value === 'number') {
-        buffer.writeInt32BE(value / Math.pow(2, 32), offset, true);
-        buffer.writeInt32BE(value, offset + 4, true);
+        var number = Long.fromNumber(value);
+        buffer.writeInt32BE(number.high, offset, true);
+        buffer.writeInt32BE(number.low, offset + 4, true);
         return destResult.reset(null, offset + 8);
     } else if (Array.isArray(value)) {
         return this.writeArrayInt64Into(destResult, value, buffer, offset);

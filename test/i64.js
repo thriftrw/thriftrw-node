@@ -55,6 +55,15 @@ var longCases = [
     ]
 ];
 
+test('I64LongRW negatives', function t(assert) {
+    var buffer = new Buffer(8);
+    longRW.poolWriteInto({
+        reset: function (val, err) {}
+    }, -1, buffer, 0);
+    assert.deepEquals(buffer, new Buffer('ffffffffffffffff', 'hex'), 'writen value is negative')
+    assert.end();
+});
+
 test('I64LongRW', testRW.cases(longRW, longCases));
 
 var dateCases = [
