@@ -1,3 +1,10 @@
+# v3.11.2
+
+- Fixes a bug in encoding negative numbers expressed as plain JavaScript
+  numbers with the i64 type with the js.type Long annotation.
+  Previously, these would be encoded as negative in the low four bytes, and
+  zeros in the high bytes, resulting in a large 32 bit positive number.
+
 # v3.11.1
 
 - Propagate defaultAsUndefined to dependent Thrift constructors so that imported structs
