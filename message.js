@@ -194,7 +194,7 @@ MessageRW.prototype.poolLegacyWriteInto = function poolLegacyWriteInto(result, m
     // name~4 type:1 id:4
 
     // name.length:4
-    buffer.writeUInt32BE(message.name.length, offset, true);
+    buffer.writeUInt32BE(message.name.length, offset);
     offset += 4;
 
     // name:name.length
@@ -212,14 +212,14 @@ MessageRW.prototype.poolLegacyWriteInto = function poolLegacyWriteInto(result, m
     offset += 1;
 
     // id:4
-    buffer.writeUInt32BE(message.id, offset, true);
+    buffer.writeUInt32BE(message.id, offset);
     offset += 4;
 
     return result.reset(null, offset);
 };
 
 MessageRW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
-    var msb = buffer.readInt8(offset, true);
+    var msb = buffer.readInt8(offset);
     if (msb < 0) {
         result = this.poolStrictReadFrom(result, buffer, offset);
     } else {
@@ -260,7 +260,7 @@ MessageRW.prototype.poolStrictReadFrom = function poolStrictReadFrom(result, buf
     // version:2 type:2 name~4 id:4
 
     var message = new Message();
-    message.version = buffer.readUInt16BE(offset, true) & ~0x8000; // mask out MSB
+    message.version = buffer.readUInt16BE(offset) & ~0x8000; // mask out MSB
     offset += 2;
 
     if (message.version !== 1) {
@@ -270,7 +270,7 @@ MessageRW.prototype.poolStrictReadFrom = function poolStrictReadFrom(result, buf
     }
 
     // type:2
-    var type = buffer.readUInt16BE(offset, true) & 0xFF;
+    var type = buffer.readUInt16BE(offset) & 0xFF;
     offset += 2;
 
     message.type = typeNames[type];
@@ -281,7 +281,7 @@ MessageRW.prototype.poolStrictReadFrom = function poolStrictReadFrom(result, buf
     }
 
     // name.length:4
-    var length = buffer.readUInt32BE(offset, true);
+    var length = buffer.readUInt32BE(offset);
     offset += 4;
 
     // name:name.length
@@ -289,7 +289,7 @@ MessageRW.prototype.poolStrictReadFrom = function poolStrictReadFrom(result, buf
     offset += length;
 
     // id:4
-    message.id = buffer.readUInt32BE(offset, true);
+    message.id = buffer.readUInt32BE(offset);
     offset += 4;
 
     return result.reset(null, offset, message);
@@ -300,7 +300,7 @@ MessageRW.prototype.poolLegacyReadFrom = function poolLegacyReadFrom(result, buf
     var message = new Message();
 
     // name.length
-    var length = buffer.readUInt32BE(offset, true);
+    var length = buffer.readUInt32BE(offset);
     offset += 4;
 
     // name:name.length
@@ -308,11 +308,11 @@ MessageRW.prototype.poolLegacyReadFrom = function poolLegacyReadFrom(result, buf
     offset += length;
 
     // type:2
-    var type = buffer.readUInt8(offset, true);
+    var type = buffer.readUInt8(offset);
     offset += 1;
 
     // id:4
-    message.id = buffer.readUInt32BE(offset, true);
+    message.id = buffer.readUInt32BE(offset);
     offset += 4;
 
     message.type = typeNames[type];
