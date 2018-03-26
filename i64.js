@@ -35,6 +35,8 @@ function I64RW() {
 
 util.inherits(I64RW, bufrw.Base);
 
+I64RW.prototype.width = 8;
+
 I64RW.prototype.lengthResult = bufrw.LengthResult.just(8);
 
 I64RW.prototype.poolByteLength = function poolByteLength(destResult, value) {
@@ -75,9 +77,13 @@ function writeObjectInt64Into(destResult, value, buffer, offset) {
         return destResult.reset(errors.expected(value,
             '{hi[gh], lo[w]} with low bits, or other i64 representation'), null);
     }
-    // Does not validate range of hi or lo value
-    buffer.writeInt32BE(value.high || value.hi, offset);
-    buffer.writeInt32BE(value.low || value.lo, offset + 4);
+    var remain = buffer.length - offset;
+    if (remain < this.width) {
+        return bufrw.WriteResult.poolShortError(destResult, this.width, remain, offset);
+    }
+
+    buffer.writeInt32BE(value.high || value.hi || 0, offset);
+    buffer.writeInt32BE(value.low || value.lo || 0, offset + 4);
     return destResult.reset(null, offset + 8);
 };
 
@@ -137,6 +143,15 @@ function I64DateRW() {}
 util.inherits(I64DateRW, I64RW);
 
 I64DateRW.prototype.poolReadFrom = function poolReadFrom(destResult, buffer, offset) {
+    var remain = buffer.length - offset;
+    if (remain < this.width) {
+        return destResult.reset(errors.ShortRead({
+            remaining: remain,
+            offset: offset,
+            buffer: buffer,
+        }), offset);
+    }
+
     var long = Long.fromBits(
         buffer.readInt32BE(offset + 4, 4),
         buffer.readInt32BE(offset + 0, 4)

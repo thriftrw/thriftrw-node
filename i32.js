@@ -37,6 +37,14 @@ I32RW.prototype.min = -0x7fffffff - 1;
 I32RW.prototype.max = 0x7fffffff;
 
 I32RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
+    var remain = buffer.length - offset;
+    if (remain < this.width) {
+        return result.reset(ebufrw.ShortRead({
+            remaining: remain,
+            buffer: buffer,
+            offset: offset,
+        }), offset);
+    }
     var value = buffer.readInt32BE(offset);
     return result.reset(null, offset + this.width, value);
 };

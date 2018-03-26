@@ -45,8 +45,6 @@ skipVar[TYPE.SET] = skipList;
 skipVar[TYPE.LIST] = skipList;
 
 function skipField(destResult, buffer, offset) {
-
-    // istanbul ignore if
     if (offset + 1 > buffer.length) {
         return destResult.reset(bufrwErrors.ShortBuffer({
             expected: offset + 1,
