@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* eslint max-statements:[1, 43] */
+/* eslint max-statements:[1, 45] */
 'use strict';
 
 var assert = require('assert');

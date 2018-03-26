@@ -192,7 +192,7 @@ test('fail to coerce', function t(assert) {
 test('coerce date string', function t(assert) {
     var buffer = new Buffer(8);
     buffer.fill(0xff);
-    dateRW.writeInto('1970-01-01T00:00:00.000', buffer, 0);
+    dateRW.writeInto('1970-01-01T00:00:00.000Z', buffer, 0);
     assert.deepEquals(buffer, new Buffer([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces date string');
     assert.end();
 });
