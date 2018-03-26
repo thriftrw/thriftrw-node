@@ -85,6 +85,24 @@ var invalidShortBufferTestCases = [{
             message: 'expected at least 1 bytes, only have 0 @0'
         }
     }
+}, {
+    readTest: {
+        bytes: [],
+        error: {
+            type: 'bufrw.short-read',
+            name: 'BufrwShortReadError',
+            message: 'short read, 0 byte left over after consuming 0'
+        }
+    },
+    writeTest: {
+        bytes: [],
+        value: 0,
+        error: {
+            type: 'bufrw.short-buffer',
+            name: 'BufrwShortBufferError',
+            message: 'expected at least 1 bytes, only have 0 @0'
+        }
+    },
 }];
 
 var outOfRangeTestCases = [{
