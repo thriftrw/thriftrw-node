@@ -37,6 +37,13 @@ I8RW.prototype.min = -0x7f - 1;
 I8RW.prototype.max = 0x7f;
 
 I8RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
+    if (offset + this.width > buffer.length) {
+        return result.reset(new ebufrw.ShortRead({
+            offset: offset,
+            remaining: buffer.length - offset,
+            buffer: buffer
+        }), offset + this.width, 0);
+    }
     var value = buffer[offset];
     return result.reset(null, offset + this.width, value);
 };
