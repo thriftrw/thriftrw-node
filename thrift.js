@@ -254,8 +254,7 @@ Thrift.prototype._compile = function _compile(defs) {
 };
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
-    if (def.id.lastIndexOf('./', 0) === 0 ||
-        def.id.lastIndexOf('../', 0) === 0) {
+    if (def.id.lastIndexOf('/', 0) !== 0) {
         var ns = def.namespace && def.namespace.name;
         var filename = path.join(this.dirname, def.id);
 
@@ -299,7 +298,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
         }
 
     } else {
-        throw Error('Include path string must start with either ./ or ../');
+        throw Error('Include path string must not be an absolute path');
     }
 };
 

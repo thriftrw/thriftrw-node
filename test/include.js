@@ -121,11 +121,11 @@ test('cyclic dependencies', function t(assert) {
     assert.end();
 });
 
-test('bad include paths', function t(assert) {
+test('bad include - absolute paths', function t(assert) {
     assert.throws(
         badIncludePaths,
-        /Include path string must start with either .\/ or ..\//,
-        'include throws without ./ or ../'
+        /Include path string must not be an absolute path/,
+	'bad includes throws path error'
     );
     assert.end();
 
@@ -133,7 +133,7 @@ test('bad include paths', function t(assert) {
         return new Thrift({
             entryPoint: path.join(
                 __dirname,
-                'include-error-not-path.thrift'
+                'include-absolute-filename.thrift'
             ),
             allowIncludeAlias: true,
             allowFilesystemAccess: true
@@ -195,4 +195,34 @@ test('includes from opts.source throws', function t(assert) {
             allowIncludeAlias: true
         });
     }
+});
+
+test('include non-relative filename', function t(assert) {
+    var thrift = new Thrift({
+        entryPoint: path.join(
+            __dirname,
+            'include-nonrelative-filename.thrift'
+        ),
+        allowIncludeAlias: true,
+        allowFilesystemAccess: true
+    });
+
+    assert.ok(thrift.modules.typedef,
+        'modules includes typedef thrift instance');
+    assert.end();
+});
+
+test('include non-relative filename with alias', function t(assert) {
+    var thrift = new Thrift({
+        entryPoint: path.join(
+            __dirname,
+            'include-nonrelative-alias.thrift'
+        ),
+        allowIncludeAlias: true,
+        allowFilesystemAccess: true
+    });
+
+    assert.ok(thrift.modules.common.typedefs,
+        'modules includes typedef thrift instance');
+    assert.end();
 });
