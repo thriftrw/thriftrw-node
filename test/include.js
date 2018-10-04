@@ -124,8 +124,8 @@ test('cyclic dependencies', function t(assert) {
 test('bad include paths', function t(assert) {
     assert.throws(
         badIncludePaths,
-        /ENOENT\: no such file or directory/,
-	'include throws ENOTFOUND'
+        /ENOENT. no such file or directory/,
+	'bad includes throws ENOENT error'
     );
     assert.end();
 
