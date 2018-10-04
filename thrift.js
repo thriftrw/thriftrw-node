@@ -254,46 +254,51 @@ Thrift.prototype._compile = function _compile(defs) {
 };
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
-    var ns = def.namespace && def.namespace.name;
-    var filename = path.join(this.dirname, def.id);
+    if (def.id.indexOf('/') !== 0) {
+        var ns = def.namespace && def.namespace.name;
+        var filename = path.join(this.dirname, def.id);
 
-    // If include isn't name, get filename sans *.thrift file extension.
-    if (!this.allowIncludeAlias || !ns) {
-        var basename = path.basename(def.id);
-        ns = basename.slice(0, basename.length - 7);
-        if (!validThriftIdentifierRE.test(ns)) {
-            throw Error(
-                'Thrift include filename is not valid thrift identifier'
-            );
+        // If include isn't name, get filename sans *.thrift file extension.
+        if (!this.allowIncludeAlias || !ns) {
+            var basename = path.basename(def.id);
+            ns = basename.slice(0, basename.length - 7);
+            if (!validThriftIdentifierRE.test(ns)) {
+                throw Error(
+                    'Thrift include filename is not valid thrift identifier'
+                );
+            }
         }
-    }
 
-    var model;
+        var model;
 
-    if (this.memo[filename]) {
-        model = this.memo[filename];
+        if (this.memo[filename]) {
+            model = this.memo[filename];
+        } else {
+            model = new Thrift({
+                entryPoint: filename,
+                fs: this.fs,
+                idls: this.idls,
+                asts: this.asts,
+                memo: this.memo,
+                strict: this.strict,
+                allowIncludeAlias: true,
+                allowOptionalArguments: this.allowOptionalArguments,
+                noLink: true,
+                defaultAsUndefined: this.defaultAsUndefined
+            });
+        }
+
+        this.define(ns, def, model);
+
+        // Alias if first character is not lower-case
+        this.modules[ns] = model;
+
+        if (!/^[a-z]/.test(ns)) {
+            this[ns] = model;
+        }
+
     } else {
-        model = new Thrift({
-            entryPoint: filename,
-            fs: this.fs,
-            idls: this.idls,
-            asts: this.asts,
-            memo: this.memo,
-            strict: this.strict,
-            allowIncludeAlias: true,
-            allowOptionalArguments: this.allowOptionalArguments,
-            noLink: true,
-            defaultAsUndefined: this.defaultAsUndefined
-        });
-    }
-
-    this.define(ns, def, model);
-
-    // Alias if first character is not lower-case
-    this.modules[ns] = model;
-
-    if (!/^[a-z]/.test(ns)) {
-        this[ns] = model;
+        throw Error('Include path string must not be an absolute path');
     }
 };
 

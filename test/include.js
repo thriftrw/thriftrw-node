@@ -121,7 +121,7 @@ test('cyclic dependencies', function t(assert) {
     assert.end();
 });
 
-test('bad include paths', function t(assert) {
+test('bad include - non-existing paths', function t(assert) {
     assert.throws(
         badIncludePaths,
         /ENOENT. no such file or directory/,
@@ -134,6 +134,26 @@ test('bad include paths', function t(assert) {
             entryPoint: path.join(
                 __dirname,
                 'include-error-not-path.thrift'
+            ),
+            allowIncludeAlias: true,
+            allowFilesystemAccess: true
+        });
+    }
+});
+
+test('bad include - absolute paths', function t(assert) {
+    assert.throws(
+        badIncludePaths,
+        /Include path string must not be an absolute path/,
+	'bad includes throws ENOENT error'
+    );
+    assert.end();
+
+    function badIncludePaths() {
+        return new Thrift({
+            entryPoint: path.join(
+                __dirname,
+                'include-absolute-filename.thrift'
             ),
             allowIncludeAlias: true,
             allowFilesystemAccess: true
