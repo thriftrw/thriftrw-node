@@ -254,7 +254,7 @@ Thrift.prototype._compile = function _compile(defs) {
 };
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
-    if (def.id.indexOf('/') !== 0) {
+    if (def.id.lastIndexOf('/', 0) !== 0) {
         var ns = def.namespace && def.namespace.name;
         var filename = path.join(this.dirname, def.id);
 
