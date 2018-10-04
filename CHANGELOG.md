@@ -1,3 +1,9 @@
+# Unreleased
+
+- Removes thrift include restrictions for relative paths only. All paths are considered
+  by default relative to the thrift file. Note, thriftrw parser throw error if the code
+  tries to include absolute paths.
+
 # v3.11.2
 
 - Fixes a bug in encoding negative numbers expressed as plain JavaScript
@@ -23,8 +29,9 @@
   many absent keys.
 
 # v3.9.0
+
 - Reverts a change to how PEGJS generates a Thrift IDL parser, disabling
-  caching of intermediate nodes for back-tracking.  This feature, while
+  caching of intermediate nodes for back-tracking. This feature, while
   making parsing theoretically faster, caused production tests with many IDL
   files to bloat the heap and take minutes to run.
 
