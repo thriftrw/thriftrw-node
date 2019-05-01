@@ -743,8 +743,8 @@ timestamps.
 
 ## MIT Licenced
 
-  [build-png]: https://secure.travis-ci.org/uber/thriftrw.png
-  [build]: https://travis-ci.org/uber/thriftrw
+  [build-png]: https://secure.travis-ci.com/uber/thriftrw.png
+  [build]: https://travis-ci.com/uber/thriftrw
   [cover-png]: https://coveralls.io/repos/uber/thriftrw/badge.png
   [cover]: https://coveralls.io/r/uber/thriftrw
   [dep-png]: https://david-dm.org/thriftrw/thriftrw-node.png
