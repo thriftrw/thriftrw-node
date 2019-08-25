@@ -23,7 +23,7 @@ node_modules/
 
 # Browser builds #
 ##############
-browser/dist/
+browser/dist/*.js
 
 # Packages #
 ############
