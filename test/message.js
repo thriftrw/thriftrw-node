@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,11 @@
 
 var test = require('tape');
 var path = require('path');
+var fs = require('fs');
 var Thrift = require('../thrift').Thrift;
 
-var thrift = new Thrift({
-    entryPoint: path.join(__dirname, 'thrift.thrift'),
-    allowFilesystemAccess: true
-});
+var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
 test('round-trip a non-strict message', function t(assert) {
 

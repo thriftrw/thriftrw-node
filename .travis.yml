@@ -3,4 +3,12 @@ node_js:
   - "0.10"
   - "4"
   - "8"
-script: npm run travis
+env:
+  - BROWSER_TESTING="false"
+  - BROWSER_TESTING="true"
+# See https://github.com/travis-ci/travis-ci/issues/8836
+sudo: required
+dist: trusty
+addons:
+  chrome: stable
+script: if [ $BROWSER_TESTING == "false" ]; then npm run travis; else npm run test-browser; fi

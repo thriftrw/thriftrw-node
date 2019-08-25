@@ -35,6 +35,8 @@ This project makes extensive use of [bufrw][] for reading and writing binary
 protocols, a component shared by [tchannel-node][], with which this library
 works in concert.
 
+Browser compatible, see [Browser compatibility](#browser-compatibility).
+
 [bufrw]: https://github.com/uber/bufrw
 [tchannel-node]: https://github.com/uber/tchannel-node
 
@@ -711,6 +713,18 @@ timestamps.
 
 [TCurl]: https://github.com/uber/tcurl
 
+## Browser compatibility
+
+The `browser/dist/bundle.js` file is a browserify bundle of thriftrw compatible with browsers. If you `require('thriftrw')`
+in the context of a browser build, your build tool will likely use the `browser` field in `package.json` and use
+the bundle instead of the node library (e.g. browserify, webpack). If it doesn't, you can probably make it do so.
+
+The only thing that won't work in a browser is file system access. To go around this limitation, you have several aternatives :
+
+- Use the `source` option as argument to `new Thrift()`
+- Set all required files in the `idls` option as argument to `new Thrift()`, requires `entryPoint` to be specified, and the `source` not to be specified
+- Pass an object with a custom `readFileSync` function as the `fs` argument to `new Thrift()`, requires `allowFilesystemAccess` to be falsy, and `source` or `entryPoint` to be specified
+
 ## Related
 
 [thriftrw-python] is the sister library for Python.
@@ -728,9 +742,11 @@ timestamps.
 ## NPM scripts
 
  - `npm run add-licence` This will add the licence headers.
+ - `npm run build-browser` This will build the test and release browserify bundles.
  - `npm run cover` This runs the tests with code coverage
  - `npm run lint` This will run the linter on your code
  - `npm test` This will run the tests.
+ - `npm run test-browser` This will run the tests using the browserify bundle in Headless Chrome.
  - `npm run trace` This will run your tests in tracing mode.
  - `npm run travis` This is run by travis.CI to run your tests
  - `npm run view-cover` This will show code coverage in a browser

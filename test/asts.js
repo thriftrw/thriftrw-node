@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -26,13 +26,20 @@ var path = require('path');
 var Thrift = require('../thrift').Thrift;
 var IDL = require('./thrift-idl');
 
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
+
 test('can round trip a thrift file through sources', function t(assert) {
 
     var thrift = new Thrift({
         entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
         fs: fs,
-        allowFsAccess: true,
-        allowIncludeAlias: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        allowIncludeAlias: true,
+        idls: idls
     });
 
     var json = thrift.toJSON();

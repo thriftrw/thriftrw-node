@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -28,9 +28,14 @@ var Thrift = require('../thrift').Thrift;
 
 var thrift;
 
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
+
 test('thrift parses from source', function t(assert) {
-    var filename = path.join(__dirname, 'thrift.thrift');
-    var source = fs.readFileSync(filename, 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
     thrift = new Thrift({source: source});
     assert.equal(
         thrift.getSources().entryPoint,
@@ -45,7 +50,8 @@ test('thrift parses from entryPoint', function t(assert) {
     var filename = path.join(__dirname, 'thrift.thrift');
     thrift = new Thrift({
         entryPoint: filename,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
     assert.equal(
         thrift.getSources().entryPoint,
@@ -55,6 +61,18 @@ test('thrift parses from entryPoint', function t(assert) {
     assert.pass('thrift parses');
     assert.end();
 });
+
+test('thrift parses from idls', function t(assert) {
+    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
+    thrift = new Thrift({idls: {'service.thrift': source}, entryPoint: 'service.thrift'});
+    assert.equal(
+        thrift.getSources().entryPoint,
+        'service.thrift',
+        'Correct default entryPoint value when no includes'
+    );
+    assert.pass('thrift parses');
+    assert.end();
+})
 
 test('can get type result from thrift', function t(assert) {
     var res = thrift.getTypeResult('Struct');
@@ -134,8 +152,7 @@ test('can get type error from thrift', function t(assert) {
 });
 
 test('reference error in thrift', function t(assert) {
-    var filename = path.join(__dirname, 'reference-error.thrift');
-    var source = fs.readFileSync(filename, 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'reference-error.thrift'), 'ascii');
     try {
         thrift = new Thrift({source: source});
         assert.fail('thrift should not parse');
@@ -146,8 +163,7 @@ test('reference error in thrift', function t(assert) {
 });
 
 test('duplicate reference in thrift', function t(assert) {
-    var filename = path.join(__dirname, 'duplicate-error.thrift');
-    var source = fs.readFileSync(filename, 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'duplicate-error.thrift'), 'ascii');
     try {
         thrift = new Thrift({source: source});
         assert.fail('thrift should not parse');
@@ -158,11 +174,11 @@ test('duplicate reference in thrift', function t(assert) {
 });
 
 test('get endpoints single service', function t(assert) {
-    var filename = path.join(__dirname, 'thrift.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii')});
+    } else {
+        thrift = new Thrift({entryPoint: path.join(__dirname, 'thrift.thrift'), allowFilesystemAccess: true});
+    }
     assert.deepEqual(
         thrift.getServiceEndpoints(),
         ['Service::foo'],
@@ -172,11 +188,14 @@ test('get endpoints single service', function t(assert) {
 });
 
 test('get endpoints multi service', function t(assert) {
-    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+    } else {
+        thrift = new Thrift({
+            entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
+            allowFilesystemAccess: true
+        });
+    }
     assert.deepEqual(
         thrift.getServiceEndpoints(),
         ['Weatherwax::headology', 'Weatherwax::wossname', 'Ogg::voodoo'],
@@ -186,12 +205,18 @@ test('get endpoints multi service', function t(assert) {
 });
 
 test('respects default as undefined', function t(assert) {
-    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true,
-        defaultAsUndefined: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({
+            source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii'),
+            defaultAsUndefined: true
+        });
+    } else {
+        thrift = new Thrift({
+            entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
+            allowFilesystemAccess: true,
+            defaultAsUndefined: true
+        });
+    }
     var valueDefinition = thrift.defaultValueDefinition;
     assert.true(
         valueDefinition.type === 'Literal',
@@ -205,11 +230,14 @@ test('respects default as undefined', function t(assert) {
 });
 
 test('defaults to null default value', function t(assert) {
-    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+    } else {
+        thrift = new Thrift({
+            entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
+            allowFilesystemAccess: true
+        });
+    }
     var valueDefinition = thrift.defaultValueDefinition;
     assert.true(
         valueDefinition.type === 'Literal',
@@ -223,11 +251,14 @@ test('defaults to null default value', function t(assert) {
 });
 
 test('get endpoints multi service target', function t(assert) {
-    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+    } else {
+        thrift = new Thrift({
+            entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
+            allowFilesystemAccess: true
+        });
+    }
     assert.deepEqual(
         thrift.getServiceEndpoints('Ogg'),
         ['Ogg::voodoo'],
@@ -237,11 +268,14 @@ test('get endpoints multi service target', function t(assert) {
 });
 
 test('get endpoints multi service bad target', function t(assert) {
-    var filename = path.join(__dirname, 'thrift', 'MultiService.thrift');
-    thrift = new Thrift({
-        entryPoint: filename,
-        allowFilesystemAccess: true
-    });
+    if (process.browser) {
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+    } else {
+        thrift = new Thrift({
+            entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
+            allowFilesystemAccess: true
+        });
+    }
     assert.deepEqual(
         thrift.getServiceEndpoints('Magrat'),
         [],

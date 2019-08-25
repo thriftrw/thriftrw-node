@@ -21,6 +21,10 @@ autom4te.cache/
 # rather than maintain this manually
 node_modules/
 
+# Test build #
+##############
+browser/dist/test-bundle.js
+
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source

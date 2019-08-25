@@ -18,38 +18,26 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-'use strict';
+var nbTests = 0;
 
-var test = require('tape');
-var fs = require('fs');
-var path = require('path');
-var Thrift = require('../thrift').Thrift;
-var IDL = require('./thrift-idl');
+var sourceLog = console.log;
+console.log = function () {
+    var msg = arguments[0];
+    sourceLog(msg);
 
-var allowFilesystemAccess = !process.browser;
-var idls;
-if (process.browser) {
-    idls = global.idls;
+    if (msg.startsWith('# ok') || msg.match(/^# fail\s+\d+$/)) {
+        __karma__.info({ total: nbTests });
+        return __karma__.complete();
+    }
+
+    if (msg.startsWith('ok ')) {
+        __karma__.result({ success: true });
+        nbTests++;
+    }
+    if (msg.startsWith('not ok ')) {
+        __karma__.result({ success: false });
+        nbTests++;
+    }
 }
 
-test('can round trip a thrift file through sources', function t(assert) {
-
-    var thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
-        fs: fs,
-        allowFilesystemAccess: allowFilesystemAccess,
-        allowIncludeAlias: true,
-        idls: idls
-    });
-
-    var sources = thrift.getSources();
-    var rethrift = new Thrift({
-        entryPoint: sources.entryPoint,
-        idls: sources.idls,
-        allowIncludeAlias: true
-    });
-
-    assert.deepEquals(Object.keys(rethrift.models), Object.keys(thrift.models), 'all models survive round trip');
-
-    assert.end();
-});
+__karma__.start = function() {};

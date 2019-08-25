@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,20 +27,30 @@ var path = require('path');
 var test = require('tape');
 
 test('thrift IDL parser can parse thrift test files', function t(assert) {
-    var extension = '.thrift';
-    var dirname = path.join(__dirname, 'thrift');
-    var filenames = fs.readdirSync(dirname);
-    for (var index = 0; index < filenames.length; index++) {
-        var filename = filenames[index];
-        var fullFilename = path.join(dirname, filename);
-        if (filename.indexOf(extension, filename.length - extension.length) > 0) {
-            var source = fs.readFileSync(fullFilename, 'ascii');
-            try {
-                idl.parse(source);
-                assert.pass(filename);
-            } catch (err) {
-                assert.fail(filename);
+    var idls = {};
+    if (process.browser) {
+        idls = global.idls;
+    } else {
+        var extension = '.thrift';
+        var dirname = path.join(__dirname, 'thrift');
+        var filenames = fs.readdirSync(dirname);
+        for (var index = 0; index < filenames.length; index++) {
+            var filename = filenames[index];
+            var fullFilename = path.join(dirname, filename);
+            if (filename.indexOf(extension, filename.length - extension.length) > 0) {
+                idls[filename] = fs.readFileSync(fullFilename, 'ascii');
             }
+        }
+    }
+
+    var filenames = Object.keys(idls);
+    for (var i = 0; i < filenames.length; i++) {
+        var file = filenames[i];
+        try {
+            idl.parse(idls[file]);
+            assert.pass(file);
+        } catch (err) {
+            assert.fail(file);
         }
     }
     assert.end();
