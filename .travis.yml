@@ -12,4 +12,4 @@ dist: trusty
 addons:
   chrome: stable
 # Only run browser tests with node 8.
-script: IFS='.' read -r major _ <<< "$(node --version)" && if [ $BROWSER_TESTING == "false" ]; then npm run travis; else if [ $major = "v8" ]; then npm run test-browser; fi
+script: IFS='.' read -r major _ <<< "$(node --version)" && if [ $BROWSER_TESTING = "false" ]; then npm run travis; elif [ $major = "v8" ]; then npm run test-browser; fi
