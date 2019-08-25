@@ -21,9 +21,9 @@ autom4te.cache/
 # rather than maintain this manually
 node_modules/
 
-# Test build #
+# Browser builds #
 ##############
-browser/dist/test-bundle.js
+browser/dist/
 
 # Packages #
 ############
