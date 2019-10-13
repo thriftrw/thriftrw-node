@@ -26,30 +26,6 @@ var through = require('through2');
 var idl = require('../thrift-idl');
 var resolve = require('resolve');
 
-// This hack can be dropped if hexer is made a required dependency of bufrw, as discussed here :
-// https://github.com/uber/bufrw/pull/61 and here : https://github.com/uber/bufrw/issues/65
-// All that is needed is a new release to be published.
-function replaceHexer(b) {
-    // The latest bufrw release requires hexer if present.
-    // It uses require.resolve to check the presence, which is not replaced by browserify
-    // and crashes the frontend.
-    b.transform(function (file) {
-        var code;
-        if (path.parse(file).base == 'can-require.js') {
-            code = 'module.exports = function(name) { return false ; }';
-        }
-        return through(function (buf, enc, next) {
-            this.push(code ? code : buf);
-            next();
-        });
-    }, {global: true});
-
-    // bufrw still contains require('hexer') even if it won't be executed thanks
-    // to the above mock transformation, so we still need to allow require('hexer')
-    // not to crash when browserify tries to replace it.
-    b.ignore(['hexer', 'hexer/diff'])
-}
-
 // Setting browserField: false as an option in 'var b = browserify()' should prevent
 // browserify from using the 'browser' field from our package.json, which is only
 // meant to be used when users use this library to bundle their projects.
@@ -97,14 +73,12 @@ function buildTestBundle() {
         return brfs(file, {});
     });
 
-    replaceHexer(b);
     b.bundle().pipe(fs.createWriteStream(path.join('dist', 'test-bundle.js')));
 }
 
 function buildReleaseBundle() {
     var b = browserify(path.join('..', 'index.js'), {standalone: 'thriftrw'});
     fixBrowserifyBrowserField(b);
-    replaceHexer(b);
     b.bundle().pipe(process.stdout);
 }
 
