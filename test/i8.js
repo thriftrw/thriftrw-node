@@ -20,118 +20,122 @@
 
 'use strict';
 
-var test = require('tape');
-var testRW = require('bufrw/test_rw');
-var testThrift = require('./thrift-test');
-var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
-var path = require('path');
-var fs = require('fs');
+module.exports = function(loadThrift) {
 
-var thriftrw = require('../index');
-var Thrift = thriftrw.Thrift;
-var I8RW = thriftrw.I8RW;
-var ThriftI8 = thriftrw.ThriftI8;
-var TYPE = require('../TYPE');
+    var test = require('tape');
+    var testRW = require('bufrw/test_rw');
+    var testThrift = require('./thrift-test');
+    var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
+    var path = require('path');
+    var fs = require('fs');
 
-var Buffer = require('buffer').Buffer;
+    var thriftrw = require('../index');
+    var Thrift = thriftrw.Thrift;
+    var I8RW = thriftrw.I8RW;
+    var ThriftI8 = thriftrw.ThriftI8;
+    var TYPE = require('../TYPE');
 
-var validTestCases = [
-    [0x00, [0x00]], // min: 0
-    [0x7f, [0x7f]],  // max: 127
-    {
+    var Buffer = require('buffer').Buffer;
+
+    var validTestCases = [
+        [0x00, [0x00]], // min: 0
+        [0x7f, [0x7f]],  // max: 127
+        {
+            writeTest: {
+                value: '1',
+                bytes: [0x01]
+            }
+        },
+        {
+            writeTest: {
+                value: '0',
+                bytes: [0x00]
+            }
+        },
+        {
+            writeTest: {
+                value: 0xff,
+                bytes: [0xff],
+                error: {
+                    message: 'value 255 out of range, min: -128 max: 127',
+                    name: 'BufrwRangeErrorError',
+                    type: 'bufrw.range-error'
+                }
+            }
+        },
+    ];
+
+    var invalidArgumentTestCases = [
+        null,
+        undefined,
+        true,
+        false,
+        's',
+        'hello',
+        [],
+        {},
+        Buffer(1),
+        Buffer([0]),
+        Buffer('string')
+    ].map(invalidArgumentTestCase('number'));
+
+    var invalidShortBufferTestCases = [{
         writeTest: {
-            value: '1',
-            bytes: [0x01]
+            value: 0,
+            error: {
+                type: 'bufrw.short-buffer',
+                name: 'BufrwShortBufferError',
+                message: 'expected at least 1 bytes, only have 0 @0'
+            }
         }
-    },
-    {
+    }, {
+        readTest: {
+            bytes: [],
+            error: {
+                type: 'bufrw.short-read',
+                name: 'BufrwShortReadError',
+                message: 'short read, 0 byte left over after consuming 0'
+            }
+        },
         writeTest: {
-            value: '0',
-            bytes: [0x00]
-        }
-    },
-    {
+            bytes: [],
+            value: 0,
+            error: {
+                type: 'bufrw.short-buffer',
+                name: 'BufrwShortBufferError',
+                message: 'expected at least 1 bytes, only have 0 @0'
+            }
+        },
+    }];
+
+    var outOfRangeTestCases = [{
         writeTest: {
             value: 0xff,
             bytes: [0xff],
             error: {
-                message: 'value 255 out of range, min: -128 max: 127',
+                type: 'bufrw.range-error',
                 name: 'BufrwRangeErrorError',
-                type: 'bufrw.range-error'
+                message: 'value 255 out of range, min: -128 max: 127'
             }
         }
-    },
-];
+    }];
 
-var invalidArgumentTestCases = [
-    null,
-    undefined,
-    true,
-    false,
-    's',
-    'hello',
-    [],
-    {},
-    Buffer(1),
-    Buffer([0]),
-    Buffer('string')
-].map(invalidArgumentTestCase('number'));
+    var testCases = [].concat(
+        validTestCases,
+        invalidArgumentTestCases,
+        invalidShortBufferTestCases,
+        outOfRangeTestCases
+    );
 
-var invalidShortBufferTestCases = [{
-    writeTest: {
-        value: 0,
-        error: {
-            type: 'bufrw.short-buffer',
-            name: 'BufrwShortBufferError',
-            message: 'expected at least 1 bytes, only have 0 @0'
-        }
-    }
-}, {
-    readTest: {
-        bytes: [],
-        error: {
-            type: 'bufrw.short-read',
-            name: 'BufrwShortReadError',
-            message: 'short read, 0 byte left over after consuming 0'
-        }
-    },
-    writeTest: {
-        bytes: [],
-        value: 0,
-        error: {
-            type: 'bufrw.short-buffer',
-            name: 'BufrwShortBufferError',
-            message: 'expected at least 1 bytes, only have 0 @0'
-        }
-    },
-}];
+    test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
+    test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
 
-var outOfRangeTestCases = [{
-    writeTest: {
-        value: 0xff,
-        bytes: [0xff],
-        error: {
-            type: 'bufrw.range-error',
-            name: 'BufrwRangeErrorError',
-            message: 'value 255 out of range, min: -128 max: 127'
-        }
-    }
-}];
-
-var testCases = [].concat(
-    validTestCases,
-    invalidArgumentTestCases,
-    invalidShortBufferTestCases,
-    outOfRangeTestCases
-);
-
-test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
-test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
-
-test('Thrift i8 IDL', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
-    var thrift = new Thrift({source: source});
-    assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
-    assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
-    assert.end();
-});
+    test('Thrift i8 IDL', function t(assert) {
+        var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
+        loadThrift({source: source}, function (err, thrift) {
+            assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
+            assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
+            assert.end();
+        });
+    });
+}

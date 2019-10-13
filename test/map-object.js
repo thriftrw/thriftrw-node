@@ -20,111 +20,114 @@
 
 'use strict';
 
-var test = require('tape');
-var bufrw = require('bufrw');
-var testRW = require('bufrw/test_rw');
+module.exports = function(loadThrift) {
 
-var thriftrw = require('../index');
-var MapObjectRW = thriftrw.MapObjectRW;
+    var test = require('tape');
+    var bufrw = require('bufrw');
+    var testRW = require('bufrw/test_rw');
 
-var strType = {
-    name: 'string',
-    typeid: 1,
-    rw: bufrw.str1
-};
-var i16Type = {
-    name: 'i16',
-    typeid: 2,
-    rw: bufrw.Int16BE
-};
+    var thriftrw = require('../index');
+    var MapObjectRW = thriftrw.MapObjectRW;
 
-var strI16MapRW = new MapObjectRW(strType, i16Type);
-test('MapObjectRW: strI16MapRW', testRW.cases(strI16MapRW, [
-    [{}, [
-        0x01,                  // key_type:1 -- 99
-        0x02,                  // val_type:1 -- 98
-        0x00, 0x00, 0x00, 0x00 // length:4   -- 0
-    ]],
+    var strType = {
+        name: 'string',
+        typeid: 1,
+        rw: bufrw.str1
+    };
+    var i16Type = {
+        name: 'i16',
+        typeid: 2,
+        rw: bufrw.Int16BE
+    };
 
-    [{
-        'abc': 1,
-        'def': 2,
-        'ghi': 3
-    }, [
-        0x01,                   // key_type:1 -- 99
-        0x02,                   // val_type:1 -- 98
-        0x00, 0x00, 0x00, 0x03, // length:4   -- 3
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x61, 0x62, 0x63,       // chars      -- "abc"
-        0x00, 0x01,             // Int16BE    -- 1
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x64, 0x65, 0x66,       // chars      -- "def"
-        0x00, 0x02,             // Int16BE    -- 2
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x67, 0x68, 0x69,       // chars      -- "ghi"
-        0x00, 0x03              // Int16BE    -- 3
-    ]],
+    var strI16MapRW = new MapObjectRW(strType, i16Type);
+    test('MapObjectRW: strI16MapRW', testRW.cases(strI16MapRW, [
+        [{}, [
+            0x01,                  // key_type:1 -- 99
+            0x02,                  // val_type:1 -- 98
+            0x00, 0x00, 0x00, 0x00 // length:4   -- 0
+        ]],
 
-    {
-        readTest: {
-            bytes: [
-                0x09,                  // key_type:1 -- 99
-                0x02,                  // val_type:1 -- 98
-                0x00, 0x00, 0x00, 0x00 // length:4   -- 3
-            ],
-            error: {
-                type: 'thrift-map-key-typeid-mismatch',
-                name: 'ThriftMapKeyTypeidMismatchError',
-                message: 'encoded map key typeid 9 doesn\'t match expected ' +
-                         'type "string" (id: 1)'
+        [{
+            'abc': 1,
+            'def': 2,
+            'ghi': 3
+        }, [
+            0x01,                   // key_type:1 -- 99
+            0x02,                   // val_type:1 -- 98
+            0x00, 0x00, 0x00, 0x03, // length:4   -- 3
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x61, 0x62, 0x63,       // chars      -- "abc"
+            0x00, 0x01,             // Int16BE    -- 1
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x64, 0x65, 0x66,       // chars      -- "def"
+            0x00, 0x02,             // Int16BE    -- 2
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x67, 0x68, 0x69,       // chars      -- "ghi"
+            0x00, 0x03              // Int16BE    -- 3
+        ]],
+
+        {
+            readTest: {
+                bytes: [
+                    0x09,                  // key_type:1 -- 99
+                    0x02,                  // val_type:1 -- 98
+                    0x00, 0x00, 0x00, 0x00 // length:4   -- 3
+                ],
+                error: {
+                    type: 'thrift-map-key-typeid-mismatch',
+                    name: 'ThriftMapKeyTypeidMismatchError',
+                    message: 'encoded map key typeid 9 doesn\'t match expected ' +
+                             'type "string" (id: 1)'
+                }
+            }
+        },
+
+        {
+            readTest: {
+                bytes: [
+                    0x01,                  // key_type:1 -- 99
+                    0x09,                  // val_type:1 -- 98
+                    0x00, 0x00, 0x00, 0x00 // length:4   -- 3
+                ],
+                error: {
+                    type: 'thrift-map-val-typeid-mismatch',
+                    name: 'ThriftMapValTypeidMismatchError',
+                    message: 'encoded map value typeid 9 doesn\'t match expected ' +
+                             'type "i16" (id: 2)'
+                }
             }
         }
-    },
+    ]));
 
-    {
-        readTest: {
-            bytes: [
-                0x01,                  // key_type:1 -- 99
-                0x09,                  // val_type:1 -- 98
-                0x00, 0x00, 0x00, 0x00 // length:4   -- 3
-            ],
-            error: {
-                type: 'thrift-map-val-typeid-mismatch',
-                name: 'ThriftMapValTypeidMismatchError',
-                message: 'encoded map value typeid 9 doesn\'t match expected ' +
-                         'type "i16" (id: 2)'
-            }
-        }
-    }
-]));
-
-var strStrMapRW = new MapObjectRW(strType, strType);
-test('MapObjectRW: strStrMapRW', testRW.cases(strStrMapRW, [
-    [{
-        'abc': 'ABC',
-        'def': 'DEF',
-        'ghi': 'GHI'
-    }, [
-        0x01,                   // key_type:1 -- 99
-        0x01,                   // val_type:1 -- 98
-        0x00, 0x00, 0x00, 0x03, // length:4   -- 3
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x61, 0x62, 0x63,       // chars      -- "abc"
-        0x03,                   // str_len:4  -- 3
-        0x41, 0x42, 0x43,       // chars      -- "ABC"
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x64, 0x65, 0x66,       // chars      -- "def"
-        0x03,                   // str_len:4  -- 3
-        0x44, 0x45, 0x46,       // chars      -- "DEF"
-                                //            --
-        0x03,                   // str_len:4  -- 3
-        0x67, 0x68, 0x69,       // chars      -- "ghi"
-        0x03,                   // str_len:4  -- 3
-        0x47, 0x48, 0x49        // chars      -- "GHI"
-    ]]
-]));
+    var strStrMapRW = new MapObjectRW(strType, strType);
+    test('MapObjectRW: strStrMapRW', testRW.cases(strStrMapRW, [
+        [{
+            'abc': 'ABC',
+            'def': 'DEF',
+            'ghi': 'GHI'
+        }, [
+            0x01,                   // key_type:1 -- 99
+            0x01,                   // val_type:1 -- 98
+            0x00, 0x00, 0x00, 0x03, // length:4   -- 3
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x61, 0x62, 0x63,       // chars      -- "abc"
+            0x03,                   // str_len:4  -- 3
+            0x41, 0x42, 0x43,       // chars      -- "ABC"
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x64, 0x65, 0x66,       // chars      -- "def"
+            0x03,                   // str_len:4  -- 3
+            0x44, 0x45, 0x46,       // chars      -- "DEF"
+                                    //            --
+            0x03,                   // str_len:4  -- 3
+            0x67, 0x68, 0x69,       // chars      -- "ghi"
+            0x03,                   // str_len:4  -- 3
+            0x47, 0x48, 0x49        // chars      -- "GHI"
+        ]]
+    ]));
+}

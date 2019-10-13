@@ -20,37 +20,50 @@
 
 'use strict';
 
-var test = require('tape');
-var fs = require('fs');
-var path = require('path');
-var Thrift = require('../thrift').Thrift;
-var IDL = require('./thrift-idl');
+module.exports = function(loadThrift) {
 
-var allowFilesystemAccess = !process.browser;
-var idls;
-if (process.browser) {
-    idls = global.idls;
+    var test = require('tape');
+    var fs = require('fs');
+    var path = require('path');
+
+    var allowFilesystemAccess = !process.browser;
+    var idls;
+    if (process.browser) {
+        idls = global.idls;
+    }
+
+    test('can round trip a thrift file through sources', function t(assert) {
+        loadThrift({
+            entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
+            fs: fs,
+            allowFilesystemAccess: allowFilesystemAccess,
+            allowIncludeAlias: true,
+            idls: idls
+        }, function (err, thrift) {
+            var json = thrift.toJSON();
+            loadThrift({
+                entryPoint: json.entryPoint,
+                asts: json.asts,
+                allowIncludeAlias: true
+            }, function (err, rethrift) {
+                assert.deepEquals(
+                    Object.keys(rethrift.models),
+                    Object.keys(thrift.models),
+                    'all models survive round trip'
+                );
+                assert.end();
+            });
+        });
+    });
+
+    test('parse error is handled', function t(assert) {
+        loadThrift({source: '42'}, function (err, thrift) {
+            assert.throws(
+                function throws() { throw err; },
+                /SyntaxError/,
+                'throws on parsing error'
+            );
+            assert.end();
+        });
+    });
 }
-
-test('can round trip a thrift file through sources', function t(assert) {
-
-    var thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
-        fs: fs,
-        allowFilesystemAccess: allowFilesystemAccess,
-        allowIncludeAlias: true,
-        idls: idls
-    });
-
-    var json = thrift.toJSON();
-    var rethrift = new Thrift({
-        entryPoint: json.entryPoint,
-        asts: json.asts,
-        allowIncludeAlias: true
-    });
-
-    assert.deepEquals(Object.keys(rethrift.models), Object.keys(thrift.models), 'all models survive round trip');
-
-    assert.end();
-});
-
