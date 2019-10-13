@@ -713,6 +713,24 @@ timestamps.
 
 [TCurl]: https://github.com/uber/tcurl
 
+## Non filesystem and asynchronous source loading
+
+You can pass an object with a custom `load` function as the `fs` argument to `new Thrift()`. The function provided will be passed file names and must call the callback function with the source associated with the file name. You can pass a callback function as second argument to `new Thrift()`, it will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example :
+```javascript
+var request = require('request')
+var Thrift = require('thriftrw').Thrift
+
+function fetchSource(filename, cb) {
+  request('https://mysite.com/thrift/' + filename, function (err, res, body) {
+    cb(err, body)
+  });
+}
+
+new Thrift({fs: {load: fetchSource}}, function (err, thrift) {
+  console.log(err, thrift)
+})
+```
+
 ## Browser compatibility
 
 The `browser/dist/bundle.js` file is a browserify bundle of thriftrw compatible with browsers. If you `require('thriftrw')`
@@ -721,6 +739,7 @@ the bundle instead of the node library (e.g. browserify, webpack). If it doesn't
 
 The only thing that won't work in a browser is file system access. To go around this limitation, you have several aternatives :
 
+- Load sources using a custom function, which can be asynchronous. See [Non filesystem and asynchronous source loading](#non-filesystem-and-asynchronous-source-loading).
 - Use the `source` option as argument to `new Thrift()`
 - Set all required files in the `idls` option as argument to `new Thrift()`, requires `entryPoint` to be specified, and the `source` not to be specified
 - Pass an object with a custom `readFileSync` function as the `fs` argument to `new Thrift()`, requires `allowFilesystemAccess` to be falsy, and `source` or `entryPoint` to be specified
