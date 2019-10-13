@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,25 @@
 
 'use strict';
 
-var test = require('tape');
-var testRW = require('bufrw/test_rw');
-var testThrift = require('./thrift-test');
+module.exports = function(loadThrift) {
 
-var thriftrw = require('../index');
-var VoidRW = thriftrw.VoidRW;
-var ThriftVoid = thriftrw.ThriftVoid;
-var TYPE = require('../TYPE');
+    var test = require('tape');
+    var testRW = require('bufrw/test_rw');
+    var testThrift = require('./thrift-test');
 
-var validTestCases = [
-    [null, []]
-];
+    var thriftrw = require('../index');
+    var VoidRW = thriftrw.VoidRW;
+    var ThriftVoid = thriftrw.ThriftVoid;
+    var TYPE = require('../TYPE');
 
-var testCases = [].concat(
-    validTestCases
-);
+    var validTestCases = [
+        [null, []]
+    ];
 
-test('VoidRW', testRW.cases(VoidRW, testCases));
-test('ThriftVoid', testThrift(ThriftVoid, VoidRW, TYPE.VOID));
+    var testCases = [].concat(
+        validTestCases
+    );
+
+    test('VoidRW', testRW.cases(VoidRW, testCases));
+    test('ThriftVoid', testThrift(ThriftVoid, VoidRW, TYPE.VOID));
+}

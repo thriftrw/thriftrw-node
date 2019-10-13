@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,39 @@
 
 'use strict';
 
-var test = require('tape');
-var testRW = require('bufrw/test_rw');
-var testThrift = require('./thrift-test');
-var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
+module.exports = function(loadThrift) {
 
-var thriftrw = require('../index');
-var BooleanRW = thriftrw.BooleanRW;
-var ThriftBoolean = thriftrw.ThriftBoolean;
-var TYPE = require('../TYPE');
+    var test = require('tape');
+    var testRW = require('bufrw/test_rw');
+    var testThrift = require('./thrift-test');
+    var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
-var validTestCases = [
-    [false, [0x00]],
-    [true, [0x01]]
-];
+    var thriftrw = require('../index');
+    var BooleanRW = thriftrw.BooleanRW;
+    var ThriftBoolean = thriftrw.ThriftBoolean;
+    var TYPE = require('../TYPE');
 
-var invalidArgumentTestCases = [
-    null,
-    undefined,
-    1,
-    0x00,
-    0x01,
-    0x02,
-    [],
-    {}
-].map(invalidArgumentTestCase('boolean'));
+    var validTestCases = [
+        [false, [0x00]],
+        [true, [0x01]]
+    ];
 
-var testCases = [].concat(
-    validTestCases,
-    invalidArgumentTestCases
-);
+    var invalidArgumentTestCases = [
+        null,
+        undefined,
+        1,
+        0x00,
+        0x01,
+        0x02,
+        [],
+        {}
+    ].map(invalidArgumentTestCase('boolean'));
 
-test('BooleanRW', testRW.cases(BooleanRW, testCases));
-test('ThriftBoolean', testThrift(ThriftBoolean, BooleanRW, TYPE.BOOL));
+    var testCases = [].concat(
+        validTestCases,
+        invalidArgumentTestCases
+    );
+
+    test('BooleanRW', testRW.cases(BooleanRW, testCases));
+    test('ThriftBoolean', testThrift(ThriftBoolean, BooleanRW, TYPE.BOOL));
+}

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,40 +20,86 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
+var Thrift = require('../thrift').Thrift;
+var fs = require('fs');
+var path = require('path');
+
+var testFiles = [
+    require('./binary'),
+    require('./boolean'),
+    require('./double'),
+    require('./i8'),
+    require('./i16'),
+    require('./i32'),
+    require('./i64'),
+    require('./map-entries'),
+    require('./thrift-idl'),
+    require('./map-object'),
+    require('./string'),
+    require('./tlist'),
+    require('./tmap'),
+    require('./tstruct'),
+    require('./void'),
+    require('./skip'),
+    require('./struct'),
+    require('./struct-skip'),
+    require('./recursion'),
+    require('./exception'),
+    require('./union'),
+    require('./service'),
+    require('./thrift'),
+    require('./list'),
+    require('./set'),
+    require('./map'),
+    require('./typedef'),
+    require('./const'),
+    require('./default'),
+    require('./enum'),
+    require('./unrecognized-exception'),
+    require('./include.js'),
+    require('./type-mismatch'),
+    require('./lcp'),
+    require('./idls'),
+    require('./asts'),
+    require('./message')
+]
+
+function asyncLoader(filename, cb) {
+    var error;
+    var source;
+    if (process.browser) {
+        source = global.idls[filename];
+        if (!source) {
+            error = Error(filename + ': missing file');
+        }
+    } else {
+        try {
+            source = fs.readFileSync(path.resolve(filename), 'ascii');
+        } catch (err) {
+            error = err;
+        }
+    }
+    setTimeout(function () { cb(error, source); }, 10);
+}
+
+function loadThriftAsync(options, cb) {
+    if (options && (options.allowFilesystemAccess || options.fs)) {
+        delete options.allowFilesystemAccess;
+        options.fs = { load: asyncLoader };
+    }
+    new Thrift(options, cb);
+}
+
+function loadThriftSync(options, cb) {
+    new Thrift(options, cb);
+}
+
+// Run two passes: one with synchronous source loading, one with asynchronous loading.
+
+testFiles.forEach(function (testFile) {
+    testFile(loadThriftSync);
+});
+
+testFiles.forEach(function (testFile) {
+    testFile(loadThriftAsync);
+});

@@ -20,87 +20,86 @@
 
 'use strict';
 
-var test = require('tape');
+module.exports = function(loadThrift) {
 
-var Thrift = require('../thrift').Thrift;
-var fs = require('fs');
-var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
-var thrift = new Thrift({source: source, strict: false});
+    var test = require('tape');
 
-test('has args', function t(assert) {
-    assert.ok(thrift.getType('Foo::foo_args'), 'has args');
-    assert.ok(thrift.Foo.foo.args, 'has args exposed on service object');
-    assert.end();
-});
+    var fs = require('fs');
+    var path = require('path');
+    var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
+    loadThrift({source: source, strict: false}, function (err, thrift) {
+        test('has args', function t(assert) {
+            assert.ok(thrift.getType('Foo::foo_args'), 'has args');
+            assert.ok(thrift.Foo.foo.args, 'has args exposed on service object');
+            assert.end();
+        });
 
-test('void function has no success in result struct', function t(assert) {
-    var result = thrift.getType('Foo::bar_result');
-    assert.deepEqual(Object.keys(result.fieldsById), ['1'], 'only exception id');
-    assert.deepEquals(Object.keys(result.fieldsByName), ['barError'], 'only exception name');
-    assert.end();
-});
+        test('void function has no success in result struct', function t(assert) {
+            var result = thrift.getType('Foo::bar_result');
+            assert.deepEqual(Object.keys(result.fieldsById), ['1'], 'only exception id');
+            assert.deepEquals(Object.keys(result.fieldsByName), ['barError'], 'only exception name');
+            assert.end();
+        });
 
-test('non-void function has success in result struct', function t(assert) {
-    var result = thrift.getType('Foo::foo_result');
-    assert.deepEqual(Object.keys(result.fieldsById), ['0', '1'], 'success and error ids');
-    assert.deepEquals(Object.keys(result.fieldsByName), ['success', 'fail'], 'success and error field names');
-    assert.end();
-});
+        test('non-void function has success in result struct', function t(assert) {
+            var result = thrift.getType('Foo::foo_result');
+            assert.deepEqual(Object.keys(result.fieldsById), ['0', '1'], 'success and error ids');
+            assert.deepEquals(Object.keys(result.fieldsByName), ['success', 'fail'], 'success and error field names');
+            assert.end();
+        });
 
-test('returns base-type that is not void', function t(assert) {
-    var result = thrift.getType('Foo::returnsI32_result');
-    assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
-    assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
-    assert.end();
-});
+        test('returns base-type that is not void', function t(assert) {
+            var result = thrift.getType('Foo::returnsI32_result');
+            assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
+            assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
+            assert.end();
+        });
 
-test('returns non-base-type', function t(assert) {
-    var result = thrift.getType('Foo::returnsStruct_result');
-    assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
-    assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
-    assert.end();
-});
+        test('returns non-base-type', function t(assert) {
+            var result = thrift.getType('Foo::returnsStruct_result');
+            assert.deepEqual(Object.keys(result.fieldsById), ['0'], 'success id');
+            assert.deepEquals(Object.keys(result.fieldsByName), ['success'], 'success name');
+            assert.end();
+        });
 
-test('service extends from another service', function t(assert) {
-    assert.deepEqual(
-        Object.keys(thrift.Qux),
-        ['quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
-        'Service contains function from BaseService'
-    );
+        test('service extends from another service', function t(assert) {
+            assert.deepEqual(
+                Object.keys(thrift.Qux),
+                ['quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+                'Service contains function from BaseService'
+            );
 
-    assert.deepEqual(
-        Object.keys(thrift.Corge),
-        ['grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
-        'Service contains function from BaseService'
-    );
+            assert.deepEqual(
+                Object.keys(thrift.Corge),
+                ['grault', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+                'Service contains function from BaseService'
+            );
 
-    assert.deepEqual(
-        Object.keys(thrift.Garply),
-        ['waldo', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
-        'Service contains function from BaseService'
-    );
+            assert.deepEqual(
+                Object.keys(thrift.Garply),
+                ['waldo', 'quux', 'foo', 'bar', 'returnsI32', 'returnsStruct'],
+                'Service contains function from BaseService'
+            );
 
-    assert.equal(
-        thrift.Qux.foo,
-        thrift.Foo.foo,
-        'Function Qux.foo is the same as Foo.foo by reference'
-    );
+            assert.equal(
+                thrift.Qux.foo,
+                thrift.Foo.foo,
+                'Function Qux.foo is the same as Foo.foo by reference'
+            );
 
-    assert.end();
-});
+            assert.end();
+        });
 
-test('service extends throws on duplicate function name', function t(assert) {
-    assert.throws(
-        duplicateFunction,
-        /Foo.bar already inherited from baseService/,
-        'Service extends throws if function with same name already exists'
-    );
-
-    function duplicateFunction() {
-        var source = fs.readFileSync(path.join(__dirname, 'service-duplicate-function-error.thrift'), 'ascii');
-        return new Thrift({source: source});
-    }
-
-    assert.end();
-});
+        test('service extends throws on duplicate function name', function t(assert) {
+            var source = fs.readFileSync(path.join(__dirname, 'service-duplicate-function-error.thrift'), 'ascii');
+            loadThrift({source: source}, function (err, thrift) {
+                assert.throws(
+                    function throws() { throw err; },
+                     /Foo.bar already inherited from baseService/,
+                    'Service extends throws if function with same name already exists'
+                );
+                assert.end();
+            });
+        });
+    });
+}

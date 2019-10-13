@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,29 @@
 
 'use strict';
 
-var test = require('tape');
-var testRW = require('bufrw/test_rw');
-var Thrift = require('../thrift').Thrift;
+module.exports = function(loadThrift) {
 
-var thrift = new Thrift({source: 'union Foo { 1: i32 six, 2: i32 halfDozen }'});
+    var test = require('tape');
+    var testRW = require('bufrw/test_rw');
+    var Thrift = require('../thrift').Thrift;
 
-test('UnionRW', testRW.cases(thrift.Foo.rw, [
+   loadThrift({source: 'union Foo { 1: i32 six, 2: i32 halfDozen }'}, function (err, thrift) {
+        test('UnionRW', testRW.cases(thrift.Foo.rw, [
 
-    [new thrift.Foo({six: 6}), [
-        0x08,                      // type:1 -- 8 -- I32
-        0x00, 0x01,                // id:2   -- 1 -- six
-        0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
-        0x00                       // type:1 -- 0 -- stop
-    ]],
+            [new thrift.Foo({six: 6}), [
+                0x08,                      // type:1 -- 8 -- I32
+                0x00, 0x01,                // id:2   -- 1 -- six
+                0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
+                0x00                       // type:1 -- 0 -- stop
+            ]],
 
-    [new thrift.Foo({halfDozen: 6}), [
-        0x08,                      // type:1 -- 8 -- I32
-        0x00, 0x02,                // id:2   -- 1 -- halfDozen
-        0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
-        0x00                       // type:1 -- 0 -- stop
-    ]]
+            [new thrift.Foo({halfDozen: 6}), [
+                0x08,                      // type:1 -- 8 -- I32
+                0x00, 0x02,                // id:2   -- 1 -- halfDozen
+                0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
+                0x00                       // type:1 -- 0 -- stop
+            ]]
 
-]));
-
+        ]));
+    });
+}
