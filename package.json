@@ -17,6 +17,7 @@
     }
   ],
   "dependencies": {
+    "async": "^2.6.1",
     "bufrw": "^1.2.1",
     "error": "7.0.2",
     "long": "^2.4.0"
