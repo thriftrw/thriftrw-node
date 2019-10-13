@@ -59,26 +59,21 @@ var messageExceptionTypesDef = require('./message').exceptionTypesDef;
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options, loadedCb) {
-    // Catch assertion exceptions.
     try {
-        this._init(options, loadedCb);
+        assert(options, 'options required');
+        assert(typeof options === 'object', 'options must be object');
+        assert(options.source || options.entryPoint, 'opts.entryPoint required');
     } catch (err) {
-        if (loadedCb) {
-            return loadedCb(err, undefined);
-        } else {
-            throw err;
-        }
+        return this._exitOnError(loadedCb, err);
     }
-}
-
-Thrift.prototype._init = function _init(options, loadedCb) {
-    assert(options, 'options required');
-    assert(typeof options === 'object', 'options must be object');
-    assert(options.source || options.entryPoint, 'opts.entryPoint required');
 
     // Coerce weakly-deprecated single include usage
     if (options.source) {
-        assert(typeof options.source === 'string', 'source must be string');
+        try {
+            assert(typeof options.source === 'string', 'source must be string');
+        } catch (err) {
+            return this._exitOnError(loadedCb, err);
+        }
         options.entryPoint = 'service.thrift';
         options.idls = {'service.thrift': options.source};
     }
@@ -98,7 +93,7 @@ Thrift.prototype._init = function _init(options, loadedCb) {
     if (options.allowFilesystemAccess) {
         this.fs = fs;
     }
-    this.loader = (this.fs && this.fs.load) || this._syncFileLoader;
+    this.loader = (this.fs && this.fs.load) || this._syncFileLoader(this.fs);
 
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
@@ -142,26 +137,20 @@ Thrift.prototype._init = function _init(options, loadedCb) {
 
     var model = this;
     this._parse(this.filename, this.allowIncludeAlias, function (err) {
-        if (loadedCb) {
-            loadedCb(err, undefined);
-        } else {
-            throw err;
+        if (err) {
+            return model._exitOnError(loadedCb, err);
         }
 
         // Separate compile/link passes permits forward references and cyclic
         // references.
         try {
-            model.compile(source);
+            model.compile();
             // We only link from the root Thrift object.
             if (!options.noLink) {
                 model.link();
             }
         } catch (err) {
-            if (loadedCb) {
-                return loadedCb(err, undefined);
-            } else {
-                throw err;
-            }
+            return model._exitOnError(loadedCb, err);
         }
         if (loadedCb) {
             loadedCb(undefined, model);
@@ -173,18 +162,28 @@ Thrift.prototype.models = 'module';
 
 Thrift.prototype.Message = Message;
 
-Thrift.prototype._syncFileLoader = function _syncFileLoader(filename, cb) {
-    var source;
-    var error;
-    try {
-        /* eslint-disable max-len */
-        assert.ok(this.fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
-        /* eslint-enable max-len */
-        source = this.fs.readFileSync(path.resolve(filename), 'ascii');
-    } catch (err) {
-        error = err;
+Thrift.prototype._exitOnError = function _exitOnError(loadedCb, err) {
+    if (loadedCb) {
+        loadedCb(err, undefined);
+    } else {
+        throw err;
     }
-    cb(error, source);
+}
+
+Thrift.prototype._syncFileLoader = function _syncFileLoader(fs) { 
+    return function(filename, cb) {
+        var source;
+        var error;
+        try {
+            /* eslint-disable max-len */
+            assert.ok(fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
+            /* eslint-enable max-len */
+            source = fs.readFileSync(path.resolve(filename), 'ascii');
+        } catch (err) {
+            error = err;
+        }
+        cb(error, source);
+    };
 }
 
 Thrift.prototype._parse = function _parse(filename, allowIncludeAlias, cb) {
@@ -194,7 +193,11 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias, cb) {
     this.parsed[filename] = true;
 
     var model = this;
-    this.loader(filename, function (err, source) {
+    var loader = this.loader;
+    if (this.idls[filename] || this.asts[filename]) {
+        loader = function (_, cb) { cb(undefined, model.idls[filename]); };
+    }
+    loader(filename, function (err, source) {
         if (err) {
             return cb(err);
         }
@@ -215,18 +218,19 @@ Thrift.prototype._parseIncludedModules = function _parseIncludedModules(filename
     var model = this;
     var dirname = path.dirname(filename);
     async.eachOf(defs, function (def, _, callback) {
-        if (def.type === 'Include') {
-            if (def.id.lastIndexOf('/', 0) === 0) {
-                callback(Error('Include path string must not be an absolute path'));
-            }
-            try {
-                model._getNamespaceAndCheckIdentifier(def, allowIncludeAlias);
-            } catch (err) {
-                return callback(err);
-            }
-            var includeFilename = path.join(dirname, def.id);
-            model._parse(includeFilename, true, callback);
+        if (def.type !== 'Include') {
+            return callback(undefined);
         }
+        if (def.id.lastIndexOf('/', 0) === 0) {
+            return callback(Error('Include path string must not be an absolute path'));
+        }
+        try {
+            model._getNamespaceAndCheckIdentifier(def, allowIncludeAlias);
+        } catch (err) {
+            return callback(err);
+        }
+        var includeFilename = path.join(dirname, def.id);
+        model._parse(includeFilename, true, callback);
     }, cb);
 }
 
