@@ -715,7 +715,7 @@ timestamps.
 
 ## Non filesystem and asynchronous source loading
 
-You can pass an object with a custom `load` function as the `fs` argument to `new Thrift()`. The function provided will be passed file names and must call the callback function with the source associated with the file name. You can pass a callback function as second argument to `new Thrift()`, it will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example :
+You can use the alternative asynchronous constructor `Thrift.load()` to load sources from a custom asynchronous function. The function provided will be passed file names and must call the callback function with the source associated with the file name. The callback function provided as third argument to `Thrift.load` will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example :
 ```javascript
 var request = require('request')
 var Thrift = require('thriftrw').Thrift
@@ -726,7 +726,8 @@ function fetchSource(filename, cb) {
   });
 }
 
-new Thrift({fs: {load: fetchSource}}, function (err, thrift) {
+var options = {}
+Thrift.load(options, fetchSource, function (err, thrift) {
   console.log(err, thrift)
 })
 ```
