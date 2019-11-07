@@ -27,7 +27,6 @@ module.exports = function(loadThrift) {
     var fs = require('fs');
     var path = require('path');
     var test = require('tape');
-    var Thrift = require('../thrift').Thrift;
 
     var allowFilesystemAccess = !process.browser;
     var idls;
@@ -46,13 +45,27 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('thrift throws on error', function t(assert) {
-        assert.throws(
-            function throws() { new Thrift(null); },
-            /options required/,
-            'throws on error'
-        );
-        assert.end();
+    test('thrift ptions must be an object', function t(assert) {
+        loadThrift('not-an-object', function (err, thrift) {
+            assert.throws(
+                function throws() { throw err; },
+                /options must be object/,
+                'throws on options not an object'
+            );
+            assert.end();
+        });
+    });
+
+    test('Thrift.load must be passed a load function', function t(assert) {
+        var Thrift = require('../thrift').Thrift;
+        Thrift.load({}, null, function (err, thrift) {
+            assert.throws(
+                function throws() { throw err; },
+                /Thrift.load must be passed a 'load' function as second argument/,
+                'throws when calling Thrift.load without a load function'
+            );
+            assert.end();
+        });
     });
 
     test('thrift expects the source to be a string', function t(assert) {

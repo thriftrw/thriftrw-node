@@ -25,7 +25,6 @@ module.exports = function(loadThrift) {
     var test = require('tape');
 
     var Buffer = require('buffer').Buffer;
-    var Thrift = require('../thrift').Thrift;
     var fs = require('fs');
     var path = require('path');
     var source = fs.readFileSync(path.join(__dirname, 'struct.thrift'), 'ascii');

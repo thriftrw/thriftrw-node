@@ -61,10 +61,11 @@ var testFiles = [
     require('./lcp'),
     require('./idls'),
     require('./asts'),
-    require('./message')
+    require('./message'),
+    require('./async-each')
 ]
 
-function asyncLoader(filename, cb) {
+function asyncLoad(filename, cb) {
     var error;
     var source;
     if (process.browser) {
@@ -82,16 +83,30 @@ function asyncLoader(filename, cb) {
     setTimeout(function () { cb(error, source); }, 10);
 }
 
+function loadNotExpected(_, cb) {
+    cb(Error('Thrift must be constructed with a load function'))
+}
+
 function loadThriftAsync(options, cb) {
+    var load = loadNotExpected;
     if (options && (options.allowFilesystemAccess || options.fs)) {
-        delete options.allowFilesystemAccess;
-        options.fs = { load: asyncLoader };
+        load = asyncLoad;
     }
-    new Thrift(options, cb);
+    if (options) {
+        delete options.allowFilesystemAccess;
+    }
+    Thrift.load(options, load, cb);
 }
 
 function loadThriftSync(options, cb) {
-    new Thrift(options, cb);
+    var thrift;
+    var error;
+    try {
+        thrift = new Thrift(options);
+    } catch (err) {
+        error = err;
+    }
+    cb(error, thrift);
 }
 
 // Run two passes: one with synchronous source loading, one with asynchronous loading.

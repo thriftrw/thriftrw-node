@@ -24,7 +24,6 @@ module.exports = function(loadThrift) {
 
     var test = require('tape');
     var testRW = require('bufrw/test_rw');
-    var Thrift = require('../thrift').Thrift;
 
    loadThrift({source: 'union Foo { 1: i32 six, 2: i32 halfDozen }'}, function (err, thrift) {
         test('UnionRW', testRW.cases(thrift.Foo.rw, [

@@ -28,9 +28,9 @@ module.exports = function(loadThrift) {
     var test = require('tape');
     var testRW = require('bufrw/test_rw');
     var Literal = require('../ast').Literal;
-    var Thrift = require('../thrift').Thrift;
     var ThriftStruct = require('../struct').ThriftStruct;
     var ThriftBoolean = require('../boolean').ThriftBoolean;
+    var Thrift = require('../thrift').Thrift;
 
     var thriftHealth = new ThriftStruct();
 
