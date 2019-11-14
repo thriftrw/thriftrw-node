@@ -119,7 +119,7 @@ test('can get type error result from thrift', function t(assert) {
     var res = thrift.getTypeResult('Bogus');
     assert.ok(res.err, 'got error');
     if (!res.err) return assert.end();
-    assert.equal(res.err.message, 'type Bogus not found');
+    assert.equal(res.err.message, 'type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.');
     assert.end();
 });
 
@@ -128,7 +128,7 @@ test('can get type error from thrift', function t(assert) {
         thrift.getType('Bogus');
         assert.fail('error expected');
     } catch (err) {
-        assert.equal(err.message, 'type Bogus not found');
+        assert.equal(err.message, 'type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.');
     }
     assert.end();
 });
