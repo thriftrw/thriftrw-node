@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,18 @@ var test = require('tape');
 var Thrift = require('../thrift').Thrift;
 var path = require('path');
 
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
+
 test('loads a thrift file that imports synchronously', function t(assert) {
     var mainThrift = new Thrift({
         entryPoint: path.join(__dirname, 'include-parent.thrift'),
         allowIncludeAlias: true,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
     var importedThrift = mainThrift.modules.common;
 
@@ -86,7 +93,8 @@ test('include without explicitly defined namespace', function t(assert) {
             'include-filename-namespace.thrift'
         ),
         allowIncludeAlias: true,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
 
     assert.ok(thrift.modules.typedef,
@@ -101,7 +109,8 @@ test('cyclic dependencies', function t(assert) {
             'include-cyclic-a.thrift'
         ),
         allowIncludeAlias: true,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
 
     var thriftB = thriftA.B;
@@ -136,7 +145,8 @@ test('bad include - absolute paths', function t(assert) {
                 'include-absolute-filename.thrift'
             ),
             allowIncludeAlias: true,
-            allowFilesystemAccess: true
+            allowFilesystemAccess: allowFilesystemAccess,
+            idls: idls
         });
     }
 });
@@ -156,7 +166,8 @@ test('unknown thrift module name', function t(assert) {
                 'include-error-unknown-module.thrift'
             ),
             allowIncludeAlias: true,
-            allowFilesystemAccess: true
+            allowFilesystemAccess: allowFilesystemAccess,
+            idls: idls
         });
     }
 });
@@ -176,7 +187,8 @@ test('bad thrift module name', function t(assert) {
                 'include-error-invalid-filename-as-namespace.thrift'
             ),
             allowIncludeAlias: true,
-            allowFilesystemAccess: true
+            allowFilesystemAccess: allowFilesystemAccess,
+            idls: idls
         });
     }
 });
@@ -204,7 +216,8 @@ test('include non-relative filename', function t(assert) {
             'include-nonrelative-filename.thrift'
         ),
         allowIncludeAlias: true,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
 
     assert.ok(thrift.modules.typedef,
@@ -219,7 +232,8 @@ test('include non-relative filename with alias', function t(assert) {
             'include-nonrelative-alias.thrift'
         ),
         allowIncludeAlias: true,
-        allowFilesystemAccess: true
+        allowFilesystemAccess: allowFilesystemAccess,
+        idls: idls
     });
 
     assert.ok(thrift.modules.common.typedefs,

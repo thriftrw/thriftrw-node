@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -98,13 +98,8 @@ test('service extends throws on duplicate function name', function t(assert) {
     );
 
     function duplicateFunction() {
-        var thriftFilePath = path.join(
-            __dirname,
-            'service-duplicate-function-error.thrift'
-        );
-        return new Thrift({
-            source: fs.readFileSync(thriftFilePath, 'ascii')
-        });
+        var source = fs.readFileSync(path.join(__dirname, 'service-duplicate-function-error.thrift'), 'ascii');
+        return new Thrift({source: source});
     }
 
     assert.end();

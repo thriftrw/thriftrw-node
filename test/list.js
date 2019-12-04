@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,12 +24,11 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var path = require('path');
 var fs = require('fs');
+var path = require('path');
 var Thrift = require('../thrift').Thrift;
 
-var thrift = new Thrift({
-    entryPoint: path.join(__dirname, 'list.thrift'),
-    fs: fs
-});
+var source = fs.readFileSync(path.join(__dirname, 'list.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
 var byteList = thrift.models.ListOfI8;
 var stringList = thrift.models.ListOfString;

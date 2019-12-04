@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ var testRW = require('bufrw/test_rw');
 var testThrift = require('./thrift-test');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 var path = require('path');
+var fs = require('fs');
 
 var thriftrw = require('../index');
 var Thrift = thriftrw.Thrift;
@@ -110,10 +111,8 @@ test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
 test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
 
 test('Thrift i8 IDL', function t(assert) {
-    var thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'i8.thrift'),
-        allowFilesystemAccess: true
-    });
+    var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
+    var thrift = new Thrift({source: source});
     assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
     assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
     assert.end();

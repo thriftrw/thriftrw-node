@@ -4,6 +4,7 @@ instrumentation:
         - benchmarks/**
         - thrift-idl.js
         - thrift2json.js
+        - browser/**
 check:
     global:
         statements: 100

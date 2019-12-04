@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,7 @@ var fs = require('fs');
 var ThriftMap = require('../map').ThriftMap;
 var Thrift = require('../thrift').Thrift;
 
-var filename = path.join(__dirname, 'map.thrift');
-var source = fs.readFileSync(filename, 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'map.thrift'), 'ascii');
 var thrift = new Thrift({source: source});
 
 var strI16Map = thrift.models.Graph.fieldsByName.stringsToI16s.valueType;
