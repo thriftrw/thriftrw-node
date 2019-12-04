@@ -152,10 +152,10 @@ Thrift.prototype.getType = function getType(name) {
     return this.getTypeResult(name).toValue();
 };
 
-Thrift.prototype.getTypeResult = function getType(name) {
+Thrift.prototype.getTypeResult = function getTypeResult(name) {
     var model = this.models[name];
     if (!model || model.models !== 'type') {
-        return new Result(new Error(util.format('type %s not found', name)));
+        return new Result(new Error(util.format('type %s not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.', name)));
     }
     return new Result(null, model.link(this));
 };
