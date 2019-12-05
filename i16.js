@@ -37,7 +37,10 @@ I16RW.prototype.min = -0x7fff - 1;
 I16RW.prototype.max = 0x7fff;
 
 I16RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
-    var value = buffer.readInt16BE(offset, true);
+    var value;
+    if (buffer.length >= offset + this.width) {
+        value = buffer.readInt16BE(offset);
+    }
     return result.reset(null, offset + this.width, value);
 };
 
