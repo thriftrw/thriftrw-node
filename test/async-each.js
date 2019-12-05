@@ -32,11 +32,12 @@ module.exports = function(loadThrift) {
             cb('error')
         }
 
-        asyncEach([1, 2, 3], asyncEachTest.handle, function (err) {
+        asyncEach([1, 2, 3], errorHandle, function (err) {
             assert.ok(err, 'Expected an error')
         });
 
         assert.equal(nbTimesCalled, 1, 'errorHandle should have been called once');
+        assert.end();
     })
 
     function mockHandle(elt, cb) {

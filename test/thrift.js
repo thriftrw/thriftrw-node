@@ -204,7 +204,9 @@ module.exports = function(loadThrift) {
             var res = thrift.getTypeResult('Bogus');
             assert.ok(res.err, 'got error');
             if (!res.err) return assert.end();
+            /* eslint-disable max-len */
             assert.equal(res.err.message, 'type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.');
+            /* eslint-enable max-len */
             assert.end();
         });
     });
@@ -214,7 +216,9 @@ module.exports = function(loadThrift) {
         loadThrift({source: source}, function (err, thrift) {
             assert.throws(
                 function throws() { thrift.getType('Bogus'); },
+                /* eslint-disable max-len */
                 /type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service./,
+                /* eslint-enable max-len */
                 'getType fails when type not found'
             );
             assert.end();
