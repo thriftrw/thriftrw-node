@@ -44,7 +44,7 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('thrift ptions must be an object', function t(assert) {
+    test('thrift options must be an object', function t(assert) {
         loadThrift('not-an-object', function (err, thrift) {
             assert.throws(
                 function throws() { throw err; },
@@ -204,7 +204,7 @@ module.exports = function(loadThrift) {
             var res = thrift.getTypeResult('Bogus');
             assert.ok(res.err, 'got error');
             if (!res.err) return assert.end();
-            assert.equal(res.err.message, 'type Bogus not found');
+            assert.equal(res.err.message, 'type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.');
             assert.end();
         });
     });
@@ -214,7 +214,7 @@ module.exports = function(loadThrift) {
         loadThrift({source: source}, function (err, thrift) {
             assert.throws(
                 function throws() { thrift.getType('Bogus'); },
-                /type Bogus not found/,
+                /type Bogus not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service./,
                 'getType fails when type not found'
             );
             assert.end();

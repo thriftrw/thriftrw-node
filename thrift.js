@@ -62,7 +62,7 @@ function Thrift(options) {
     this._init(options);
 
     if (this.asyncLoad) {
-        return ;
+        return;
     }
 
     this._parse(this.filename, this.allowIncludeAlias);
@@ -219,7 +219,7 @@ Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModule
 
 Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
     if (this.parsed[filename]) {
-        return ;
+        return;
     }
     this.parsed[filename] = true;
 
@@ -240,7 +240,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
         if (def.type !== 'Include') {
-            continue ;
+            continue;
         }
         var includeFilename = path.join(dirname, def.id);
         this._parse(includeFilename, true);
@@ -251,7 +251,7 @@ Thrift.prototype._checkIncludedModules = function _checkIncludedModules(dirname,
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
         if (def.type !== 'Include') {
-            continue ;
+            continue;
         }
         if (def.id.lastIndexOf('/', 0) === 0) {
             throw Error('Include path string must not be an absolute path');
@@ -287,10 +287,10 @@ Thrift.prototype.getType = function getType(name) {
     return this.getTypeResult(name).toValue();
 };
 
-Thrift.prototype.getTypeResult = function getType(name) {
+Thrift.prototype.getTypeResult = function getTypeResult(name) {
     var model = this.models[name];
     if (!model || model.models !== 'type') {
-        return new Result(new Error(util.format('type %s not found', name)));
+        return new Result(new Error(util.format('type %s not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.', name)));
     }
     return new Result(null, model.link(this));
 };
