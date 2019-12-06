@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 /* global Buffer */
+/* eslint-disable max-len */
 'use strict';
 
 var fs = require('fs');

@@ -155,7 +155,9 @@ Thrift.prototype.getType = function getType(name) {
 Thrift.prototype.getTypeResult = function getTypeResult(name) {
     var model = this.models[name];
     if (!model || model.models !== 'type') {
+        /* eslint-disable max-len */
         return new Result(new Error(util.format('type %s not found. Make sure that the service name matches a service in the thrift file and that the method name is nested under that service.', name)));
+        /* eslint-enable max-len */
     }
     return new Result(null, model.link(this));
 };

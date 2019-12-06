@@ -28,7 +28,7 @@
     "coveralls": "^2.10.0",
     "debug": "^2.1.2",
     "derequire": "^2.0.6",
-    "eslint": "^6.6.0",
+    "eslint": "^2.13.1",
     "fast-stats": "0.0.3",
     "faucet": "0.0.1",
     "istanbul": "^0.3.5",
@@ -65,7 +65,7 @@
     "test": "npm run check-ls -s && npm run build-parser -s && npm run lint -s && npm run cover -s",
     "test-browser": "npm run build-browser && cd browser && karma start",
     "trace": "itape test/index.js --trace",
-    "travis": "npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
+    "travis": "eslint . && npm run cover -s && istanbul report lcov && ((cat coverage/lcov.info | coveralls) || exit 0)",
     "view-cover": "opn ./coverage/index.html"
   },
   "browser": "./browser/dist/bundle.js",
