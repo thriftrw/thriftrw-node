@@ -728,7 +728,7 @@ function fetchSource(filename, cb) {
 }
 
 var options = {fs: {load: fetchSource}}
-Thrift.load(options, fetchSource, function (err, thrift) {
+Thrift.load(options, function (err, thrift) {
   console.log(err, thrift)
 })
 ```
