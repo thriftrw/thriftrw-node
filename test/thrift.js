@@ -58,10 +58,10 @@ module.exports = function(loadThrift) {
 
     test('Thrift.load : options.fs.load or load required', function t(assert) {
         var Thrift = require('../thrift').Thrift;
-        Thrift.load({}, null, function (err, thrift) {
+        Thrift.load({}, function (err, thrift) {
             assert.throws(
                 function throws() { throw err; },
-                /options.fs.load or load required/,
+                /options.fs.load required/,
                 'throws when calling Thrift.load without options.fs or a load function'
             );
             assert.end();
