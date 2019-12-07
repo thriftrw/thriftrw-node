@@ -89,13 +89,15 @@ function loadNotExpected(_, cb) {
 
 function loadThriftAsync(options, cb) {
     var load = loadNotExpected;
-    if (options && (options.allowFilesystemAccess || options.fs)) {
-        load = asyncLoad;
-    }
-    if (options) {
+    if (options && typeof options === 'object')
+    {
+        if (options.allowFilesystemAccess || options.fs) {
+            load = asyncLoad;
+        }
+        options.fs = {load: load};
         delete options.allowFilesystemAccess;
     }
-    Thrift.load(options, load, cb);
+    Thrift.load(options, cb);
 }
 
 function loadThriftSync(options, cb) {
