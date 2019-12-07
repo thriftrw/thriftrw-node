@@ -61,7 +61,7 @@ var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 function Thrift(options) {
     this._init(options);
 
-    if (this.asyncLoad) {
+    if (this.asyncReadFile) {
         return;
     }
 
@@ -75,9 +75,10 @@ Thrift.load = function load(options, cb) {
         return cb(Error('options required'));
     } else if (typeof options !== 'object') {
         return cb(Error('options must be object'));
-    } else if (!options.fs || !options.fs.load) {
-        return cb(Error('options.fs.load required'));
+    } else if (!options.fs || !options.fs.readFile) {
+        return cb(Error('options.fs.readFile required'));
     }
+    options.asyncReadFile = true;
     var thrift;
     try {
         thrift = new Thrift(options);
@@ -124,7 +125,7 @@ Thrift.prototype._init = function _init(options) {
     if (options.allowFilesystemAccess) {
         this.fs = fs;
     }
-    this.asyncLoad = !!(this.fs && this.fs.load);
+    this.asyncReadFile = options.asyncReadFile || false;
 
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
@@ -183,7 +184,7 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
         return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
     }
 
-    model.fs.load(filename, function (err, source) {
+    model.fs.readFile(filename, function (err, source) {
         if (err) {
             return cb(err);
         }
