@@ -56,13 +56,13 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('Thrift.load : options.fs.load or load required', function t(assert) {
+    test('Thrift.load : options.fs.readFile required', function t(assert) {
         var Thrift = require('../thrift').Thrift;
         Thrift.load({}, function (err, thrift) {
             assert.throws(
                 function throws() { throw err; },
-                /options.fs.load required/,
-                'throws when calling Thrift.load without options.fs or a load function'
+                /options.fs.readFile required/,
+                'throws when calling Thrift.load without options.fs.readFile'
             );
             assert.end();
         });

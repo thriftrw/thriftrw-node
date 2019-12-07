@@ -65,7 +65,7 @@ var testFiles = [
     require('./async-each')
 ]
 
-function asyncLoad(filename, cb) {
+function asyncReadFile(filename, cb) {
     var error;
     var source;
     if (process.browser) {
@@ -83,18 +83,18 @@ function asyncLoad(filename, cb) {
     setTimeout(function () { cb(error, source); }, 10);
 }
 
-function loadNotExpected(_, cb) {
-    cb(Error('Thrift must be constructed with a load function'))
+function readFileNotExpected(_, cb) {
+    cb(Error('Thrift must be constructed with options.fs.readFile'))
 }
 
 function loadThriftAsync(options, cb) {
-    var load = loadNotExpected;
     if (options && typeof options === 'object')
     {
+        var readFile = readFileNotExpected;
         if (options.allowFilesystemAccess || options.fs) {
-            load = asyncLoad;
+            readFile = asyncReadFile;
         }
-        options.fs = {load: load};
+        options.fs = {readFile: readFile};
         delete options.allowFilesystemAccess;
     }
     Thrift.load(options, cb);
