@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,14 @@ I8RW.prototype.min = -0x7f - 1;
 I8RW.prototype.max = 0x7f;
 
 I8RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
+    var remain = buffer.length - offset;
+    if (remain < this.width) {
+        return result.reset(ebufrw.ShortRead({
+            remaining: remain,
+            buffer: buffer,
+            offset: offset,
+        }), offset);
+    }
     var value = buffer[offset];
     return result.reset(null, offset + this.width, value);
 };

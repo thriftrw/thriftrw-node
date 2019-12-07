@@ -36,6 +36,7 @@ module.exports = function(loadThrift) {
     loadThrift({
         source: fs.readFileSync(path.join(__dirname, 'i64.thrift'), 'ascii')
     }, function (err, thrift) {
+
         var bufferRW = thrift.getType('bufnum').rw;
         var longRW = thrift.getType('long').rw;
         var dateRW = thrift.getType('timestamp').rw;
@@ -43,7 +44,26 @@ module.exports = function(loadThrift) {
         var bufferCases = [
             [
                 Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
-                [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
+                [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
+                {
+                    readTest: {
+                        bytes: [],
+                        error: {
+                            type: 'bufrw.short-read',
+                            name: 'BufrwShortReadError',
+                            message: 'short read, 0 byte left over after consuming 0'
+                        },
+                    },
+                    writeTest: {
+                        bytes: [],
+                        value: 0,
+                        error: {
+                            type: 'bufrw.short-buffer',
+                            name: 'BufrwShortBufferError',
+                            message: 'expected at least 8 bytes, only have 0 @0'
+                        }
+                    },
+                },
             ]
         ];
 
@@ -52,7 +72,39 @@ module.exports = function(loadThrift) {
         var longCases = [
             [
                 Long.fromNumber(Math.pow(2, 53) - 1),
-                [0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+                [0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+                {
+                    readTest: {
+                        bytes: [],
+                        error: {
+                            type: 'bufrw.short-read',
+                            name: 'BufrwShortReadError',
+                            message: 'short read, 0 byte left over after consuming 0'
+                        },
+                    },
+                },
+                {
+                    writeTest: {
+                        bytes: [],
+                        value: 0,
+                        error: {
+                            type: 'bufrw.short-buffer',
+                            name: 'BufrwShortBufferError',
+                            message: 'expected at least 8 bytes, only have 0 @0'
+                        }
+                    },
+                },
+                {
+                    writeTest: {
+                        bytes: [],
+                        value: {hi: 0, lo: 0},
+                        error: {
+                            type: 'bufrw.short-buffer',
+                            name: 'BufrwShortBufferError',
+                            message: 'expected at least 8 bytes, only have 0 @0'
+                        }
+                    },
+                },
             ]
         ];
 
@@ -79,7 +131,28 @@ module.exports = function(loadThrift) {
             [
                 new Date(1000),
                 [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0xe8]
-            ]
+            ],
+            {
+                readTest: {
+                    bytes: [],
+                    error: {
+                        type: 'bufrw.short-read',
+                        name: 'BufrwShortReadError',
+                        message: 'short read, 0 byte left over after consuming 0'
+                    },
+                },
+            },
+            {
+                writeTest: {
+                    bytes: [],
+                    value: new Date(),
+                    error: {
+                        type: 'bufrw.short-buffer',
+                        name: 'BufrwShortBufferError',
+                        message: 'expected at least 8 bytes, only have 0 @0'
+                    }
+                },
+            },
         ];
 
         test('I64DateRW', testRW.cases(dateRW, dateCases));
@@ -227,5 +300,7 @@ module.exports = function(loadThrift) {
         });
 
         test('ThriftI64', testThrift(ThriftI64, bufferRW, TYPE.I64));
+
     });
+
 }

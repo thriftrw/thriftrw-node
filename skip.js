@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -45,8 +45,6 @@ skipVar[TYPE.SET] = skipList;
 skipVar[TYPE.LIST] = skipList;
 
 function skipField(destResult, buffer, offset) {
-
-    // istanbul ignore if
     if (offset + 1 > buffer.length) {
         return destResult.reset(bufrwErrors.ShortBuffer({
             expected: offset + 1,
@@ -56,7 +54,7 @@ function skipField(destResult, buffer, offset) {
         }), offset);
     }
 
-    var typeid = buffer.readInt8(offset, true);
+    var typeid = buffer.readInt8(offset);
     offset += 1;
 
     return skipType(destResult, buffer, offset, typeid);
@@ -109,7 +107,7 @@ function skipStruct(destResult, buffer, offset) {
                 offset: offset
             }), offset);
         }
-        var typeid = buffer.readInt8(offset, true);
+        var typeid = buffer.readInt8(offset);
         offset += 1;
 
         if (typeid === TYPE.STOP) {
@@ -149,7 +147,7 @@ function skipString(destResult, buffer, offset) {
         }), offset);
     }
 
-    var length = buffer.readInt32BE(offset, true);
+    var length = buffer.readInt32BE(offset);
     offset += 4;
 
     // istanbul ignore if

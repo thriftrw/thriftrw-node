@@ -177,3 +177,11 @@ module.exports = function(loadThrift) {
         };
     }
 }
+
+test('skip short buffer', function t(assert) {
+    var bytes = [];
+    var res = new ReadResult();
+    var result = skip(res, new Buffer(bytes), 0);
+    assert.ok(result.err !== null);
+    assert.end();
+});

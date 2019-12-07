@@ -19,6 +19,7 @@
 // THE SOFTWARE.
 
 /* global Buffer */
+/* eslint-disable max-len */
 'use strict';
 
 module.exports = function(loadThrift) {

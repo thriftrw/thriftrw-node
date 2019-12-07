@@ -54,8 +54,18 @@ module.exports = function(loadThrift) {
             readTest: {
                 bytes: [],
                 error: {
-                    // message: 'short read, 4 bytes needed after consuming 0'
-                    // TODO validate message (currently incorrect)
+                    message: 'short read, 0 byte left over after consuming 0',
+                    name: 'BufrwShortReadError',
+                    type: 'bufrw.short-read'
+                }
+            }
+        },
+      
+        {
+            readTest: {
+                bytes: [0, 0, 0],
+                error: {
+                    message: 'short read, 3 byte left over after consuming 0',
                     name: 'BufrwShortReadError',
                     type: 'bufrw.short-read'
                 }
