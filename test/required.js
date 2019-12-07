@@ -20,26 +20,29 @@
 
 'use strict';
 
-var test = require('tape');
+module.exports = function(loadThrift) {
 
-var Spec = require('../spec');
+    var test = require('tape');
 
-test('all fields must be marked required or optional', function t(assert) {
-    try {
-        // capturing spec to appease the linter
-        var spec = new Spec({source: 'struct Foo { 0: i32 number }'});
-        assert.ok(!spec, 'should not get here');
-    } catch (err) {
-        assert.equal(err.message, 'every field must be optional or required: Foo');
-    }
-    assert.end();
-});
+    var Spec = require('../spec');
 
-test('all arguments must be marked required', function t(assert) {
-    assert.throws(function throwSpec() {
-        // capturing spec to appease the linter
-        var spec = new Spec({source: 'service Foo { void foo(0: optional string name) }'});
-        assert.ok(!spec, 'should not get here');
-    }, 'all fields must be marked required on: foo');
-    assert.end();
-});
+    test('all fields must be marked required or optional', function t(assert) {
+        try {
+            // capturing spec to appease the linter
+            var spec = new Spec({source: 'struct Foo { 0: i32 number }'});
+            assert.ok(!spec, 'should not get here');
+        } catch (err) {
+            assert.equal(err.message, 'every field must be optional or required: Foo');
+        }
+        assert.end();
+    });
+
+    test('all arguments must be marked required', function t(assert) {
+        assert.throws(function throwSpec() {
+            // capturing spec to appease the linter
+            var spec = new Spec({source: 'service Foo { void foo(0: optional string name) }'});
+            assert.ok(!spec, 'should not get here');
+        }, 'all fields must be marked required on: foo');
+        assert.end();
+    });
+}
