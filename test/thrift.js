@@ -55,13 +55,13 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('Thrift.load must be passed a load function', function t(assert) {
+    test('Thrift.load : options.fs.load or load required', function t(assert) {
         var Thrift = require('../thrift').Thrift;
         Thrift.load({}, null, function (err, thrift) {
             assert.throws(
                 function throws() { throw err; },
-                /Thrift.load must be passed a 'load' function as second argument/,
-                'throws when calling Thrift.load without a load function'
+                /options.fs.load or load required/,
+                'throws when calling Thrift.load without options.fs or a load function'
             );
             assert.end();
         });
