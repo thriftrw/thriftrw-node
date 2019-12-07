@@ -70,16 +70,13 @@ function Thrift(options) {
 }
 
 // Alternative constructor allowing for asynchronous source loading.
-Thrift.load = function load(options, load, cb) {
+Thrift.load = function load(options, cb) {
     if (!options) {
         return cb(Error('options required'));
     } else if (typeof options !== 'object') {
         return cb(Error('options must be object'));
-    }
-    options.fs = options.fs || {};
-    options.fs.load = options.fs.load || load;
-    if (!options.fs.load) {
-        return cb(Error('options.fs.load or load required'));
+    } else if (!options.fs || !options.fs.load) {
+        return cb(Error('options.fs.load required'));
     }
     var thrift;
     try {
