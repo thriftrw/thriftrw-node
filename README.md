@@ -715,7 +715,8 @@ timestamps.
 
 ## Non filesystem and asynchronous source loading
 
-You can use the alternative asynchronous constructor `Thrift.load()` to load sources from a custom asynchronous function. The function provided will be passed file names and must call the callback function with the source associated with the file name. The callback function provided as third argument to `Thrift.load` will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example :
+You can use the alternative asynchronous constructor `Thrift.load()` to load sources from a custom asynchronous function. The function provided will be passed file names and must call the callback function with the source associated with the file name. The callback function provided as third argument to `Thrift.load` will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example:
+
 ```javascript
 var request = require('request')
 var Thrift = require('thriftrw').Thrift
@@ -738,7 +739,7 @@ The `browser/dist/bundle.js` file is a browserify bundle of thriftrw compatible 
 in the context of a browser build, your build tool will likely use the `browser` field in `package.json` and use
 the bundle instead of the node library (e.g. browserify, webpack). If it doesn't, you can probably make it do so.
 
-The only thing that won't work in a browser is file system access. To go around this limitation, you have several aternatives :
+The only thing that won't work in a browser is file system access. To go around this limitation, you have several aternatives:
 
 - Load sources using a custom function, which can be asynchronous. See [Non filesystem and asynchronous source loading](#non-filesystem-and-asynchronous-source-loading).
 - Use the `source` option as argument to `new Thrift()`

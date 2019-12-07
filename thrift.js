@@ -75,10 +75,12 @@ Thrift.load = function load(options, load, cb) {
         return cb(Error('options required'));
     } else if (typeof options !== 'object') {
         return cb(Error('options must be object'));
-    } else if (!load) {
-        return cb(Error("Thrift.load must be passed a 'load' function as second argument"));
     }
-    options.fs = {load: load};
+    options.fs = options.fs || {};
+    options.fs.load = options.fs.load || load;
+    if (!options.fs.load) {
+        return cb(Error('options.fs.load or load required'));
+    }
     var thrift;
     try {
         thrift = new Thrift(options);
