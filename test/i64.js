@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,26 @@ var dateRW = thrift.getType('timestamp').rw;
 var bufferCases = [
     [
         Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
-        [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]
+        [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
+        {
+            readTest: {
+                bytes: [],
+                error: {
+                    type: 'bufrw.short-read',
+                    name: 'BufrwShortReadError',
+                    message: 'short read, 0 byte left over after consuming 0'
+                },
+            },
+            writeTest: {
+                bytes: [],
+                value: 0,
+                error: {
+                    type: 'bufrw.short-buffer',
+                    name: 'BufrwShortBufferError',
+                    message: 'expected at least 8 bytes, only have 0 @0'
+                }
+            },
+        },
     ]
 ];
 
@@ -51,7 +70,39 @@ test('I64BufferRW', testRW.cases(bufferRW, bufferCases));
 var longCases = [
     [
         Long.fromNumber(Math.pow(2, 53) - 1),
-        [0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]
+        [0x00, 0x1f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff],
+        {
+            readTest: {
+                bytes: [],
+                error: {
+                    type: 'bufrw.short-read',
+                    name: 'BufrwShortReadError',
+                    message: 'short read, 0 byte left over after consuming 0'
+                },
+            },
+        },
+        {
+            writeTest: {
+                bytes: [],
+                value: 0,
+                error: {
+                    type: 'bufrw.short-buffer',
+                    name: 'BufrwShortBufferError',
+                    message: 'expected at least 8 bytes, only have 0 @0'
+                }
+            },
+        },
+        {
+            writeTest: {
+                bytes: [],
+                value: {hi: 0, lo: 0},
+                error: {
+                    type: 'bufrw.short-buffer',
+                    name: 'BufrwShortBufferError',
+                    message: 'expected at least 8 bytes, only have 0 @0'
+                }
+            },
+        },
     ]
 ];
 
@@ -78,7 +129,28 @@ var dateCases = [
     [
         new Date(1000),
         [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x03, 0xe8]
-    ]
+    ],
+    {
+        readTest: {
+            bytes: [],
+            error: {
+                type: 'bufrw.short-read',
+                name: 'BufrwShortReadError',
+                message: 'short read, 0 byte left over after consuming 0'
+            },
+        },
+    },
+    {
+        writeTest: {
+            bytes: [],
+            value: new Date(),
+            error: {
+                type: 'bufrw.short-buffer',
+                name: 'BufrwShortBufferError',
+                message: 'expected at least 8 bytes, only have 0 @0'
+            }
+        },
+    },
 ];
 
 test('I64DateRW', testRW.cases(dateRW, dateCases));

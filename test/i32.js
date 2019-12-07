@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -52,13 +52,24 @@ var testCases = [
         readTest: {
             bytes: [],
             error: {
-                // message: 'short read, 4 bytes needed after consuming 0'
-                // TODO validate message (currently incorrect)
+                message: 'short read, 0 byte left over after consuming 0',
                 name: 'BufrwShortReadError',
                 type: 'bufrw.short-read'
             }
         }
     },
+
+    {
+        readTest: {
+            bytes: [0, 0, 0],
+            error: {
+                message: 'short read, 3 byte left over after consuming 0',
+                name: 'BufrwShortReadError',
+                type: 'bufrw.short-read'
+            }
+        }
+    },
+
 
     {
         writeTest: {

@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -174,3 +174,11 @@ function createCase(bytes) {
         assert.end();
     };
 }
+
+test('skip short buffer', function t(assert) {
+    var bytes = [];
+    var res = new ReadResult();
+    var result = skip(res, new Buffer(bytes), 0);
+    assert.ok(result.err !== null);
+    assert.end();
+});

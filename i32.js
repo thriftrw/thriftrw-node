@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,15 @@ I32RW.prototype.min = -0x7fffffff - 1;
 I32RW.prototype.max = 0x7fffffff;
 
 I32RW.prototype.poolReadFrom = function poolReadFrom(result, buffer, offset) {
-    var value = buffer.readInt32BE(offset, true);
+    var remain = buffer.length - offset;
+    if (remain < this.width) {
+        return result.reset(ebufrw.ShortRead({
+            remaining: remain,
+            buffer: buffer,
+            offset: offset,
+        }), offset);
+    }
+    var value = buffer.readInt32BE(offset);
     return result.reset(null, offset + this.width, value);
 };
 
@@ -63,7 +71,7 @@ I32RW.prototype.poolWriteInto = function poolWriteInto(result, value, buffer, of
         }));
     }
 
-    buffer.writeInt32BE(coerced, offset, true);
+    buffer.writeInt32BE(coerced, offset);
     return result.reset(null, offset + this.width);
 };
 
