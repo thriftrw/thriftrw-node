@@ -718,19 +718,20 @@ timestamps.
 You can use the alternative asynchronous constructor `Thrift.load()` to load sources from a custom asynchronous function. The function provided will be passed file names and must call the callback function with the source associated with the file name. The callback function provided as second argument to `Thrift.load` will be called when the model is fully loaded or an error occured. This way, you can fetch thrift sources from a server for example. Here is an example:
 
 ```javascript
-var request = require('request')
-var Thrift = require('thriftrw').Thrift
+var request = require('request');
+var Thrift = require('thriftrw').Thrift;
 
 function fetchSource(filename, cb) {
   request('https://mysite.com/thrift/' + filename, function (err, res, body) {
-    cb(err, body)
+    cb(err, body);
   });
 }
 
-var options = {fs: {load: fetchSource}}
+// You can pass the `fs` Node.js module like so {fs: require('fs')}
+var options = {fs: {readFile: fetchSource}};
 Thrift.load(options, function (err, thrift) {
-  console.log(err, thrift)
-})
+  console.log(err, thrift);
+});
 ```
 
 ## Browser compatibility
