@@ -45,7 +45,7 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('thrift ptions must be an object', function t(assert) {
+    test('thrift options must be an object', function t(assert) {
         loadThrift('not-an-object', function (err, thrift) {
             assert.throws(
                 function throws() { throw err; },

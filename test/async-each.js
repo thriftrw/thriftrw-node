@@ -25,6 +25,21 @@ module.exports = function(loadThrift) {
     var test = require('tape');
     var asyncEach = require('../lib/async-each.js');
 
+    test('ensure handle parameter not called after error', function t(assert) {
+         var nbTimesCalled = 0;
+         function errorHandle(elt, cb) {
+             nbTimesCalled++;
+             cb('error')
+         }
+
+         asyncEach([1, 2, 3], errorHandle, function (err) {
+             assert.ok(err, 'Expected an error')
+         });
+
+         assert.equal(nbTimesCalled, 1, 'errorHandle should have been called once');
+         assert.end();
+     })
+
     function mockHandle(elt, cb) {
         cb();
     }
