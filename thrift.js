@@ -28,6 +28,7 @@ var path = require('path');
 var idl = require('./thrift-idl');
 var Result = require('bufrw/result');
 var lcp = require('./lib/lcp');
+var asyncEach = require('./lib/async-each.js');
 
 var ThriftService = require('./service').ThriftService;
 var ThriftStruct = require('./struct').ThriftStruct;
@@ -58,6 +59,46 @@ var messageExceptionTypesDef = require('./message').exceptionTypesDef;
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
+    this._init(options);
+
+    if (this.asyncReadFile) {
+        return;
+    }
+
+    this._parse(this.filename, this.allowIncludeAlias);
+    this._compileAndLink();
+}
+
+// Alternative constructor allowing for asynchronous source loading.
+Thrift.load = function load(options, cb) {
+    if (!options) {
+        return cb(Error('options required'));
+    } else if (typeof options !== 'object') {
+        return cb(Error('options must be object'));
+    } else if (!options.fs || !options.fs.readFile) {
+        return cb(Error('options.fs.readFile required'));
+    }
+    options.asyncReadFile = true;
+    var thrift;
+    try {
+        thrift = new Thrift(options);
+    } catch (err) {
+        return cb(err, undefined);
+    }
+    thrift._asyncParse(thrift.filename, thrift.allowIncludeAlias, function (err) {
+        if (err) {
+            return cb(err, undefined);
+        }
+        try {
+            thrift._compileAndLink();
+        } catch (err) {
+            return cb(err, undefined);
+        }
+        cb(undefined, thrift);
+    });
+}
+
+Thrift.prototype._init = function _init(options) {
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
     assert(options.source || options.entryPoint, 'opts.entryPoint required');
@@ -69,6 +110,8 @@ function Thrift(options) {
         options.idls = {'service.thrift': options.source};
     }
 
+    // filename to parse status
+    this.parsed = options.parsed || Object.create(null);
     // filename to source
     this.idls = options.idls || Object.create(null);
     // filename to ast
@@ -82,6 +125,7 @@ function Thrift(options) {
     if (options.allowFilesystemAccess) {
         this.fs = fs;
     }
+    this.asyncReadFile = options.asyncReadFile || false;
 
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
@@ -114,6 +158,7 @@ function Thrift(options) {
     this.surface = this;
 
     this.linked = false;
+    this.noLink = options.noLink;
     this.allowIncludeAlias = options.allowIncludeAlias || false;
     this.allowOptionalArguments = options.allowOptionalArguments || false;
 
@@ -121,32 +166,122 @@ function Thrift(options) {
     this.dirname = path.dirname(this.filename);
     this.memo[this.filename] = this;
 
-    var ast = this.asts[options.entryPoint];
-    var source = this.idls[options.entryPoint];
-    if (!source && !ast) {
-        /* eslint-disable max-len */
-        assert.ok(this.fs, this.filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
-        assert.ok(this.filename, 'Thrift must be constructed with a options.entryPoint');
-        /* eslint-enable max-len */
-        this.filename = path.resolve(this.filename);
-        source = this.fs.readFileSync(this.filename, 'ascii');
-        this.idls[this.filename] = source;
-    }
-
     this.exception = null;
-
-    // Separate compile/link passes permits forward references and cyclic
-    // references.
-    this.compile(source);
-    // We only link from the root Thrift object.
-    if (!options.noLink) {
-        this.link();
-    }
 }
 
 Thrift.prototype.models = 'module';
 
 Thrift.prototype.Message = Message;
+
+Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias, cb) {
+    var model = this;
+    if (model.parsed[filename]) {
+        return cb(undefined);
+    }
+    model.parsed[filename] = true;
+
+    if (model.idls[filename] || model.asts[filename]) {
+        return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
+    }
+
+    model.fs.readFile(filename, function (err, source) {
+        if (err) {
+            return cb(err);
+        }
+        model.idls[filename] = source;
+        model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
+    })
+}
+
+Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, allowIncludeAlias, cb) {
+    var model = this;
+    var dirname = path.dirname(filename);
+    var defs;
+    try {
+        if (!model.asts[filename]) {
+            model.asts[filename] = idl.parse(model.idls[filename]);
+        }
+        defs = model.asts[filename].headers.concat(model.asts[filename].definitions);
+        model._checkIncludedModules(dirname, defs, allowIncludeAlias);
+    } catch (err) {
+        return cb(err);
+    }
+    asyncEach(defs, function (def, handleCb) {
+        if (def.type !== 'Include') {
+            return handleCb(undefined);
+        }
+        var includeFilename = path.join(dirname, def.id);
+        model._asyncParse(includeFilename, true, function (err) {
+            handleCb(err);
+        });
+    }, cb);
+}
+
+Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
+    if (this.parsed[filename]) {
+        return;
+    }
+    this.parsed[filename] = true;
+
+    if (!this.idls[filename] && !this.asts[filename]) {
+        /* eslint-disable max-len */
+        assert.ok(this.fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
+        /* eslint-enable max-len */
+        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), 'ascii');
+    }
+
+    if (!this.asts[filename]) {
+        this.asts[filename] = idl.parse(this.idls[filename]);
+    }
+
+    var dirname = path.dirname(filename);
+    var defs = this.asts[filename].headers.concat(this.asts[filename].definitions);
+    this._checkIncludedModules(dirname, defs, allowIncludeAlias);
+    for (var index = 0; index < defs.length; index++) {
+        var def = defs[index];
+        if (def.type !== 'Include') {
+            continue;
+        }
+        var includeFilename = path.join(dirname, def.id);
+        this._parse(includeFilename, true);
+    }
+}
+
+Thrift.prototype._checkIncludedModules = function _checkIncludedModules(dirname, defs, allowIncludeAlias) {
+    for (var index = 0; index < defs.length; index++) {
+        var def = defs[index];
+        if (def.type !== 'Include') {
+            continue;
+        }
+        if (def.id.lastIndexOf('/', 0) === 0) {
+            throw Error('Include path string must not be an absolute path');
+        }
+        this._getNamespaceAndCheckIdentifier(def, allowIncludeAlias);
+    }
+}
+
+Thrift.prototype._getNamespaceAndCheckIdentifier = function _getNamespaceAndCheckIdentifier(def, allowIncludeAlias) {
+    var ns = def.namespace && def.namespace.name;
+    // If include isn't name, get filename sans *.thrift file extension.
+    if (!allowIncludeAlias || !ns) {
+        var basename = path.basename(def.id);
+        ns = basename.slice(0, basename.length - 7);
+        if (!validThriftIdentifierRE.test(ns)) {
+            throw Error('Thrift include filename is not valid thrift identifier');
+        }
+    }
+    return ns;
+}
+
+Thrift.prototype._compileAndLink = function _compileAndLink() {
+    // Separate compile/link passes permits forward references and cyclic
+    // references.
+    this.compile();
+    // We only link from the root Thrift object.
+    if (!this.noLink) {
+        this.link();
+    }
+}
 
 Thrift.prototype.getType = function getType(name) {
     return this.getTypeResult(name).toValue();
@@ -214,12 +349,8 @@ Thrift.prototype.baseTypes = {
     binary: ThriftBinary
 };
 
-Thrift.prototype.compile = function compile(source) {
+Thrift.prototype.compile = function compile() {
     var syntax = this.asts[this.filename];
-    if (!syntax) {
-        syntax = idl.parse(source);
-        this.asts[this.filename] = syntax;
-    }
     assert.equal(syntax.type, 'Program', 'expected a program');
     this._compile(syntax.headers);
     this._compile(syntax.definitions);
@@ -256,51 +387,35 @@ Thrift.prototype._compile = function _compile(defs) {
 };
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
-    if (def.id.lastIndexOf('/', 0) !== 0) {
-        var ns = def.namespace && def.namespace.name;
-        var filename = path.join(this.dirname, def.id);
+    var filename = path.join(this.dirname, def.id);
+    var ns = this._getNamespaceAndCheckIdentifier(def, this.allowIncludeAlias);
 
-        // If include isn't name, get filename sans *.thrift file extension.
-        if (!this.allowIncludeAlias || !ns) {
-            var basename = path.basename(def.id);
-            ns = basename.slice(0, basename.length - 7);
-            if (!validThriftIdentifierRE.test(ns)) {
-                throw Error(
-                    'Thrift include filename is not valid thrift identifier'
-                );
-            }
-        }
+    var model;
 
-        var model;
-
-        if (this.memo[filename]) {
-            model = this.memo[filename];
-        } else {
-            model = new Thrift({
-                entryPoint: filename,
-                fs: this.fs,
-                idls: this.idls,
-                asts: this.asts,
-                memo: this.memo,
-                strict: this.strict,
-                allowIncludeAlias: true,
-                allowOptionalArguments: this.allowOptionalArguments,
-                noLink: true,
-                defaultAsUndefined: this.defaultAsUndefined
-            });
-        }
-
-        this.define(ns, def, model);
-
-        // Alias if first character is not lower-case
-        this.modules[ns] = model;
-
-        if (!/^[a-z]/.test(ns)) {
-            this[ns] = model;
-        }
-
+    if (this.memo[filename]) {
+        model = this.memo[filename];
     } else {
-        throw Error('Include path string must not be an absolute path');
+        model = new Thrift({
+            entryPoint: filename,
+            parsed: this.parsed,
+            idls: this.idls,
+            asts: this.asts,
+            memo: this.memo,
+            strict: this.strict,
+            allowIncludeAlias: true,
+            allowOptionalArguments: this.allowOptionalArguments,
+            noLink: true,
+            defaultAsUndefined: this.defaultAsUndefined
+        });
+    }
+
+    this.define(ns, def, model);
+
+    // Alias if first character is not lower-case
+    this.modules[ns] = model;
+
+    if (!/^[a-z]/.test(ns)) {
+        this[ns] = model;
     }
 };
 

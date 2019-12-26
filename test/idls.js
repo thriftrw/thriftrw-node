@@ -20,36 +20,39 @@
 
 'use strict';
 
-var test = require('tape');
-var fs = require('fs');
-var path = require('path');
-var Thrift = require('../thrift').Thrift;
-var IDL = require('./thrift-idl');
+module.exports = function(loadThrift) {
 
-var allowFilesystemAccess = !process.browser;
-var idls;
-if (process.browser) {
-    idls = global.idls;
+    var test = require('tape');
+    var fs = require('fs');
+    var path = require('path');
+
+    var allowFilesystemAccess = !process.browser;
+    var idls;
+    if (process.browser) {
+        idls = global.idls;
+    }
+
+    test('can round trip a thrift file through sources', function t(assert) {
+        loadThrift({
+            entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
+            fs: fs,
+            allowFilesystemAccess: allowFilesystemAccess,
+            allowIncludeAlias: true,
+            idls: idls
+        }, function (err, thrift) {
+            var sources = thrift.getSources();
+            loadThrift({
+                entryPoint: sources.entryPoint,
+                idls: sources.idls,
+                allowIncludeAlias: true
+            }, function (err, rethrift) {
+                assert.deepEquals(
+                    Object.keys(rethrift.models),
+                    Object.keys(thrift.models),
+                    'all models survive round trip'
+                );
+                assert.end();
+            });
+        });
+    });
 }
-
-test('can round trip a thrift file through sources', function t(assert) {
-
-    var thrift = new Thrift({
-        entryPoint: path.join(__dirname, 'include-cyclic-a.thrift'),
-        fs: fs,
-        allowFilesystemAccess: allowFilesystemAccess,
-        allowIncludeAlias: true,
-        idls: idls
-    });
-
-    var sources = thrift.getSources();
-    var rethrift = new Thrift({
-        entryPoint: sources.entryPoint,
-        idls: sources.idls,
-        allowIncludeAlias: true
-    });
-
-    assert.deepEquals(Object.keys(rethrift.models), Object.keys(thrift.models), 'all models survive round trip');
-
-    assert.end();
-});

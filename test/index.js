@@ -20,40 +20,103 @@
 
 'use strict';
 
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
+var Thrift = require('../thrift').Thrift;
+var fs = require('fs');
+var path = require('path');
+
+var testFiles = [
+    require('./binary'),
+    require('./boolean'),
+    require('./double'),
+    require('./i8'),
+    require('./i16'),
+    require('./i32'),
+    require('./i64'),
+    require('./map-entries'),
+    require('./thrift-idl'),
+    require('./map-object'),
+    require('./string'),
+    require('./tlist'),
+    require('./tmap'),
+    require('./tstruct'),
+    require('./void'),
+    require('./skip'),
+    require('./struct'),
+    require('./struct-skip'),
+    require('./recursion'),
+    require('./exception'),
+    require('./union'),
+    require('./service'),
+    require('./thrift'),
+    require('./list'),
+    require('./set'),
+    require('./map'),
+    require('./typedef'),
+    require('./const'),
+    require('./default'),
+    require('./enum'),
+    require('./unrecognized-exception'),
+    require('./include.js'),
+    require('./type-mismatch'),
+    require('./lcp'),
+    require('./idls'),
+    require('./asts'),
+    require('./message'),
+    require('./async-each')
+]
+
+function asyncReadFile(filename, cb) {
+    var error;
+    var source;
+    if (process.browser) {
+        source = global.idls[filename];
+        if (!source) {
+            error = Error(filename + ': missing file');
+        }
+    } else {
+        try {
+            source = fs.readFileSync(path.resolve(filename), 'ascii');
+        } catch (err) {
+            error = err;
+        }
+    }
+    setTimeout(function () { cb(error, source); }, 10);
+}
+
+function readFileNotExpected(_, cb) {
+    cb(Error('Thrift must be constructed with options.fs.readFile'))
+}
+
+function loadThriftAsync(options, cb) {
+    if (options && typeof options === 'object')
+    {
+        var readFile = readFileNotExpected;
+        if (options.allowFilesystemAccess || options.fs) {
+            readFile = asyncReadFile;
+        }
+        options.fs = {readFile: readFile};
+        delete options.allowFilesystemAccess;
+    }
+    Thrift.load(options, cb);
+}
+
+function loadThriftSync(options, cb) {
+    var thrift;
+    var error;
+    try {
+        thrift = new Thrift(options);
+    } catch (err) {
+        error = err;
+    }
+    cb(error, thrift);
+}
+
+// Run two passes: one with synchronous source loading, one with asynchronous loading.
+
+testFiles.forEach(function (testFile) {
+    testFile(loadThriftSync);
+});
+
+testFiles.forEach(function (testFile) {
+    testFile(loadThriftAsync);
+});

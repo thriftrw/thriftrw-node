@@ -21,37 +21,40 @@
 /* eslint max-len:[0, 120] */
 'use strict';
 
-var idl = require('../thrift-idl');
-var fs = require('fs');
-var path = require('path');
-var test = require('tape');
+module.exports = function(loadThrift) {
 
-test('thrift IDL parser can parse thrift test files', function t(assert) {
-    var idls = {};
-    if (process.browser) {
-        idls = global.idls;
-    } else {
-        var extension = '.thrift';
-        var dirname = path.join(__dirname, 'thrift');
-        var filenames = fs.readdirSync(dirname);
-        for (var index = 0; index < filenames.length; index++) {
-            var filename = filenames[index];
-            var fullFilename = path.join(dirname, filename);
-            if (filename.indexOf(extension, filename.length - extension.length) > 0) {
-                idls[filename] = fs.readFileSync(fullFilename, 'ascii');
+    var idl = require('../thrift-idl');
+    var fs = require('fs');
+    var path = require('path');
+    var test = require('tape');
+
+    test('thrift IDL parser can parse thrift test files', function t(assert) {
+        var idls = {};
+        if (process.browser) {
+            idls = global.idls;
+        } else {
+            var extension = '.thrift';
+            var dirname = path.join(__dirname, 'thrift');
+            var filenames = fs.readdirSync(dirname);
+            for (var index = 0; index < filenames.length; index++) {
+                var filename = filenames[index];
+                var fullFilename = path.join(dirname, filename);
+                if (filename.indexOf(extension, filename.length - extension.length) > 0) {
+                    idls[filename] = fs.readFileSync(fullFilename, 'ascii');
+                }
             }
         }
-    }
 
-    var filenames = Object.keys(idls);
-    for (var i = 0; i < filenames.length; i++) {
-        var file = filenames[i];
-        try {
-            idl.parse(idls[file]);
-            assert.pass(file);
-        } catch (err) {
-            assert.fail(file);
+        var filenames = Object.keys(idls);
+        for (var i = 0; i < filenames.length; i++) {
+            var file = filenames[i];
+            try {
+                idl.parse(idls[file]);
+                assert.pass(file);
+            } catch (err) {
+                assert.fail(file);
+            }
         }
-    }
-    assert.end();
-});
+        assert.end();
+    });
+}

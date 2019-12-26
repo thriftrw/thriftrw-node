@@ -20,64 +20,67 @@
 
 'use strict';
 
-var test = require('tape');
-var testRW = require('bufrw/test_rw');
-var testThrift = require('./thrift-test');
+module.exports = function(loadThrift) {
 
-var thriftrw = require('../index');
-var BinaryRW = thriftrw.BinaryRW;
-var ThriftBinary = thriftrw.ThriftBinary;
-var TYPE = require('../TYPE');
+    var test = require('tape');
+    var testRW = require('bufrw/test_rw');
+    var testThrift = require('./thrift-test');
 
-var Buffer = require('buffer').Buffer;
+    var thriftrw = require('../index');
+    var BinaryRW = thriftrw.BinaryRW;
+    var ThriftBinary = thriftrw.ThriftBinary;
+    var TYPE = require('../TYPE');
 
-test('BinaryRW', testRW.cases(BinaryRW, [
+    var Buffer = require('buffer').Buffer;
 
-    [Buffer(''), [
-        0x00, 0x00, 0x00, 0x00 // len:0
-    ]],
+    test('BinaryRW', testRW.cases(BinaryRW, [
 
-    [Buffer([0x00, 0x88, 0xff]), [
-        0x00, 0x00, 0x00, 0x03, // len:3
-        0x00, 0x88, 0xff
-    ]],
+        [Buffer(''), [
+            0x00, 0x00, 0x00, 0x00 // len:0
+        ]],
 
-    [Buffer('hello'), [
-        0x00, 0x00, 0x00, 0x05,       // len:5
-        0x68, 0x65, 0x6c, 0x6c, 0x6f  // chars  -- "hello"
-    ]],
+        [Buffer([0x00, 0x88, 0xff]), [
+            0x00, 0x00, 0x00, 0x03, // len:3
+            0x00, 0x88, 0xff
+        ]],
 
-    [Buffer('world'), [
-        0x00, 0x00, 0x00, 0x05,       // len:5
-        0x77, 0x6f, 0x72, 0x6c, 0x64  // chars  -- "world"
-    ]],
+        [Buffer('hello'), [
+            0x00, 0x00, 0x00, 0x05,       // len:5
+            0x68, 0x65, 0x6c, 0x6c, 0x6f  // chars  -- "hello"
+        ]],
 
-    {
-        writeTest: {
-            value: null,
-            error: {
-                type: 'bufrw.short-buffer',
-                name: 'BufrwShortBufferError',
-                message: 'expected at least 4 bytes, only have 0 @0'
+        [Buffer('world'), [
+            0x00, 0x00, 0x00, 0x05,       // len:5
+            0x77, 0x6f, 0x72, 0x6c, 0x64  // chars  -- "world"
+        ]],
+
+        {
+            writeTest: {
+                value: null,
+                error: {
+                    type: 'bufrw.short-buffer',
+                    name: 'BufrwShortBufferError',
+                    message: 'expected at least 4 bytes, only have 0 @0'
+                }
+            }
+        },
+
+        {
+            readTest: {
+                value: Buffer([0x00, 0x01]),
+                bytes: [
+                    0x00, 0x00, 0x00, 0x03, // len:3
+                    0x00, 0x01
+                ],
+                error: {
+                    type: 'bufrw.short-buffer',
+                    name: 'BufrwShortBufferError',
+                    message: 'expected at least 3 bytes, only have 2 @[0:4]'
+                }
             }
         }
-    },
 
-    {
-        readTest: {
-            value: Buffer([0x00, 0x01]),
-            bytes: [
-                0x00, 0x00, 0x00, 0x03, // len:3
-                0x00, 0x01
-            ],
-            error: {
-                type: 'bufrw.short-buffer',
-                name: 'BufrwShortBufferError',
-                message: 'expected at least 3 bytes, only have 2 @[0:4]'
-            }
-        }
-    }
+    ]));
 
-]));
-
-test('ThriftBinary', testThrift(ThriftBinary, BinaryRW, TYPE.STRING));
+    test('ThriftBinary', testThrift(ThriftBinary, BinaryRW, TYPE.STRING));
+}
