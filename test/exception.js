@@ -24,60 +24,53 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
-var withLoader = require('./loader');
+var Thrift = require('../thrift').Thrift;
 
-withLoader(function (loadThrift, test) {
+var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
-    var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
-    loadThrift({source: source}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
-        var err = new thrift.BogusNameError({message: 'Bogus name: Voldemort', bogusName: 'Voldemort'});
+var err = new thrift.BogusNameError({message: 'Bogus name: Voldemort', bogusName: 'Voldemort'});
 
-        test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
+test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
 
-            [err, [
-                0x0b,                         // typeid:1 -- 11, STRING
-                0x00, 0x01,                   // id:2     -- 1, bogusName
-                0x00, 0x00, 0x00, 0x09,       // length:4 -- 9
-                0x56, 0x6f, 0x6c, 0x64, 0x65, //          -- 'Voldemort'
-                0x6d, 0x6f, 0x72, 0x74,       //
-                0x0b,                         // typeid:1 -- 11, STRING
-                0x00, 0x02,                   // id:2     -- 2, message
-                0x00, 0x00, 0x00, 0x15,       // lenght:4 -- 21
-                0x42, 0x6f, 0x67, 0x75, 0x73,
-                0x20, 0x6e, 0x61, 0x6d, 0x65,
-                0x3a, 0x20, 0x56, 0x6f, 0x6c,
-                0x64, 0x65, 0x6d, 0x6f, 0x72,
-                0x74,
-                0x00                          // typeid:1 -- 0, STOP
-            ]]
+    [err, [
+        0x0b,                         // typeid:1 -- 11, STRING
+        0x00, 0x01,                   // id:2     -- 1, bogusName
+        0x00, 0x00, 0x00, 0x09,       // length:4 -- 9
+        0x56, 0x6f, 0x6c, 0x64, 0x65, //          -- 'Voldemort'
+        0x6d, 0x6f, 0x72, 0x74,       //
+        0x0b,                         // typeid:1 -- 11, STRING
+        0x00, 0x02,                   // id:2     -- 2, message
+        0x00, 0x00, 0x00, 0x15,       // lenght:4 -- 21
+        0x42, 0x6f, 0x67, 0x75, 0x73,
+        0x20, 0x6e, 0x61, 0x6d, 0x65,
+        0x3a, 0x20, 0x56, 0x6f, 0x6c,
+        0x64, 0x65, 0x6d, 0x6f, 0x72,
+        0x74,
+        0x00                          // typeid:1 -- 0, STOP
+    ]]
 
-        ]));
+]));
 
-        var err2 = new thrift.BogusWithType({message: 'Bogus name: Voldemort', type: 'Voldemort'});
+var err2 = new thrift.BogusWithType({message: 'Bogus name: Voldemort', type: 'Voldemort'});
 
-        test('Exception RW with type', testRW.cases(thrift.BogusWithType.rw, [
+test('Exception RW with type', testRW.cases(thrift.BogusWithType.rw, [
 
-            [err2, [
-                0x0b,                         // typeid:1 -- 11, STRING
-                0x00, 0x01,                   // id:2     -- 1, type
-                0x00, 0x00, 0x00, 0x09,       // length:4 -- 9
-                0x56, 0x6f, 0x6c, 0x64, 0x65, //          -- 'Voldemort'
-                0x6d, 0x6f, 0x72, 0x74,       //
-                0x0b,                         // typeid:1 -- 11, STRING
-                0x00, 0x02,                   // id:2     -- 2, message
-                0x00, 0x00, 0x00, 0x15,       // lenght:4 -- 21
-                0x42, 0x6f, 0x67, 0x75, 0x73,
-                0x20, 0x6e, 0x61, 0x6d, 0x65,
-                0x3a, 0x20, 0x56, 0x6f, 0x6c,
-                0x64, 0x65, 0x6d, 0x6f, 0x72,
-                0x74,
-                0x00                          // typeid:1 -- 0, STOP
-            ]]
+    [err2, [
+        0x0b,                         // typeid:1 -- 11, STRING
+        0x00, 0x01,                   // id:2     -- 1, type
+        0x00, 0x00, 0x00, 0x09,       // length:4 -- 9
+        0x56, 0x6f, 0x6c, 0x64, 0x65, //          -- 'Voldemort'
+        0x6d, 0x6f, 0x72, 0x74,       //
+        0x0b,                         // typeid:1 -- 11, STRING
+        0x00, 0x02,                   // id:2     -- 2, message
+        0x00, 0x00, 0x00, 0x15,       // lenght:4 -- 21
+        0x42, 0x6f, 0x67, 0x75, 0x73,
+        0x20, 0x6e, 0x61, 0x6d, 0x65,
+        0x3a, 0x20, 0x56, 0x6f, 0x6c,
+        0x64, 0x65, 0x6d, 0x6f, 0x72,
+        0x74,
+        0x00                          // typeid:1 -- 0, STOP
+    ]]
 
-        ]));
-    });
-
-});
+]));

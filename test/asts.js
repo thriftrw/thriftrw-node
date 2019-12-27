@@ -20,7 +20,6 @@
 
 'use strict';
 
-var test = require('tape');
 var fs = require('fs');
 var path = require('path');
 var withLoader = require('./loader');
@@ -31,7 +30,7 @@ if (process.browser) {
     idls = global.idls;
 }
 
-withLoader(function (loadThrift) {
+withLoader(function (loadThrift, test) {
 
     test('can round trip a thrift file through sources', function t(assert) {
         loadThrift({

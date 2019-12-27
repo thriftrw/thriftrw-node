@@ -22,28 +22,25 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
-var withLoader = require('./loader');
+var Thrift = require('../thrift').Thrift;
 
-withLoader(function (loadThrift, test) {
-    loadThrift({source: 'union Foo { 1: i32 six, 2: i32 halfDozen }'}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
+var thrift = new Thrift({source: 'union Foo { 1: i32 six, 2: i32 halfDozen }'});
 
-        test('UnionRW', testRW.cases(thrift.Foo.rw, [
-            [new thrift.Foo({six: 6}), [
-                0x08,                      // type:1 -- 8 -- I32
-                0x00, 0x01,                // id:2   -- 1 -- six
-                0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
-                0x00                       // type:1 -- 0 -- stop
-            ]],
-            
-            [new thrift.Foo({halfDozen: 6}), [
-                0x08,                      // type:1 -- 8 -- I32
-                0x00, 0x02,                // id:2   -- 1 -- halfDozen
-                0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
-                0x00                       // type:1 -- 0 -- stop
-            ]]
-        ]));
-    });
-});
+test('UnionRW', testRW.cases(thrift.Foo.rw, [
+
+    [new thrift.Foo({six: 6}), [
+        0x08,                      // type:1 -- 8 -- I32
+        0x00, 0x01,                // id:2   -- 1 -- six
+        0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
+        0x00                       // type:1 -- 0 -- stop
+    ]],
+
+    [new thrift.Foo({halfDozen: 6}), [
+        0x08,                      // type:1 -- 8 -- I32
+        0x00, 0x02,                // id:2   -- 1 -- halfDozen
+        0x00, 0x00, 0x00, 0x06,    // ok:1   -- 1 -- 6
+        0x00                       // type:1 -- 0 -- stop
+    ]]
+
+]));
+

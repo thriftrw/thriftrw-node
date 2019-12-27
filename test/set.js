@@ -26,8 +26,8 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
-var withLoader = require('./loader');
 
+var Thrift = require('../thrift').Thrift;
 var ThriftSet = require('../set').ThriftSet;
 var ThriftString = require('../string').ThriftString;
 var ThriftI8 = require('../i8').ThriftI8;
@@ -122,78 +122,70 @@ test('ThriftSet.rw: set of strings as object', testRW.cases(stringObjectSet.rw, 
 
 ]));
 
-withLoader(function (loadThrift, test) {
-    var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'ascii');
-    loadThrift({source: source}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
+var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
-        test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
+test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
 
-            [new thrift.Bucket({asArray: [1, 2, 3]}), [
-                0x0e,                   // type:1      -- 14, set
-                0x00, 0x01,             // field:2     -- 1, asArray
-                0x08,                   // type:1      -- 8, i32
-                0x00, 0x00, 0x00, 0x03, // len:4       -- 3
-                0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
-                0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
-                0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
-                0x00                    // type:1      -- 0, stop
-            ]],
+    [new thrift.Bucket({asArray: [1, 2, 3]}), [
+        0x0e,                   // type:1      -- 14, set
+        0x00, 0x01,             // field:2     -- 1, asArray
+        0x08,                   // type:1      -- 8, i32
+        0x00, 0x00, 0x00, 0x03, // len:4       -- 3
+        0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
+        0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
+        0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
+        0x00                    // type:1      -- 0, stop
+    ]],
 
-            [new thrift.Bucket({numbersAsObject: {1: true, 2: true, 3: true}}), [
-                0x0e,                   // type:1      -- 14, set
-                0x00, 0x02,             // field:2     -- 1, numbersAsObject
-                0x08,                   // type:1      -- 8, i32
-                0x00, 0x00, 0x00, 0x03, // len:4       -- 3
-                0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
-                0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
-                0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
-                0x00                    // type:1      -- 0, stop
-            ]],
+    [new thrift.Bucket({numbersAsObject: {1: true, 2: true, 3: true}}), [
+        0x0e,                   // type:1      -- 14, set
+        0x00, 0x02,             // field:2     -- 1, numbersAsObject
+        0x08,                   // type:1      -- 8, i32
+        0x00, 0x00, 0x00, 0x03, // len:4       -- 3
+        0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
+        0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
+        0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
+        0x00                    // type:1      -- 0, stop
+    ]],
 
-            [new thrift.Bucket({stringsAsObject: {1: true, 2: true, 3: true}}), [
-                0x0e,                   // type:1       -- 14, set
-                0x00, 0x03,             // field:2      -- 1, numbersAsObject
-                0x0b,                   // type:1       -- 11, string
-                0x00, 0x00, 0x00, 0x03, // length:4     -- 3
-                0x00, 0x00, 0x00, 0x01, // [0] length:4 -- 1
-                0x31,                   // [0] value:1  -- '1'
-                0x00, 0x00, 0x00, 0x01, // [1] length:4 -- 1
-                0x32,                   // [1] value:1  -- '2'
-                0x00, 0x00, 0x00, 0x01, // [2] length:4 -- 1
-                0x33,                   // [2] value:1  -- '3'
-                0x00                    // type:1       -- 0, stop
-            ]]
+    [new thrift.Bucket({stringsAsObject: {1: true, 2: true, 3: true}}), [
+        0x0e,                   // type:1       -- 14, set
+        0x00, 0x03,             // field:2      -- 1, numbersAsObject
+        0x0b,                   // type:1       -- 11, string
+        0x00, 0x00, 0x00, 0x03, // length:4     -- 3
+        0x00, 0x00, 0x00, 0x01, // [0] length:4 -- 1
+        0x31,                   // [0] value:1  -- '1'
+        0x00, 0x00, 0x00, 0x01, // [1] length:4 -- 1
+        0x32,                   // [1] value:1  -- '2'
+        0x00, 0x00, 0x00, 0x01, // [2] length:4 -- 1
+        0x33,                   // [2] value:1  -- '3'
+        0x00                    // type:1       -- 0, stop
+    ]]
 
-        ]));
+]));
 
-        test('Tolerance for lists on the wire', function t(assert) {
-            var buf = new Buffer([
-                0x0f,                   // type:1      -- 15, list
-                0x00, 0x01,             // field:2     -- 1, asArray
-                0x08,                   // type:1      -- 8, i32
-                0x00, 0x00, 0x00, 0x03, // len:4       -- 3
-                0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
-                0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
-                0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
-                0x00                    // type:1      -- 0, stop
-            ]);
+test('Tolerance for lists on the wire', function t(assert) {
+    var buf = new Buffer([
+        0x0f,                   // type:1      -- 15, list
+        0x00, 0x01,             // field:2     -- 1, asArray
+        0x08,                   // type:1      -- 8, i32
+        0x00, 0x00, 0x00, 0x03, // len:4       -- 3
+        0x00, 0x00, 0x00, 0x01, // [0] value:4 -- 1
+        0x00, 0x00, 0x00, 0x02, // [1] value:4 -- 2
+        0x00, 0x00, 0x00, 0x03, // [2] value:4 -- 3
+        0x00                    // type:1      -- 0, stop
+    ]);
 
-            var res = thrift.Bucket.rw.readFrom(buf, 0);
+    var res = thrift.Bucket.rw.readFrom(buf, 0);
 
-            if (res.err) {
-                return assert.end(res.err);
-            }
+    if (res.err) {
+        return assert.end(res.err);
+    }
 
-            assert.deepEqual(res.value, new thrift.Bucket({
-                asArray: [1, 2, 3]
-            }));
+    assert.deepEqual(res.value, new thrift.Bucket({
+        asArray: [1, 2, 3]
+    }));
 
-            assert.end();
-        });
-    });
-
+    assert.end();
 });
-

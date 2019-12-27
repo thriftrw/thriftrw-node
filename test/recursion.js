@@ -22,85 +22,75 @@
 
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
+
+var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
-var withLoader = require('./loader');
+var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
+var Shark = thrift.Shark;
 
-withLoader(function (loadThrift, test) {
+test('recursive rw', testRW.cases(Shark.rw, [
 
-    var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'ascii');
-    loadThrift({source: source}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
+    [new Shark(), [
+        0x00 // type:1 -- 0 -- stop
+    ]],
 
-        var Shark = thrift.Shark;
+    [new Shark({left: new Shark(), right: new Shark()}), [
+        0x0c,       // type:1 -- 12 -- STRUCT
+        0x00, 0x02, // id:2   -- 2  -- left
+        0x00,       // typeid -- 0  -- STOP
+        0x0c,       // type:1 -- 12 -- STRUCT
+        0x00, 0x03, // id:2   -- 3  -- right
+        0x00,       // typeid -- 0  -- STOP
+        0x00        // type:1 -- 0  -- STOP
+    ]],
 
-        test('recursive rw', testRW.cases(Shark.rw, [
+    [new Shark({name: 'Katie'}), [
+        0x0b,                         // type:1  -- 11 -- STRING
+        0x00, 0x01,                   // id:2    -- 1  -- name
+        0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
+        0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
+        0x00                          // type:1  -- 0  -- STOP
+    ]],
 
-            [new Shark(), [
-                0x00 // type:1 -- 0 -- stop
-            ]],
+    [new Shark({name: 'Katie', left: new Shark()}), [
+        0x0b,                         // type:1  -- 11 -- STRING
+        0x00, 0x01,                   // id:2    -- 1  -- name
+        0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
+        0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
+        0x0c,                         // type:1  -- 12 -- STRUCT
+        0x00, 0x02,                   // id:2    -- 2  -- left
+        0x00,                         // typeid  -- 0  -- STOP
+        0x00                          // type:1  -- 0  -- STOP
+    ]],
 
-            [new Shark({left: new Shark(), right: new Shark()}), [
-                0x0c,       // type:1 -- 12 -- STRUCT
-                0x00, 0x02, // id:2   -- 2  -- left
-                0x00,       // typeid -- 0  -- STOP
-                0x0c,       // type:1 -- 12 -- STRUCT
-                0x00, 0x03, // id:2   -- 3  -- right
-                0x00,       // typeid -- 0  -- STOP
-                0x00        // type:1 -- 0  -- STOP
-            ]],
+    [new Shark({name: 'Katie', right: new Shark({right: new Shark()})}), [
+        0x0b,                         // type:1  -- 11 -- STRING
+        0x00, 0x01,                   // id:2    -- 1  -- name
+        0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
+        0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
+        0x0c,                         // type:1  -- 12 -- STRUCT
+        0x00, 0x03,                   // id:2    -- 3  -- right
+        0x0c,                         // type:1  -- 12 -- STRUCT
+        0x00, 0x03,                   // id:2    -- 3  -- right
+        0x00,                         // typeid  -- 0  -- STOP
+        0x00,                         // typeid  -- 0  -- STOP
+        0x00                          // type:1  -- 0  -- STOP
+    ]],
 
-            [new Shark({name: 'Katie'}), [
-                0x0b,                         // type:1  -- 11 -- STRING
-                0x00, 0x01,                   // id:2    -- 1  -- name
-                0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
-                0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
-                0x00                          // type:1  -- 0  -- STOP
-            ]],
-
-            [new Shark({name: 'Katie', left: new Shark()}), [
-                0x0b,                         // type:1  -- 11 -- STRING
-                0x00, 0x01,                   // id:2    -- 1  -- name
-                0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
-                0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
-                0x0c,                         // type:1  -- 12 -- STRUCT
-                0x00, 0x02,                   // id:2    -- 2  -- left
-                0x00,                         // typeid  -- 0  -- STOP
-                0x00                          // type:1  -- 0  -- STOP
-            ]],
-
-            [new Shark({name: 'Katie', right: new Shark({right: new Shark()})}), [
-                0x0b,                         // type:1  -- 11 -- STRING
-                0x00, 0x01,                   // id:2    -- 1  -- name
-                0x00, 0x00, 0x00, 0x05,       // name~4  -- 5
-                0x4b, 0x61, 0x74, 0x69, 0x65, // 'Katie'
-                0x0c,                         // type:1  -- 12 -- STRUCT
-                0x00, 0x03,                   // id:2    -- 3  -- right
-                0x0c,                         // type:1  -- 12 -- STRUCT
-                0x00, 0x03,                   // id:2    -- 3  -- right
-                0x00,                         // typeid  -- 0  -- STOP
-                0x00,                         // typeid  -- 0  -- STOP
-                0x00                          // type:1  -- 0  -- STOP
-            ]],
-
-            {
-                readTest: {
-                    bytes: [
-                        0x0b,      // type:1 -- 11 -- STRING
-                        0x00, 0x02 // id:2   -- 2  -- left
-                    ],
-                    error: {
-                        type: 'thrift-unexpected-field-value-typeid',
-                        name: 'ThriftUnexpectedFieldValueTypeidError',
-                        message:
-                            'unexpected typeid 11 (STRING) for field "left" with id 2 on Shark; expected 12 (STRUCT)'
-                    }
-                }
+    {
+        readTest: {
+            bytes: [
+                0x0b,      // type:1 -- 11 -- STRING
+                0x00, 0x02 // id:2   -- 2  -- left
+            ],
+            error: {
+                type: 'thrift-unexpected-field-value-typeid',
+                name: 'ThriftUnexpectedFieldValueTypeidError',
+                message: 'unexpected typeid 11 (STRING) for field "left" with id 2 on Shark; expected 12 (STRUCT)'
             }
+        }
+    }
 
-        ]));
-    });
-
-});
+]));

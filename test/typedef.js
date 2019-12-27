@@ -24,33 +24,27 @@ var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
 var path = require('path');
-var withLoader = require('./loader');
+var Thrift = require('../thrift').Thrift;
 
-withLoader(function (loadThrift, test) {
-    var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
-    loadThrift({source: source}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
+var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
-        test('follows references through typedefs', function t(assert) {
-            assert.strictEqual(thrift.getType('Structure'), thrift.getType('Tree'));
-            assert.end();
-        });
-
-        test('Typedef rw', testRW.cases(thrift.Tree.rw, [
-
-            [new thrift.Tree({value: 0, children: []}), [
-                0x08,                   // typeid:1  -- 8, i32
-                0x00, 0x01,             // id:2      -- 1, "value"
-                0x00, 0x00, 0x00, 0x00, // value:4   -- 0
-                0x0f,                   // typeid:1  -- 15, list
-                0x00, 0x02,             // id:2      -- 2, "children"
-                0x0c,                   // el_type:1 -- struct
-                0x00, 0x00, 0x00, 0x00, // length:4  -- 0
-                0x00                    // typeid:1  -- 0, stop
-            ]]
-
-        ]));
-    });
+test('follows references through typedefs', function t(assert) {
+    assert.strictEqual(thrift.getType('Structure'), thrift.getType('Tree'));
+    assert.end();
 });
+
+test('Typedef rw', testRW.cases(thrift.Tree.rw, [
+
+    [new thrift.Tree({value: 0, children: []}), [
+        0x08,                   // typeid:1  -- 8, i32
+        0x00, 0x01,             // id:2      -- 1, "value"
+        0x00, 0x00, 0x00, 0x00, // value:4   -- 0
+        0x0f,                   // typeid:1  -- 15, list
+        0x00, 0x02,             // id:2      -- 2, "children"
+        0x0c,                   // el_type:1 -- struct
+        0x00, 0x00, 0x00, 0x00, // length:4  -- 0
+        0x00                    // typeid:1  -- 0, stop
+    ]]
+
+]));

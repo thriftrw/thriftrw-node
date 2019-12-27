@@ -26,127 +26,121 @@
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
-var withLoader = require('./loader');
+var Thrift = require('../thrift').Thrift;
 
-withLoader(function (loadThrift, test) {
+var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'ascii');
+var thrift = new Thrift({source: source});
 
-    var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'ascii');
-    loadThrift({source: source}, function (err, thrift) {
-        if (err) {
-            throw err;
-        }
-        var MyStruct = thrift.getType('MyStruct');
+var MyStruct = thrift.getType('MyStruct');
 
-        test('can access enum def annotations', function t(assert) {
-            var MAE = thrift.models.MyAnnotatedEnum;
-            assert.deepEqual(MAE.annotations, {'aka': 'my.annotated.enum'});
-            assert.deepEqual(MAE.namesToAnnotations.MAE_A, {'aka': 'my.annotated.enum.a'});
-            assert.end();
-        });
+test('can access enum def annotations', function t(assert) {
+    var MAE = thrift.models.MyAnnotatedEnum;
+    assert.deepEqual(MAE.annotations, {'aka': 'my.annotated.enum'});
+    assert.deepEqual(MAE.namesToAnnotations.MAE_A, {'aka': 'my.annotated.enum.a'});
+    assert.end();
+});
 
-        test('round trip an enum', function t(assert) {
-            var inStruct = {me2_2: 'ME2_2', me3_n2: 'ME3_N2', me3_d1: 'ME3_D1'};
-            var buffer = MyStruct.toBuffer(inStruct);
-            var outStruct = MyStruct.fromBuffer(buffer);
-            assert.deepEquals(outStruct, inStruct);
-            assert.end();
-        });
+test('round trip an enum', function t(assert) {
+    var inStruct = {me2_2: 'ME2_2', me3_n2: 'ME3_N2', me3_d1: 'ME3_D1'};
+    var buffer = MyStruct.toBuffer(inStruct);
+    var outStruct = MyStruct.fromBuffer(buffer);
+    assert.deepEquals(outStruct, inStruct);
+    assert.end();
+});
 
-        test('first enum is 0 by default', function t(assert) {
-            var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_0'};
-            var buffer = MyStruct.toBuffer(inStruct);
-            var expected = new Buffer([
-                0x08, 0x00, // struct
-                0x03, // field number 3
-                0x00, 0x00, 0x00, 0x00, // value 0
-                0x00
-            ]);
-            assert.deepEqual(buffer, expected);
-            assert.end();
-        });
+test('first enum is 0 by default', function t(assert) {
+    var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_0'};
+    var buffer = MyStruct.toBuffer(inStruct);
+    var expected = new Buffer([
+        0x08, 0x00, // struct
+        0x03, // field number 3
+        0x00, 0x00, 0x00, 0x00, // value 0
+        0x00
+    ]);
+    assert.deepEqual(buffer, expected);
+    assert.end();
+});
 
-        test('count resumes from previous enum', function t(assert) {
-            var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_N1'};
-            var buffer = MyStruct.toBuffer(inStruct);
-            var expected = new Buffer([
-                0x08,                   // typeid:1 -- 8, struct
-                0x00, 0x03,             // field:2  -- 3
-                0xff, 0xff, 0xff, 0xff, // value~4  -- -1
-                0x00                    // typeid:1 -- 0, stop
-            ]);
-            assert.deepEqual(buffer, expected);
-            assert.end();
-        });
+test('count resumes from previous enum', function t(assert) {
+    var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_N1'};
+    var buffer = MyStruct.toBuffer(inStruct);
+    var expected = new Buffer([
+        0x08,                   // typeid:1 -- 8, struct
+        0x00, 0x03,             // field:2  -- 3
+        0xff, 0xff, 0xff, 0xff, // value~4  -- -1
+        0x00                    // typeid:1 -- 0, stop
+    ]);
+    assert.deepEqual(buffer, expected);
+    assert.end();
+});
 
-        test('duplicate name permitted', function t(assert) {
-            var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_D0'};
-            var buffer = MyStruct.toBuffer(inStruct);
-            var expected = new Buffer([
-                0x08,                   // typeid:1 -- 0, struct
-                0x00, 0x03,             // field~2  -- 3
-                0x00, 0x00, 0x00, 0x00, // value~4  -- 0
-                0x00                    // typeid:1 -- 0, stop
-            ]);
-            assert.deepEqual(buffer, expected);
-            assert.end();
-        });
+test('duplicate name permitted', function t(assert) {
+    var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_D0'};
+    var buffer = MyStruct.toBuffer(inStruct);
+    var expected = new Buffer([
+        0x08,                   // typeid:1 -- 0, struct
+        0x00, 0x03,             // field~2  -- 3
+        0x00, 0x00, 0x00, 0x00, // value~4  -- 0
+        0x00                    // typeid:1 -- 0, stop
+    ]);
+    assert.deepEqual(buffer, expected);
+    assert.end();
+});
 
-        test('duplicate name returns in normal form', function t(assert) {
-            var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_D0'};
-            var buffer = MyStruct.toBuffer(inStruct);
-            var outStruct = MyStruct.fromBuffer(buffer);
-            assert.deepEqual(outStruct, {
-                me2_2: 'ME2_2',
-                me3_n2: 'ME3_N2',
-                me3_d1: 'ME3_D0'
-            });
-            assert.end();
-        });
-
-        test('throws on name collision', function t(assert) {
-            var source = fs.readFileSync(path.join(__dirname, 'enum-collision.thrift'), 'ascii');
-            loadThrift({source: source}, function (err, thrift) {
-                assert.throws(function throws() { throw err; }, /duplicate name in enum MyEnum4 at 24:6/);
-                assert.end();
-            });
-        });
-
-        test('throws on overflow', function t(assert) {
-            var source = fs.readFileSync(path.join(__dirname, 'enum-overflow.thrift'), 'ascii');
-            loadThrift({source: source}, function (err, thrift) {
-                assert.throws(function throws() { throw err; }, /overflow in value in enum MyEnum4 at 24:6/);
-                assert.end();
-            });
-        });
-
-        test('can\'t encode non-name', function t(assert) {
-            var inStruct = {me3_d1: -1};
-            assert.throws(function throws() {
-                MyStruct.toBuffer(inStruct);
-            }, /name must be a string for enumeration MyEnum3, got: -1 \(number\)/);
-            assert.end();
-        });
-
-        test('can\'t encode unknown name', function t(assert) {
-            var inStruct = {me3_d1: 'BOGUS'};
-            assert.throws(function throws() {
-                MyStruct.toBuffer(inStruct);
-            }, /name must be a valid member of enumeration MyEnum3, got: BOGUS/);
-            assert.end();
-        });
-
-        test('can\'t decode unknown number', function t(assert) {
-            var buffer = new Buffer([
-                0x08,                   // typeid:1  -- 8, struct
-                0x00, 0x03,             // fieldid:2 -- 3
-                0x00, 0x00, 0x00, 0x0b, // value:4   -- 11
-                0x00                    // typeid:1  -- 0, stop
-            ]);
-            assert.throws(function throws() {
-                MyStruct.fromBuffer(buffer);
-            }, /value must be a valid member of enumeration MyEnum3, got: 11/);
-            assert.end();
-        });
+test('duplicate name returns in normal form', function t(assert) {
+    var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_D0'};
+    var buffer = MyStruct.toBuffer(inStruct);
+    var outStruct = MyStruct.fromBuffer(buffer);
+    assert.deepEqual(outStruct, {
+        me2_2: 'ME2_2',
+        me3_n2: 'ME3_N2',
+        me3_d1: 'ME3_D0'
     });
+    assert.end();
+});
 
+test('throws on name collision', function t(assert) {
+    var source = fs.readFileSync(path.join(__dirname, 'enum-collision.thrift'), 'ascii');
+    assert.throws(function throws() {
+        var thrift = new Thrift({source: source});
+    }, /duplicate name in enum MyEnum4 at 24:6/);
+    assert.end();
+});
+
+test('throws on overflow', function t(assert) {
+    var source = fs.readFileSync(path.join(__dirname, 'enum-overflow.thrift'), 'ascii');
+    assert.throws(function throws() {
+        var thrift = new Thrift({source: source});
+        throw err;
+    }, /overflow in value in enum MyEnum4 at 24:6/);
+    assert.end();
+});
+
+test('can\'t encode non-name', function t(assert) {
+    var inStruct = {me3_d1: -1};
+    assert.throws(function throws() {
+        MyStruct.toBuffer(inStruct);
+    }, /name must be a string for enumeration MyEnum3, got: -1 \(number\)/);
+    assert.end();
+});
+
+test('can\'t encode unknown name', function t(assert) {
+    var inStruct = {me3_d1: 'BOGUS'};
+    assert.throws(function throws() {
+        MyStruct.toBuffer(inStruct);
+    }, /name must be a valid member of enumeration MyEnum3, got: BOGUS/);
+    assert.end();
+});
+
+test('can\'t decode unknown number', function t(assert) {
+    var buffer = new Buffer([
+        0x08,                   // typeid:1  -- 8, struct
+        0x00, 0x03,             // fieldid:2 -- 3
+        0x00, 0x00, 0x00, 0x0b, // value:4   -- 11
+        0x00                    // typeid:1  -- 0, stop
+    ]);
+    assert.throws(function throws() {
+        MyStruct.fromBuffer(buffer);
+    }, /value must be a valid member of enumeration MyEnum3, got: 11/);
+    assert.end();
 });

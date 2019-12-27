@@ -23,7 +23,6 @@
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var testThrift = require('./thrift-test');
-var withLoader = require('./loader');
 var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 var path = require('path');
 var fs = require('fs');
@@ -129,14 +128,10 @@ var testCases = [].concat(
 test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
 test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
 
-withLoader(function (loadThrift, test) {
-    test('Thrift i8 IDL', function t(assert) {
-        var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
-        loadThrift({source: source}, function (err, thrift) {
-            assert.ifError(err);
-            assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
-            assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
-            assert.end();
-        });
-    });
+test('Thrift i8 IDL', function t(assert) {
+    var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
+    var thrift = new Thrift({source: source});
+    assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
+    assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');
+    assert.end();
 });
