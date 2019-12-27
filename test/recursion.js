@@ -20,15 +20,20 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
+withLoader(function (loadThrift, test) {
 
-    var fs = require('fs');
-    var path = require('path');
     var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
+
         var Shark = thrift.Shark;
 
         test('recursive rw', testRW.cases(Shark.rw, [
@@ -97,4 +102,5 @@ module.exports = function(loadThrift) {
 
         ]));
     });
-}
+
+});

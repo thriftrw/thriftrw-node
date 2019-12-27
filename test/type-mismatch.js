@@ -20,13 +20,13 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
+withLoader(function (loadThrift, test) {;
     var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
-
     test('consts parse', function t(assert) {
         loadThrift({source: source}, function (err, thrift) {
             assert.throws(
@@ -37,4 +37,4 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+});

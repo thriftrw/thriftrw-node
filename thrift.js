@@ -71,20 +71,13 @@ function Thrift(options) {
 
 // Alternative constructor allowing for asynchronous source loading.
 Thrift.load = function load(options, cb) {
-    if (!options) {
-        return cb(Error('options required'));
-    } else if (typeof options !== 'object') {
-        return cb(Error('options must be object'));
-    } else if (!options.fs || !options.fs.readFile) {
-        return cb(Error('options.fs.readFile required'));
-    }
+    assert(options != null, 'options required');
+    assert(typeof options === 'object', 'options must be object');
+    assert(options.fs != null && typeof options.fs.readFile === 'function',
+        'options.fs.readFile is required for async loading');
+
     options.asyncReadFile = true;
-    var thrift;
-    try {
-        thrift = new Thrift(options);
-    } catch (err) {
-        return cb(err, undefined);
-    }
+    var thrift = new Thrift(options);
     thrift._asyncParse(thrift.filename, thrift.allowIncludeAlias, function (err) {
         if (err) {
             return cb(err, undefined);

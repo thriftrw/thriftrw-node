@@ -20,16 +20,20 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var path = require('path');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var path = require('path');
-    var fs = require('fs');
-    var path = require('path');
+withLoader(function (loadThrift, test) {
 
     var source = fs.readFileSync(path.join(__dirname, 'list.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
 
         var byteList = thrift.models.ListOfI8;
         var stringList = thrift.models.ListOfString;
@@ -127,4 +131,5 @@ module.exports = function(loadThrift) {
 
         ]));
     });
-}
+
+});

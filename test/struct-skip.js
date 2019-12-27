@@ -20,15 +20,17 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var Buffer = require('buffer').Buffer;
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-
-    var Buffer = require('buffer').Buffer;
-    var fs = require('fs');
-    var path = require('path');
+withLoader(function (loadThrift, test) {
     var source = fs.readFileSync(path.join(__dirname, 'struct.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
 
         var Health = thrift.$Health;
 
@@ -166,4 +168,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});

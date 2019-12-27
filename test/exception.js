@@ -20,15 +20,19 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var fs = require('fs');
-    var path = require('path');
+withLoader(function (loadThrift, test) {
 
     var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
         var err = new thrift.BogusNameError({message: 'Bogus name: Voldemort', bogusName: 'Voldemort'});
 
         test('Exception RW', testRW.cases(thrift.BogusNameError.rw, [
@@ -75,4 +79,5 @@ module.exports = function(loadThrift) {
 
         ]));
     });
-}
+
+});

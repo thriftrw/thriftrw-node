@@ -23,14 +23,18 @@
 /* eslint no-new:[0] */
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
+withLoader(function (loadThrift, test) {
 
     var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
         var MyStruct = thrift.getType('MyStruct');
 
         test('can access enum def annotations', function t(assert) {
@@ -144,4 +148,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});

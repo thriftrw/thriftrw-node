@@ -20,22 +20,26 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var Long = require('long');
+var testRW = require('bufrw/test_rw');
+var testThrift = require('./thrift-test');
+var thriftrw = require('../index');
+var ThriftI64 = thriftrw.ThriftI64;
+var TYPE = require('../TYPE');
+var Buffer = require('buffer').Buffer;
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
-    var Long = require('long');
-    var testRW = require('bufrw/test_rw');
-    var testThrift = require('./thrift-test');
-    var thriftrw = require('../index');
-    var ThriftI64 = thriftrw.ThriftI64;
-    var TYPE = require('../TYPE');
-    var Buffer = require('buffer').Buffer;
+withLoader(function (loadThrift, test) {
 
     loadThrift({
         source: fs.readFileSync(path.join(__dirname, 'i64.thrift'), 'ascii')
     }, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
 
         var bufferRW = thrift.getType('bufnum').rw;
         var longRW = thrift.getType('long').rw;
@@ -302,4 +306,5 @@ module.exports = function(loadThrift) {
         test('ThriftI64', testThrift(ThriftI64, bufferRW, TYPE.I64));
 
     });
-}
+
+});

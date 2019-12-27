@@ -20,15 +20,19 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var fs = require('fs');
-    var path = require('path');
-
+withLoader(function (loadThrift, test) {
     var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
+
         test('follows references through typedefs', function t(assert) {
             assert.strictEqual(thrift.getType('Structure'), thrift.getType('Tree'));
             assert.end();
@@ -49,4 +53,4 @@ module.exports = function(loadThrift) {
 
         ]));
     });
-}
+});

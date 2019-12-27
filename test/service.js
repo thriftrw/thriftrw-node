@@ -20,14 +20,19 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
+withLoader(function (loadThrift, test) {
 
-    var fs = require('fs');
-    var path = require('path');
     var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
+
     loadThrift({source: source, strict: false}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
+
         test('has args', function t(assert) {
             assert.ok(thrift.getType('Foo::foo_args'), 'has args');
             assert.ok(thrift.Foo.foo.args, 'has args exposed on service object');
@@ -102,4 +107,5 @@ module.exports = function(loadThrift) {
             });
         });
     });
-}
+
+});

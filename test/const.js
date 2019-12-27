@@ -20,16 +20,15 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-
-    var fs = require('fs');
-    var path = require('path');
-    var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
-
+withLoader(function(loadThrift, test) {
     test('consts parse', function t(assert) {
         loadThrift({source: source}, function (err, thrift) {
+            assert.ifError(err);
             assert.equal(thrift.consts.ten, 10, 'ten constant');
             assert.equal(thrift.consts.tenForward, 10, 'forward reference');
             assert.deepEqual(thrift.consts.edges, {0: 1, 1: 2}, 'map constant');
@@ -38,4 +37,4 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+});

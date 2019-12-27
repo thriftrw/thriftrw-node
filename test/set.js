@@ -22,109 +22,113 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var fs = require('fs');
-    var path = require('path');
+var ThriftSet = require('../set').ThriftSet;
+var ThriftString = require('../string').ThriftString;
+var ThriftI8 = require('../i8').ThriftI8;
 
-    var ThriftSet = require('../set').ThriftSet;
-    var ThriftString = require('../string').ThriftString;
-    var ThriftI8 = require('../i8').ThriftI8;
+var byteSet = new ThriftSet(new ThriftI8());
+var stringSet = new ThriftSet(new ThriftString());
+var stringObjectSet = new ThriftSet(new ThriftString(), {'js.type': 'object'});
 
-    var byteSet = new ThriftSet(new ThriftI8());
-    var stringSet = new ThriftSet(new ThriftString());
-    var stringObjectSet = new ThriftSet(new ThriftString(), {'js.type': 'object'});
+test('ThriftSet.rw: set of bytes', testRW.cases(byteSet.rw, [
 
-    test('ThriftSet.rw: set of bytes', testRW.cases(byteSet.rw, [
+    [[], [
+        0x03,                  // type:1   -- 3, BYTE
+        0x00, 0x00, 0x00, 0x00 // length:4 -- 0
+    ]],
 
-        [[], [
-            0x03,                  // type:1   -- 3, BYTE
-            0x00, 0x00, 0x00, 0x00 // length:4 -- 0
-        ]],
+    [[1, 2, 3], [
+        0x03,                   // type:1   -- 3, BYTE
+        0x00, 0x00, 0x00, 0x03, // length:4 -- 3
+        0x01,                   // byte:1   -- 1
+        0x02,                   // byte:1   -- 2
+        0x03                    // byte:1   -- 3
+    ]],
 
-        [[1, 2, 3], [
-            0x03,                   // type:1   -- 3, BYTE
-            0x00, 0x00, 0x00, 0x03, // length:4 -- 3
-            0x01,                   // byte:1   -- 1
-            0x02,                   // byte:1   -- 2
-            0x03                    // byte:1   -- 3
-        ]],
-
-        {
-            readTest: {
-                bytes: [
-                    0x2b,                  // type:1
-                    0x00, 0x00, 0x00, 0x00 // length:4 -- 0
-                ],
-                error: {
-                    type: 'thrift-typeid-mismatch',
-                    name: 'ThriftTypeidMismatchError',
-                    message: 'encoded set typeid 43 doesn\'t match expected ' +
-                             'type "i8" (id: 3)'
-                }
-            }
-        },
-
-        {
-            readTest: {
-                bytes: [
-                    0x03,                  // type:1   -- 3, BYTE
-                    0xff, 0xff, 0xff, 0xff // length:4 -- -1
-                ],
-                error: {
-                    type: 'thrift-invalid-size',
-                    name: 'ThriftInvalidSizeError',
-                    message: 'invalid size -1 of set; expects non-negative number'
-                }
+    {
+        readTest: {
+            bytes: [
+                0x2b,                  // type:1
+                0x00, 0x00, 0x00, 0x00 // length:4 -- 0
+            ],
+            error: {
+                type: 'thrift-typeid-mismatch',
+                name: 'ThriftTypeidMismatchError',
+                message: 'encoded set typeid 43 doesn\'t match expected ' +
+                         'type "i8" (id: 3)'
             }
         }
+    },
 
-    ]));
+    {
+        readTest: {
+            bytes: [
+                0x03,                  // type:1   -- 3, BYTE
+                0xff, 0xff, 0xff, 0xff // length:4 -- -1
+            ],
+            error: {
+                type: 'thrift-invalid-size',
+                name: 'ThriftInvalidSizeError',
+                message: 'invalid size -1 of set; expects non-negative number'
+            }
+        }
+    }
 
-    test('ThriftSet.rw: set of strings', testRW.cases(stringSet.rw, [
+]));
 
-        [[], [
-            0x0b,                  // type:1   -- 11, STRING
-            0x00, 0x00, 0x00, 0x00 // length:4 -- 0
-        ]],
+test('ThriftSet.rw: set of strings', testRW.cases(stringSet.rw, [
 
-        [['a', 'ab', 'abc'], [
-            0x0b,                    // type:1    -- 11, STRING
-            0x00, 0x00, 0x00, 0x03,  // length:4  -- 3
-            0x00, 0x00, 0x00, 0x01,  // str_len:4 -- 1
-            0x61,                    // chars     -- "a"
-            0x000, 0x00, 0x00, 0x02, // str_len:4 -- 1
-            0x61, 0x62,              // chars     -- "ab"
-            0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
-            0x61, 0x62, 0x63         // chars     -- "abc"
-        ]]
+    [[], [
+        0x0b,                  // type:1   -- 11, STRING
+        0x00, 0x00, 0x00, 0x00 // length:4 -- 0
+    ]],
 
-    ]));
+    [['a', 'ab', 'abc'], [
+        0x0b,                    // type:1    -- 11, STRING
+        0x00, 0x00, 0x00, 0x03,  // length:4  -- 3
+        0x00, 0x00, 0x00, 0x01,  // str_len:4 -- 1
+        0x61,                    // chars     -- "a"
+        0x000, 0x00, 0x00, 0x02, // str_len:4 -- 1
+        0x61, 0x62,              // chars     -- "ab"
+        0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
+        0x61, 0x62, 0x63         // chars     -- "abc"
+    ]]
 
-    test('ThriftSet.rw: set of strings as object', testRW.cases(stringObjectSet.rw, [
+]));
 
-        [{}, [
-            0x0b,                  // type:1   -- 11, STRING
-            0x00, 0x00, 0x00, 0x00 // length:4 -- 0
-        ]],
+test('ThriftSet.rw: set of strings as object', testRW.cases(stringObjectSet.rw, [
 
-        [{a: true, ab: true, abc: true}, [
-            0x0b,                    // type:1    -- 11, STRING
-            0x00, 0x00, 0x00, 0x03,  // length:4  -- 3
-            0x00, 0x00, 0x00, 0x01,  // str_len:4 -- 1
-            0x61,                    // chars     -- "a"
-            0x000, 0x00, 0x00, 0x02, // str_len:4 -- 1
-            0x61, 0x62,              // chars     -- "ab"
-            0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
-            0x61, 0x62, 0x63         // chars     -- "abc"
-        ]]
+    [{}, [
+        0x0b,                  // type:1   -- 11, STRING
+        0x00, 0x00, 0x00, 0x00 // length:4 -- 0
+    ]],
 
-    ]));
+    [{a: true, ab: true, abc: true}, [
+        0x0b,                    // type:1    -- 11, STRING
+        0x00, 0x00, 0x00, 0x03,  // length:4  -- 3
+        0x00, 0x00, 0x00, 0x01,  // str_len:4 -- 1
+        0x61,                    // chars     -- "a"
+        0x000, 0x00, 0x00, 0x02, // str_len:4 -- 1
+        0x61, 0x62,              // chars     -- "ab"
+        0x00, 0x00, 0x00, 0x03,  // str_len:4 -- 1
+        0x61, 0x62, 0x63         // chars     -- "abc"
+    ]]
 
+]));
+
+withLoader(function (loadThrift, test) {
     var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
+
         test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
 
             [new thrift.Bucket({asArray: [1, 2, 3]}), [
@@ -190,4 +194,6 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});
+

@@ -20,39 +20,36 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var testThrift = require('./thrift-test');
+var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var testThrift = require('./thrift-test');
-    var invalidArgumentTestCase = require('./helpers').invalidArgumentTestCase;
+var thriftrw = require('../index');
+var BooleanRW = thriftrw.BooleanRW;
+var ThriftBoolean = thriftrw.ThriftBoolean;
+var TYPE = require('../TYPE');
 
-    var thriftrw = require('../index');
-    var BooleanRW = thriftrw.BooleanRW;
-    var ThriftBoolean = thriftrw.ThriftBoolean;
-    var TYPE = require('../TYPE');
+var validTestCases = [
+    [false, [0x00]],
+    [true, [0x01]]
+];
 
-    var validTestCases = [
-        [false, [0x00]],
-        [true, [0x01]]
-    ];
+var invalidArgumentTestCases = [
+    null,
+    undefined,
+    1,
+    0x00,
+    0x01,
+    0x02,
+    [],
+    {}
+].map(invalidArgumentTestCase('boolean'));
 
-    var invalidArgumentTestCases = [
-        null,
-        undefined,
-        1,
-        0x00,
-        0x01,
-        0x02,
-        [],
-        {}
-    ].map(invalidArgumentTestCase('boolean'));
+var testCases = [].concat(
+    validTestCases,
+    invalidArgumentTestCases
+);
 
-    var testCases = [].concat(
-        validTestCases,
-        invalidArgumentTestCases
-    );
-
-    test('BooleanRW', testRW.cases(BooleanRW, testCases));
-    test('ThriftBoolean', testThrift(ThriftBoolean, BooleanRW, TYPE.BOOL));
-}
+test('BooleanRW', testRW.cases(BooleanRW, testCases));
+test('ThriftBoolean', testThrift(ThriftBoolean, BooleanRW, TYPE.BOOL));

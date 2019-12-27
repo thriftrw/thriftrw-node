@@ -20,20 +20,27 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var fs = require('fs');
+var path = require('path');
+var Buffer = require('buffer').Buffer;
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
-    var Buffer = require('buffer').Buffer;
+var ThriftUnrecognizedException = require('../unrecognized-exception')
+    .ThriftUnrecognizedException;
 
-    var ThriftUnrecognizedException = require('../unrecognized-exception')
-        .ThriftUnrecognizedException;
+withLoader(function (loadThrift, test) {
 
     var sourceV1 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v1.thrift'), 'ascii');
     var sourceV2 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v2.thrift'), 'ascii');
     loadThrift({source: sourceV1}, function (err, thriftV1) {
+        if (err) {
+            throw err;
+        }
         loadThrift({source: sourceV2}, function (err, thriftV2) {
+            if (err) {
+                throw err;
+            }
+
             test('Exception RW', function t(assert) {
 
                 var err = new Error('Bogus Error: Voldemort');
@@ -85,4 +92,5 @@ module.exports = function(loadThrift) {
             });
         });
     });
-}
+
+});

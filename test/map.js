@@ -20,16 +20,20 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var path = require('path');
+var fs = require('fs');
+var ThriftMap = require('../map').ThriftMap;
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var path = require('path');
-    var fs = require('fs');
-    var ThriftMap = require('../map').ThriftMap;
+withLoader(function (loadThrift, test) {
 
     var source = fs.readFileSync(path.join(__dirname, 'map.thrift'), 'ascii');
     var thrift = loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
 
         var strI16Map = thrift.models.Graph.fieldsByName.stringsToI16s.valueType;
         var strI16MapEntries = thrift.models.Graph.fieldsByName.stringsToI16Entries.valueType;
@@ -204,4 +208,5 @@ module.exports = function(loadThrift) {
             });
         });
     });
-}
+
+});

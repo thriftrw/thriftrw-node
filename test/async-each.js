@@ -1,4 +1,4 @@
-// Copyright (c) 2018 Uber Technologies, Inc.
+// Copyright (c) 2019 Uber Technologies, Inc.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -20,88 +20,85 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var asyncEach = require('../lib/async-each.js');
 
-    var test = require('tape');
-    var asyncEach = require('../lib/async-each.js');
+test('ensure handle parameter not called after error', function t(assert) {
+     var nbTimesCalled = 0;
+     function errorHandle(elt, cb) {
+         nbTimesCalled++;
+         cb('error')
+     }
 
-    test('ensure handle parameter not called after error', function t(assert) {
-         var nbTimesCalled = 0;
-         function errorHandle(elt, cb) {
-             nbTimesCalled++;
-             cb('error')
-         }
+     asyncEach([1, 2, 3], errorHandle, function (err) {
+         assert.ok(err, 'Expected an error')
+     });
 
-         asyncEach([1, 2, 3], errorHandle, function (err) {
-             assert.ok(err, 'Expected an error')
-         });
+     assert.equal(nbTimesCalled, 1, 'errorHandle should have been called once');
+     assert.end();
+ })
 
-         assert.equal(nbTimesCalled, 1, 'errorHandle should have been called once');
-         assert.end();
-     })
+function mockHandle(elt, cb) {
+    cb();
+}
 
-    function mockHandle(elt, cb) {
-        cb();
+function conditionalErrorHandle(elt, cb) {
+    if (elt === 'error') {
+        return cb('failure');
     }
+    cb();
+}
 
-    function conditionalErrorHandle(elt, cb) {
+function doubleCallbackCallHandle(elt, cb) {
+    cb();
+    cb();
+}
+
+function asyncConditionalErrorHandle(elt, cb) {
+    setTimeout(function () {
         if (elt === 'error') {
             return cb('failure');
         }
         cb();
-    }
+    }, 10);
+}
 
-    function doubleCallbackCallHandle(elt, cb) {
-        cb();
-        cb();
-    }
+var asyncEachTests = [
+    {expectError: false, iterator: [], handle: mockHandle},
+    {expectError: false, iterator: [''], handle: mockHandle},
 
-    function asyncConditionalErrorHandle(elt, cb) {
-        setTimeout(function () {
-            if (elt === 'error') {
-                return cb('failure');
-            }
-            cb();
-        }, 10);
-    }
+    {expectError: false, iterator: ['no-error', 'no-error'], handle: conditionalErrorHandle},
+    {expectError: true, iterator: ['no-error', 'error'], handle: conditionalErrorHandle},
+    {expectError: true, iterator: ['error', 'no-error'], handle: conditionalErrorHandle},
+    {expectError: true, iterator: ['error', 'error'], handle: conditionalErrorHandle},
 
-    var asyncEachTests = [
-        {expectError: false, iterator: [], handle: mockHandle},
-        {expectError: false, iterator: [''], handle: mockHandle},
+    {expectError: false, iterator: ['no-error', 'no-error'], handle: asyncConditionalErrorHandle},
+    {expectError: true, iterator: ['no-error', 'error'], handle: asyncConditionalErrorHandle},
+    {expectError: true, iterator: ['error', 'no-error'], handle: asyncConditionalErrorHandle},
+    {expectError: true, iterator: ['error', 'error'], handle: asyncConditionalErrorHandle},
 
-        {expectError: false, iterator: ['no-error', 'no-error'], handle: conditionalErrorHandle},
-        {expectError: true, iterator: ['no-error', 'error'], handle: conditionalErrorHandle},
-        {expectError: true, iterator: ['error', 'no-error'], handle: conditionalErrorHandle},
-        {expectError: true, iterator: ['error', 'error'], handle: conditionalErrorHandle},
+    {expectError: true, iterator: ['', ''], handle: doubleCallbackCallHandle},
+    {expectError: false, iterator: [''], handle: doubleCallbackCallHandle}
+];
 
-        {expectError: false, iterator: ['no-error', 'no-error'], handle: asyncConditionalErrorHandle},
-        {expectError: true, iterator: ['no-error', 'error'], handle: asyncConditionalErrorHandle},
-        {expectError: true, iterator: ['error', 'no-error'], handle: asyncConditionalErrorHandle},
-        {expectError: true, iterator: ['error', 'error'], handle: asyncConditionalErrorHandle},
-
-        {expectError: true, iterator: ['', ''], handle: doubleCallbackCallHandle},
-        {expectError: false, iterator: [''], handle: doubleCallbackCallHandle}
-    ];
-
-    for (var i = 0; i < asyncEachTests.length; i++) {
-        test('asyncEach test number ' + i, function () {
-            var index = i;
-            return function t(assert) {
-                assert.plan(1);
-                var asyncEachTest = asyncEachTests[index];
-                var nbCalled = 0;
-                asyncEach(asyncEachTest.iterator, asyncEachTest.handle, function (err) {
-                    nbCalled++;
-                    if (nbCalled > 1) {
-                        assert.fail('Callback should only be called once');
-                    }
-                    if (asyncEachTest.expectError) {
-                        assert.ok(err, 'Expected an error');
-                    } else {
-                        assert.notOk(err, 'Expected no error');
-                    }
-                });
-            }
-        }());
-    }
+for (var i = 0; i < asyncEachTests.length; i++) {
+    test('asyncEach test number ' + i, function () {
+        var index = i;
+        return function t(assert) {
+            assert.plan(1);
+            var asyncEachTest = asyncEachTests[index];
+            var nbCalled = 0;
+            asyncEach(asyncEachTest.iterator, asyncEachTest.handle, function (err) {
+                nbCalled++;
+                if (nbCalled > 1) {
+                    assert.fail('Callback should only be called once');
+                }
+                if (asyncEachTest.expectError) {
+                    assert.ok(err, 'Expected an error');
+                } else {
+                    assert.notOk(err, 'Expected no error');
+                }
+            });
+        }
+    }());
 }

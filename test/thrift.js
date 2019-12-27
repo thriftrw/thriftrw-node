@@ -22,17 +22,20 @@
 /* eslint-disable max-len */
 'use strict';
 
-module.exports = function(loadThrift) {
+var Thrift = require('../thrift').Thrift;
+var withLoader = require('./loader');
 
-    var fs = require('fs');
-    var path = require('path');
-    var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var test = require('tape');
 
-    var allowFilesystemAccess = !process.browser;
-    var idls;
-    if (process.browser) {
-        idls = global.idls;
-    }
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
+
+withLoader(function (loadThrift, test) {
 
     test('thrift must be passed options', function t(assert) {
         loadThrift(null, function (err, thrift) {
@@ -56,16 +59,16 @@ module.exports = function(loadThrift) {
         });
     });
 
-    test('Thrift.load : options.fs.readFile required', function t(assert) {
-        var Thrift = require('../thrift').Thrift;
-        Thrift.load({}, function (err, thrift) {
-            assert.throws(
-                function throws() { throw err; },
-                /options.fs.readFile required/,
-                'throws when calling Thrift.load without options.fs.readFile'
-            );
-            assert.end();
-        });
+    test('Thrift.load: options.fs.readFile required', function t(assert) {
+        assert.throws(
+            function throws() {
+                Thrift.load({}, function (err, thrift) {
+                });
+            },
+            /options.fs.readFile is required for async loading/,
+            'throws when calling Thrift.load without options.fs.readFile'
+        );
+        assert.end();
     });
 
     test('thrift expects the source to be a string', function t(assert) {
@@ -82,6 +85,7 @@ module.exports = function(loadThrift) {
     test('thrift parses from source', function t(assert) {
         var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
         loadThrift({source: source}, function (err, thrift) {
+            assert.ifError(err);
             assert.equal(
                 thrift.getSources().entryPoint,
                 'service.thrift',
@@ -99,6 +103,7 @@ module.exports = function(loadThrift) {
             allowFilesystemAccess: allowFilesystemAccess,
             idls: idls
         }, function (err, thrift) {
+            assert.ifError(err);
             assert.equal(
                 thrift.getSources().entryPoint,
                 'thrift.thrift',
@@ -112,6 +117,7 @@ module.exports = function(loadThrift) {
     test('thrift parses from idls', function t(assert) {
         var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
         loadThrift({idls: {'service.thrift': source}, entryPoint: 'service.thrift'}, function (err, thrift) {
+            assert.ifError(err);
             assert.equal(
                 thrift.getSources().entryPoint,
                 'service.thrift',
@@ -124,6 +130,9 @@ module.exports = function(loadThrift) {
 
     var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
 
         test('can get type result from thrift', function t(assert) {
             var res = thrift.getTypeResult('Struct');
@@ -239,6 +248,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             assert.deepEqual(
                 thrift.getServiceEndpoints(),
                 ['Service::foo'],
@@ -261,6 +271,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             assert.deepEqual(
                 thrift.getServiceEndpoints(),
                 ['Weatherwax::headology', 'Weatherwax::wossname', 'Ogg::voodoo'],
@@ -285,6 +296,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             var valueDefinition = thrift.defaultValueDefinition;
             assert.true(
                 valueDefinition.type === 'Literal',
@@ -311,6 +323,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             var valueDefinition = thrift.defaultValueDefinition;
             assert.true(
                 valueDefinition.type === 'Literal',
@@ -337,6 +350,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             assert.deepEqual(
                 thrift.getServiceEndpoints('Ogg'),
                 ['Ogg::voodoo'],
@@ -359,6 +373,7 @@ module.exports = function(loadThrift) {
             };
         }
         loadThrift(opts, function (err, thrift) {
+            assert.ifError(err);
             assert.deepEqual(
                 thrift.getServiceEndpoints('Magrat'),
                 [],
@@ -367,4 +382,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});

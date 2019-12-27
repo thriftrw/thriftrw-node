@@ -22,14 +22,19 @@
 /* eslint max-len:[0, 120] */
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var path = require('path');
+var fs = require('fs');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var path = require('path');
-    var fs = require('fs');
+withLoader(function (loadThrift, test) {
 
     var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
     loadThrift({source: source}, function (err, thrift) {
+        if (err) {
+            throw err;
+        }
+
         test('round-trip a non-strict message', function t(assert) {
             var message = new thrift.Service.foo.ArgumentsMessage({
                 id: 0,
@@ -389,4 +394,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});

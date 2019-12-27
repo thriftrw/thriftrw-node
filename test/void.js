@@ -20,25 +20,22 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var testThrift = require('./thrift-test');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var testThrift = require('./thrift-test');
+var thriftrw = require('../index');
+var VoidRW = thriftrw.VoidRW;
+var ThriftVoid = thriftrw.ThriftVoid;
+var TYPE = require('../TYPE');
 
-    var thriftrw = require('../index');
-    var VoidRW = thriftrw.VoidRW;
-    var ThriftVoid = thriftrw.ThriftVoid;
-    var TYPE = require('../TYPE');
+var validTestCases = [
+    [null, []]
+];
 
-    var validTestCases = [
-        [null, []]
-    ];
+var testCases = [].concat(
+    validTestCases
+);
 
-    var testCases = [].concat(
-        validTestCases
-    );
-
-    test('VoidRW', testRW.cases(VoidRW, testCases));
-    test('ThriftVoid', testThrift(ThriftVoid, VoidRW, TYPE.VOID));
-}
+test('VoidRW', testRW.cases(VoidRW, testCases));
+test('ThriftVoid', testThrift(ThriftVoid, VoidRW, TYPE.VOID));

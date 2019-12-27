@@ -20,71 +20,68 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var lcp = require('../lib/lcp');
 
-    var test = require('tape');
-    var lcp = require('../lib/lcp');
+var prefixTests = [
+    {strings: [], length: Infinity},
+    {strings: [''], length: 0},
+    {strings: ['a', 'b'], length: 0},
+    {strings: ['ac', 'ab'], length: 1},
+    {strings: ['aac', 'aab'], length: 2},
+    {strings: ['aac', 'aab', 'aab'], length: 2},
+    {strings: ['aaaa', 'aaa', 'aa', 'a'], length: 1}
+];
 
-    var prefixTests = [
-        {strings: [], length: Infinity},
-        {strings: [''], length: 0},
-        {strings: ['a', 'b'], length: 0},
-        {strings: ['ac', 'ab'], length: 1},
-        {strings: ['aac', 'aab'], length: 2},
-        {strings: ['aac', 'aab', 'aab'], length: 2},
-        {strings: ['aaaa', 'aaa', 'aa', 'a'], length: 1}
-    ];
+test('lengths of common prefixes', function t(assert) {
+    for (var i = 0; i < prefixTests.length; i++) {
+        var prefixTest = prefixTests[i];
+        assert.equal(
+            lcp.lengthOfCommonPrefix(prefixTest.strings),
+            prefixTest.length,
+            'length of common prefix among ' +
+            JSON.stringify(prefixTest.strings)
+        );
+    }
+    assert.end();
+});
 
-    test('lengths of common prefixes', function t(assert) {
-        for (var i = 0; i < prefixTests.length; i++) {
-            var prefixTest = prefixTests[i];
-            assert.equal(
-                lcp.lengthOfCommonPrefix(prefixTest.strings),
-                prefixTest.length,
-                'length of common prefix among ' +
-                JSON.stringify(prefixTest.strings)
-            );
-        }
-        assert.end();
-    });
+var pathTests = [
+    {paths: [
+        '/home/luser/app/idl/alice/alice.thrift',
+        '/home/luser/app/idl/bob/bob.thrift',
+        '/home/luser/app/idl/charlie/charlie.thrift',
+        '/home/luser/app/idl/common.thrift'
+    ], path: '/home/luser/app/idl/'},
+    {paths: [
+        '/home/luser/app/idl/alice/alice.thrift',
+        '/home/luser/app/idl/alice.thrift'
+    ], path: '/home/luser/app/idl/'},
+    {paths: [
+        '/home/luser/app/idl/alice',
+        '/home/luser/app/idl/bob'
+    ], path: '/home/luser/app/idl/'},
+    {paths: [
+        '/home/luser/app/idl/',
+        '/home/luser/app/idl/'
+    ], path: '/home/luser/app/idl/'},
+    {paths: [
+        'service.thrift'
+    ], path: ''},
+    {paths: [
+        '/home/luser/app/idl/service.thrift'
+    ], path: '/home/luser/app/idl/'}
+];
 
-    var pathTests = [
-        {paths: [
-            '/home/luser/app/idl/alice/alice.thrift',
-            '/home/luser/app/idl/bob/bob.thrift',
-            '/home/luser/app/idl/charlie/charlie.thrift',
-            '/home/luser/app/idl/common.thrift'
-        ], path: '/home/luser/app/idl/'},
-        {paths: [
-            '/home/luser/app/idl/alice/alice.thrift',
-            '/home/luser/app/idl/alice.thrift'
-        ], path: '/home/luser/app/idl/'},
-        {paths: [
-            '/home/luser/app/idl/alice',
-            '/home/luser/app/idl/bob'
-        ], path: '/home/luser/app/idl/'},
-        {paths: [
-            '/home/luser/app/idl/',
-            '/home/luser/app/idl/'
-        ], path: '/home/luser/app/idl/'},
-        {paths: [
-            'service.thrift'
-        ], path: ''},
-        {paths: [
-            '/home/luser/app/idl/service.thrift'
-        ], path: '/home/luser/app/idl/'}
-    ];
-
-    test('common parent directory', function t(assert) {
-        for (var i = 0; i < pathTests.length; i++) {
-            var pathTest = pathTests[i];
-            assert.equal(
-                lcp.longestCommonPath(pathTest.paths),
-                pathTest.path,
-                'length of common parent directory among ' +
-                JSON.stringify(pathTest.paths)
-            );
-        }
-        assert.end();
-    });
-}
+test('common parent directory', function t(assert) {
+    for (var i = 0; i < pathTests.length; i++) {
+        var pathTest = pathTests[i];
+        assert.equal(
+            lcp.longestCommonPath(pathTest.paths),
+            pathTest.path,
+            'length of common parent directory among ' +
+            JSON.stringify(pathTest.paths)
+        );
+    }
+    assert.end();
+});

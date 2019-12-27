@@ -20,13 +20,13 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var withLoader = require('./loader');
 
-    var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var entryIdl = path.join(__dirname, 'default.thrift');
 
-    var fs = require('fs');
-    var path = require('path');
-    var entryIdl = path.join(__dirname, 'default.thrift');
+withLoader(function(loadThrift, test) {
 
     var allowFilesystemAccess = !process.browser;
     var idls;
@@ -40,6 +40,7 @@ module.exports = function(loadThrift) {
             allowFilesystemAccess: allowFilesystemAccess,
             idls: idls
         }, function (err, model) {
+            assert.ifError(err);
             var health = new model.Health({name: 'grand'});
             assert.equals(health.ok, true, 'default truth value passes through');
             assert.equals(health.notOk, false, 'default false value passes through');
@@ -65,4 +66,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});
