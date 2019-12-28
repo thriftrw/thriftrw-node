@@ -20,22 +20,20 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
 
-    var test = require('tape');
+var Thrift = require('..').Thrift;
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
+var thrift;
 
-    var fs = require('fs');
-    var path = require('path');
-    var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
-
-    test('consts parse', function t(assert) {
-        loadThrift({source: source}, function (err, thrift) {
-            assert.equal(thrift.consts.ten, 10, 'ten constant');
-            assert.equal(thrift.consts.tenForward, 10, 'forward reference');
-            assert.deepEqual(thrift.consts.edges, {0: 1, 1: 2}, 'map constant');
-            assert.deepEqual(thrift.consts.names, ['a', 'ab', 'abc'], 'list constant');
-            assert.deepEqual(thrift.consts.tens, [10, 10, 10], 'list of identifiers');
-            assert.end();
-        });
-    });
-}
+test('consts parse', function t(assert) {
+    thrift = new Thrift({source: source});
+    assert.equal(thrift.consts.ten, 10, 'ten constant');
+    assert.equal(thrift.consts.tenForward, 10, 'forward reference');
+    assert.deepEqual(thrift.consts.edges, {0: 1, 1: 2}, 'map constant');
+    assert.deepEqual(thrift.consts.names, ['a', 'ab', 'abc'], 'list constant');
+    assert.deepEqual(thrift.consts.tens, [10, 10, 10], 'list of identifiers');
+    assert.end();
+});

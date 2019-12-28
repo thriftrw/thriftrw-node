@@ -20,16 +20,18 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
 
-    var test = require('tape');
-    var path = require('path');
+var test = require('tape');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var allowFilesystemAccess = !process.browser;
-    var idls;
-    if (process.browser) {
-        idls = global.idls;
-    }
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
+
+withLoader(function (loadThrift, test) {
 
     test('loads a thrift file that imports synchronously', function t(assert) {
         loadThrift({
@@ -38,6 +40,8 @@ module.exports = function(loadThrift) {
             allowFilesystemAccess: allowFilesystemAccess,
             idls: idls
         }, function (err, mainThrift) {
+            assert.ifError(err);
+
             var importedThrift = mainThrift.modules.common;
 
             var typeImportedByMainThrift = mainThrift // Thrift
@@ -97,6 +101,7 @@ module.exports = function(loadThrift) {
             allowFilesystemAccess: allowFilesystemAccess,
             idls: idls
         }, function (err, thrift) {
+            assert.ifError(err);
             assert.ok(thrift.modules.typedef,
                 'modules includes typedef thrift instance');
             assert.end();
@@ -113,6 +118,7 @@ module.exports = function(loadThrift) {
             allowFilesystemAccess: allowFilesystemAccess,
             idls: idls
         }, function (err, thriftA) {
+            assert.ifError(err);
             var thriftB = thriftA.B;
 
             assert.equal(
@@ -233,4 +239,5 @@ module.exports = function(loadThrift) {
             assert.end();
         });
     });
-}
+
+});

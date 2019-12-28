@@ -20,31 +20,28 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var testRW = require('bufrw/test_rw');
+var testThrift = require('./thrift-test');
 
-    var test = require('tape');
-    var testRW = require('bufrw/test_rw');
-    var testThrift = require('./thrift-test');
+var thriftrw = require('../index');
+var StringRW = thriftrw.StringRW;
+var ThriftString = thriftrw.ThriftString;
+var TYPE = require('../TYPE');
 
-    var thriftrw = require('../index');
-    var StringRW = thriftrw.StringRW;
-    var ThriftString = thriftrw.ThriftString;
-    var TYPE = require('../TYPE');
+var validTestCases = [
+    ['', [
+        0x00, 0x00, 0x00, 0x00
+    ]],
+    ['cat', [
+        0x00, 0x00, 0x00, 0x03, // len: 3
+        0x63, 0x61, 0x74        // chars  -- "cat"
+    ]]
+];
 
-    var validTestCases = [
-        ['', [
-            0x00, 0x00, 0x00, 0x00
-        ]],
-        ['cat', [
-            0x00, 0x00, 0x00, 0x03, // len: 3
-            0x63, 0x61, 0x74        // chars  -- "cat"
-        ]]
-    ];
+var testCases = [].concat(
+    validTestCases
+);
 
-    var testCases = [].concat(
-        validTestCases
-    );
-
-    test('StringRW', testRW.cases(StringRW, testCases));
-    test('ThriftString', testThrift(ThriftString, StringRW, TYPE.STRING));
-}
+test('StringRW', testRW.cases(StringRW, testCases));
+test('ThriftString', testThrift(ThriftString, StringRW, TYPE.STRING));

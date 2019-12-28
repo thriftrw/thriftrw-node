@@ -20,17 +20,18 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var fs = require('fs');
+var path = require('path');
+var withLoader = require('./loader');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
+var allowFilesystemAccess = !process.browser;
+var idls;
+if (process.browser) {
+    idls = global.idls;
+}
 
-    var allowFilesystemAccess = !process.browser;
-    var idls;
-    if (process.browser) {
-        idls = global.idls;
-    }
+withLoader(function (loadThrift, test) {
 
     test('can round trip a thrift file through sources', function t(assert) {
         loadThrift({
@@ -40,12 +41,14 @@ module.exports = function(loadThrift) {
             allowIncludeAlias: true,
             idls: idls
         }, function (err, thrift) {
+            assert.ifError(err);
             var sources = thrift.getSources();
             loadThrift({
                 entryPoint: sources.entryPoint,
                 idls: sources.idls,
                 allowIncludeAlias: true
             }, function (err, rethrift) {
+                assert.ifError(err);
                 assert.deepEquals(
                     Object.keys(rethrift.models),
                     Object.keys(thrift.models),
@@ -55,4 +58,5 @@ module.exports = function(loadThrift) {
             });
         });
     });
-}
+
+});

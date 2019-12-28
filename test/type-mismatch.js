@@ -20,21 +20,22 @@
 
 'use strict';
 
-module.exports = function(loadThrift) {
+var test = require('tape');
+var Thrift = require('..').Thrift;
+var fs = require('fs');
+var path = require('path');
+var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
 
-    var test = require('tape');
-    var fs = require('fs');
-    var path = require('path');
-    var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
+test('consts parse', function t(assert) {
+    assert.throws(
+        typeMismatch,
+        /type mismatch.*expects value, got service/,
+        'throws if service identified for value'
+    );
+    assert.end();
 
-    test('consts parse', function t(assert) {
-        loadThrift({source: source}, function (err, thrift) {
-            assert.throws(
-                function throws() { throw err; },
-                /type mismatch.*expects value, got service/,
-                'throws if service identified for value'
-            );
-            assert.end();
-        });
-    });
-}
+    function typeMismatch() {
+        return new Thrift({source: source});
+    }
+});
+
