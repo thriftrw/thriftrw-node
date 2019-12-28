@@ -18,6 +18,14 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+// The loader test module is a utility for validating both the synchronous
+// Thrift constructor and the asynchronous Thrift.load constructor.
+// The exported withLoader function calls back twice, once with synchronous
+// loadThrift and testThrift functions and again with asynchronous versions.
+// This allows some tests, particularly those that exercise Thrift IDL files
+// that have "include" directives, to exercise both the synchronous and
+// asynchronous code paths.
+
 var fs = require('fs');
 var path = require('path');
 var test = require('tape');
