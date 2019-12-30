@@ -130,7 +130,7 @@ function Thrift(options) {
     var cb = options.callback;
     if (cb) {
         var thrift = this;
-        thrift._asyncParse(thrift.filename, thrift.allowIncludeAlias, function (err) {
+        thrift._asyncParse(thrift.filename, function (err) {
             if (err) {
                 return cb(err, undefined);
             }
@@ -142,7 +142,7 @@ function Thrift(options) {
             cb(undefined, thrift);
         });
     } else {
-        this._parse(this.filename, this.allowIncludeAlias);
+        this._parse(this.filename);
         this._compileAndLink();
     }
 }
@@ -161,7 +161,7 @@ Thrift.prototype.models = 'module';
 
 Thrift.prototype.Message = Message;
 
-Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias, cb) {
+Thrift.prototype._asyncParse = function _asyncParse(filename, cb) {
     var model = this;
     if (model.parsed[filename]) {
         return cb(undefined);
@@ -169,7 +169,7 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
     model.parsed[filename] = true;
 
     if (model.idls[filename] || model.asts[filename]) {
-        return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
+        return model._asyncParseIncludedModules(filename, cb);
     }
 
     model.fs.readFile(filename, 'utf-8', function (err, source) {
@@ -177,11 +177,11 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
             return cb(err);
         }
         model.idls[filename] = source;
-        model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
+        model._asyncParseIncludedModules(filename, cb);
     });
 }
 
-Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, allowIncludeAlias, cb) {
+Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, cb) {
     var model = this;
     var dirname = path.dirname(filename);
     var defs;
@@ -190,7 +190,7 @@ Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModule
             model.asts[filename] = idl.parse(model.idls[filename]);
         }
         defs = model.asts[filename].headers.concat(model.asts[filename].definitions);
-        model._checkIncludedModules(dirname, defs, allowIncludeAlias);
+        model._checkIncludedModules(dirname, defs);
     } catch (err) {
         return cb(err);
     }
@@ -199,13 +199,13 @@ Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModule
             return handleCb(undefined);
         }
         var includeFilename = path.join(dirname, def.id);
-        model._asyncParse(includeFilename, true, function (err) {
+        model._asyncParse(includeFilename, function (err) {
             handleCb(err);
         });
     }, cb);
 }
 
-Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
+Thrift.prototype._parse = function _parse(filename) {
     if (this.parsed[filename]) {
         return;
     }
@@ -224,7 +224,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
 
     var dirname = path.dirname(filename);
     var defs = this.asts[filename].headers.concat(this.asts[filename].definitions);
-    this._checkIncludedModules(dirname, defs, allowIncludeAlias);
+    this._checkIncludedModules(dirname, defs);
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
         if (def.type !== 'Include') {
@@ -235,7 +235,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
     }
 }
 
-Thrift.prototype._checkIncludedModules = function _checkIncludedModules(dirname, defs, allowIncludeAlias) {
+Thrift.prototype._checkIncludedModules = function _checkIncludedModules(dirname, defs) {
     for (var index = 0; index < defs.length; index++) {
         var def = defs[index];
         if (def.type !== 'Include') {
@@ -244,14 +244,14 @@ Thrift.prototype._checkIncludedModules = function _checkIncludedModules(dirname,
         if (def.id.lastIndexOf('/', 0) === 0) {
             throw Error('Include path string must not be an absolute path');
         }
-        this._getNamespaceAndCheckIdentifier(def, allowIncludeAlias);
+        this._getNamespaceAndCheckIdentifier(def);
     }
 }
 
-Thrift.prototype._getNamespaceAndCheckIdentifier = function _getNamespaceAndCheckIdentifier(def, allowIncludeAlias) {
+Thrift.prototype._getNamespaceAndCheckIdentifier = function _getNamespaceAndCheckIdentifier(def) {
     var ns = def.namespace && def.namespace.name;
     // If include isn't name, get filename sans *.thrift file extension.
-    if (!allowIncludeAlias || !ns) {
+    if (!this.allowIncludeAlias || !ns) {
         var basename = path.basename(def.id);
         ns = basename.slice(0, basename.length - 7);
         if (!validThriftIdentifierRE.test(ns)) {
@@ -376,7 +376,7 @@ Thrift.prototype._compile = function _compile(defs) {
 
 Thrift.prototype.compileInclude = function compileInclude(def) {
     var filename = path.join(this.dirname, def.id);
-    var ns = this._getNamespaceAndCheckIdentifier(def, this.allowIncludeAlias);
+    var ns = this._getNamespaceAndCheckIdentifier(def);
 
     var model;
 
@@ -390,7 +390,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
             asts: this.asts,
             memo: this.memo,
             strict: this.strict,
-            allowIncludeAlias: true,
+            allowIncludeAlias: this.allowIncludeAlias,
             allowOptionalArguments: this.allowOptionalArguments,
             noLink: true,
             defaultAsUndefined: this.defaultAsUndefined
