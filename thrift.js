@@ -59,39 +59,6 @@ var messageExceptionTypesDef = require('./message').exceptionTypesDef;
 var validThriftIdentifierRE = /^[a-zA-Z_][a-zA-Z0-9_\.]+$/;
 
 function Thrift(options) {
-    this._init(options);
-
-    if (this.asyncReadFile) {
-        return;
-    }
-
-    this._parse(this.filename, this.allowIncludeAlias);
-    this._compileAndLink();
-}
-
-// Alternative constructor allowing for asynchronous source loading.
-Thrift.load = function load(options, cb) {
-    assert(options != null, 'options required');
-    assert(typeof options === 'object', 'options must be object');
-    assert(options.fs != null && typeof options.fs.readFile === 'function',
-        'options.fs.readFile is required for async loading');
-
-    options.asyncReadFile = true;
-    var thrift = new Thrift(options);
-    thrift._asyncParse(thrift.filename, thrift.allowIncludeAlias, function (err) {
-        if (err) {
-            return cb(err, undefined);
-        }
-        try {
-            thrift._compileAndLink();
-        } catch (err) {
-            return cb(err, undefined);
-        }
-        cb(undefined, thrift);
-    });
-}
-
-Thrift.prototype._init = function _init(options) {
     assert(options, 'options required');
     assert(typeof options === 'object', 'options must be object');
     assert(options.source || options.entryPoint, 'opts.entryPoint required');
@@ -118,7 +85,6 @@ Thrift.prototype._init = function _init(options) {
     if (options.allowFilesystemAccess) {
         this.fs = fs;
     }
-    this.asyncReadFile = options.asyncReadFile || false;
 
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
@@ -160,6 +126,35 @@ Thrift.prototype._init = function _init(options) {
     this.memo[this.filename] = this;
 
     this.exception = null;
+
+    var cb = options.callback;
+    if (cb) {
+        var thrift = this;
+        thrift._asyncParse(thrift.filename, thrift.allowIncludeAlias, function (err) {
+            if (err) {
+                return cb(err, undefined);
+            }
+            try {
+                thrift._compileAndLink();
+            } catch (err) {
+                return cb(err, undefined);
+            }
+            cb(undefined, thrift);
+        });
+    } else {
+        this._parse(this.filename, this.allowIncludeAlias);
+        this._compileAndLink();
+    }
+}
+
+// Alternative constructor allowing for asynchronous source loading.
+Thrift.load = function load(options, cb) {
+    assert(options != null, 'options required');
+    assert(typeof options === 'object', 'options must be object');
+    assert(options.fs != null && typeof options.fs.readFile === 'function',
+        'options.fs.readFile is required for async loading');
+    options.callback = cb;
+    new Thrift(options);
 }
 
 Thrift.prototype.models = 'module';
