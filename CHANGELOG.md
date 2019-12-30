@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support for browsers.
   Thrift can now be bundled with tools like Browserify and used in browser scripts,
   both for parsing IDL and generating binary payloads.
+- Support for alternate encodings.
+  The Go version of ThriftRW supports UTF-8 encoded Thrift IDL files by default.
+  This change brings ThriftRW Node.js into parity, and allows for the encoding
+  to be overridden.
+  This affects the asynchronous filesystem API used by Thrift.load.
+  readFile must accept an encoding argument.
 
 ## [3.11.3] - 2018-10-04
 ### Changed
