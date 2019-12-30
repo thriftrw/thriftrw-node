@@ -27,7 +27,7 @@ var fs = require('fs');
 var path = require('path');
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'list.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'list.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 var byteList = thrift.models.ListOfI8;

@@ -36,7 +36,7 @@ The models can only be accessed on the "models" index.
 Loading a spec and using it to read and write types.
 
 ```js
-var source = fs.readFileSync('my.thrift', 'ascii');
+var source = fs.readFileSync('my.thrift', 'utf-8');
 
 // Before:
 var thriftify = require('thriftify');

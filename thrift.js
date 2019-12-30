@@ -177,13 +177,13 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
         return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
     }
 
-    model.fs.readFile(filename, function (err, source) {
+    model.fs.readFile(filename, 'utf-8', function (err, source) {
         if (err) {
             return cb(err);
         }
         model.idls[filename] = source;
         model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
-    })
+    });
 }
 
 Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, allowIncludeAlias, cb) {
@@ -220,7 +220,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
         /* eslint-disable max-len */
         assert.ok(this.fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
         /* eslint-enable max-len */
-        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), 'ascii');
+        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), 'utf-8');
     }
 
     if (!this.asts[filename]) {

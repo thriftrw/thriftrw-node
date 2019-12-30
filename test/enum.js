@@ -28,7 +28,7 @@ var fs = require('fs');
 var path = require('path');
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'enum.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 var MyStruct = thrift.getType('MyStruct');
@@ -100,7 +100,7 @@ test('duplicate name returns in normal form', function t(assert) {
 });
 
 test('throws on name collision', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'enum-collision.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'enum-collision.thrift'), 'utf-8');
     assert.throws(function throws() {
         var thrift = new Thrift({source: source});
     }, /duplicate name in enum MyEnum4 at 24:6/);
@@ -108,7 +108,7 @@ test('throws on name collision', function t(assert) {
 });
 
 test('throws on overflow', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'enum-overflow.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'enum-overflow.thrift'), 'utf-8');
     assert.throws(function throws() {
         var thrift = new Thrift({source: source});
         throw err;

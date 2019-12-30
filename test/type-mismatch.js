@@ -24,7 +24,7 @@ var test = require('tape');
 var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'type-mismatch.thrift'), 'utf-8');
 
 test('consts parse', function t(assert) {
     assert.throws(

@@ -50,7 +50,7 @@ functions, and types expressed in a ThriftIDL source file.
 var fs = require('fs');
 var path = require('path');
 var Thrift = require('thriftrw').Thrift;
-var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'meta.thrift'), 'utf-8');
 var thrift = new Thrift({
     source: source,
     strict: true,

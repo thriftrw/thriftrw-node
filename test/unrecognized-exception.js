@@ -29,8 +29,8 @@ var Thrift = require('../thrift').Thrift;
 var ThriftUnrecognizedException = require('../unrecognized-exception')
     .ThriftUnrecognizedException;
 
-var sourceV1 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v1.thrift'), 'ascii');
-var sourceV2 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v2.thrift'), 'ascii');
+var sourceV1 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v1.thrift'), 'utf-8');
+var sourceV2 = fs.readFileSync(path.join(__dirname, 'unrecognized-exception-v2.thrift'), 'utf-8');
 var thriftV1 = new Thrift({source: sourceV1});
 var thriftV2 = new Thrift({source: sourceV2});
 

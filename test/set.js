@@ -122,7 +122,7 @@ test('ThriftSet.rw: set of strings as object', testRW.cases(stringObjectSet.rw, 
 
 ]));
 
-var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'set.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [

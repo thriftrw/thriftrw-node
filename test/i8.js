@@ -129,7 +129,7 @@ test('I8RW', testRW.cases(ThriftI8.prototype.rw, testCases));
 test('ThriftI8', testThrift(ThriftI8, ThriftI8.prototype.rw, TYPE.I8));
 
 test('Thrift i8 IDL', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'i8.thrift'), 'utf-8');
     var thrift = new Thrift({source: source});
     assert.equal(thrift.typedefs.piecesOf8, Number, 'should surface a number');
     assert.equal(thrift.models.piecesOf8.to.rw, ThriftI8.prototype.rw, 'should refer to I8 rw');

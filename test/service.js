@@ -25,7 +25,7 @@ var test = require('tape');
 var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'service.thrift'), 'utf-8');
 var thrift = new Thrift({source: source, strict: false});
 
 test('has args', function t(assert) {
@@ -98,7 +98,7 @@ test('service extends throws on duplicate function name', function t(assert) {
     );
 
     function duplicateFunction() {
-        var source = fs.readFileSync(path.join(__dirname, 'service-duplicate-function-error.thrift'), 'ascii');
+        var source = fs.readFileSync(path.join(__dirname, 'service-duplicate-function-error.thrift'), 'utf-8');
         return new Thrift({source: source});
     }
 

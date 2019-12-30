@@ -20,42 +20,23 @@
 
 'use strict';
 
-require('./async-each');
-require('./binary');
-require('./boolean');
-require('./double');
-require('./i8');
-require('./i16');
-require('./i32');
-require('./i64');
-require('./map-entries');
-require('./thrift-idl');
-require('./map-object');
-require('./string');
-require('./tlist');
-require('./tmap');
-require('./tstruct');
-require('./void');
-require('./skip');
-require('./struct');
-require('./struct-skip');
-require('./recursion');
-require('./exception');
-require('./union');
-require('./service');
-require('./thrift');
-require('./list');
-require('./set');
-require('./map');
-require('./typedef');
-require('./const');
-require('./default');
-require('./enum');
-require('./unrecognized-exception');
-require('./include.js');
-require('./type-mismatch');
-require('./lcp');
-require('./idls');
-require('./asts');
-require('./message');
-require('./utf8')
+var path = require('path');
+var fs = require('fs');
+var withLoader = require('./loader');
+
+var allowFilesystemAccess = !process.browser;
+var idls = process.browser ? global.idls : null;
+
+withLoader(function (loadThrift, test) {
+    test('parse a UTF-8 encoded comment', function t(assert) {
+        loadThrift({
+            entryPoint: path.join(__dirname, 'utf8_parent.thrift'),
+            allowFilesystemAccess: allowFilesystemAccess,
+            idls: idls,
+        }, function (err, thrift) {
+            assert.ifError(err);
+            var MyEnum = thrift.getType('MyEnum');
+            assert.end();
+        });
+    });
+});

@@ -31,7 +31,7 @@ var path = require('path');
 var test = require('tape');
 var Thrift = require('../thrift').Thrift;
 
-function asyncReadFile(filename, cb) {
+function asyncReadFile(filename, encoding, cb) {
     var error;
     var source;
     if (process.browser) {
@@ -41,7 +41,7 @@ function asyncReadFile(filename, cb) {
         }
     } else {
         try {
-            source = fs.readFileSync(path.resolve(filename), 'ascii');
+            source = fs.readFileSync(path.resolve(filename), encoding);
         } catch (err) {
             error = err;
         }
@@ -51,7 +51,7 @@ function asyncReadFile(filename, cb) {
     }, 0);
 }
 
-function readFileNotExpected(_, cb) {
+function readFileNotExpected(_, _, cb) {
     cb(Error('Thrift must be constructed with options.fs.readFile'))
 }
 
