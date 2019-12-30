@@ -34,7 +34,7 @@ function JsonCase(args) {
 JsonCase.prototype.bench = function benchJsonCase() {
     var text = JSON.stringify(this.payload);
     var length = Buffer.byteLength(text, 'utf8');
-    var buffer = new Buffer(length);
+    var buffer = (Buffer.alloc || Buffer)(length);
     buffer.write(text, 0, 'utf8');
     text = buffer.toString('utf8', 0, length);
     var payload = JSON.parse(text);
@@ -51,7 +51,7 @@ var writeRes = new WriteResult();
 var readRes = new ReadResult();
 ThriftCase.prototype.bench = function benchThriftCase() {
     this.rw.poolByteLength(lenRes, this.payload);
-    var buffer = new Buffer(lenRes.length);
+    var buffer = (Buffer.alloc || Buffer)(lenRes.length);
     this.rw.poolWriteInto(writeRes, this.payload, buffer, 0);
     this.rw.poolReadFrom(readRes, buffer, 0);
 };

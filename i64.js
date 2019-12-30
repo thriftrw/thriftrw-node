@@ -182,7 +182,7 @@ function I64BufferRW() {}
 util.inherits(I64BufferRW, I64RW);
 
 I64BufferRW.prototype.poolReadFrom = function poolReadTInt64From(destResult, buffer, offset) {
-    var value = new Buffer(8);
+    var value = (Buffer.alloc || Buffer)(8);
     buffer.copy(value, 0, offset, offset + 8);
     return destResult.reset(null, offset + 8, value);
 };

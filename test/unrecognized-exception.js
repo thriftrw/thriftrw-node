@@ -42,9 +42,9 @@ test('Exception RW', function t(assert) {
     err.byte = 0x00;
     err.i16 = 0x1234;
     err.i32 = 0x12345678;
-    err.i64 = Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
+    err.i64 = (Buffer.from || Buffer)([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]);
     err.double = 1;
-    err.binary = Buffer('binary');
+    err.binary = (Buffer.from || Buffer)('binary');
     err.struct = {
         edges: {
             'abc': 1,

@@ -34,13 +34,13 @@ var TPair = thriftrw.TPair;
 test('TMapRW', testRW.cases(TMapRW, [
 
     [TMap(11, 12, [
-        TPair(Buffer('key0'), TStruct([
+        TPair((Buffer.from || Buffer)('key0'), TStruct([
             TField(12, 1, TStruct([TField(8, 1, 20)])),
-            TField(12, 2, TStruct([TField(11, 1, Buffer('str2'))]))
+            TField(12, 2, TStruct([TField(11, 1, (Buffer.from || Buffer)('str2'))]))
         ])),
-        TPair(Buffer('key1'), TStruct([
+        TPair((Buffer.from || Buffer)('key1'), TStruct([
             TField(12, 1, TStruct([TField(8, 1, 10)])),
-            TField(12, 2, TStruct([TField(11, 1, Buffer('str1'))]))
+            TField(12, 2, TStruct([TField(11, 1, (Buffer.from || Buffer)('str1'))]))
         ]))
     ]), [
 

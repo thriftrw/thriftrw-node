@@ -90,18 +90,18 @@ test('HealthRW', testRW.cases(Health.rw, cases));
 
 test('HealthRW to Buffer', function t(assert) {
     var res = Health.rw.toBuffer(cases[0][0]);
-    assert.deepEqual(res.value, new Buffer(cases[0][1]), 'buffer matches');
+    assert.deepEqual(res.value, (Buffer.from || Buffer)(cases[0][1]), 'buffer matches');
     assert.end();
 });
 
 test('HealthRW from Buffer', function t(assert) {
-    var res = Health.rw.fromBuffer(new Buffer(cases[0][1]));
+    var res = Health.rw.fromBuffer((Buffer.from || Buffer)(cases[0][1]));
     assert.deepEqual(res.value, cases[0][0], 'object matches');
     assert.end();
 });
 
 test('complains of missing required field', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x00                      // typeid:1 -- 0 -- STOP
     ]), 0);
     assert.ok(res.err, 'required field error');
@@ -111,7 +111,7 @@ test('complains of missing required field', function t(assert) {
 });
 
 test('struct skips unknown void', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x02,               // id:2     -- 2 -- WHAT EVEN IS!?
         0x00,                     // bool:1
@@ -130,7 +130,7 @@ test('struct skips unknown void', function t(assert) {
 });
 
 test('fails to read unexpected typeid for known field', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x01,       // typeid:1 -- 1 -- VOID
         0x00, 0x01, // fid:2    -- 1 -- ok
         0x00        // typeid:1 -- 0 -- STOP
@@ -146,7 +146,7 @@ test('fails to read unexpected typeid for known field', function t(assert) {
 });
 
 test('struct skips unknown string', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x01,               // id:2     -- 1 -- ok
         0x01,                     // ok:1     -- 1 -- true
@@ -166,7 +166,7 @@ test('struct skips unknown string', function t(assert) {
 });
 
 test('struct skips unknown struct', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x02,                     // type:1   -- 2 -- BOOL
         0x00, 0x01,               // id:2     -- 1 -- ok
         0x01,                     // ok:1     -- 1 -- true
@@ -192,7 +192,7 @@ test('struct skips unknown struct', function t(assert) {
 });
 
 test('struct skips uknown map', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x02,                     // type:1   -- 2 BOOL
         0x00, 0x01,               // id:2     -- 1 ok
         0x01,                     // ok:1     -- 1 true
@@ -250,7 +250,7 @@ test('struct skips uknown map', function t(assert) {
 });
 
 test('struct skips unknown list', function t(assert) {
-    var res = Health.rw.readFrom(new Buffer([
+    var res = Health.rw.readFrom((Buffer.from || Buffer)([
         0x02,                     // type:1   -- 2 BOOL
         0x00, 0x01,               // id:2     -- 1 ok
         0x00,                     // ok:1     -- 0 false
@@ -347,7 +347,7 @@ test('required fields are required on measuring byte length', function t(assert)
 
 test('required fields are required on writing into buffer', function t(assert) {
     var health = new Health();
-    var res = Health.rw.writeInto(health, new Buffer(100), 0);
+    var res = Health.rw.writeInto(health, (Buffer.alloc || Buffer)(100), 0);
     if (!res.err) {
         assert.fail('should fail to write');
         return assert.end();
@@ -455,11 +455,11 @@ test('skips optional elided arguments', function t(assert) {
     if (byteLengthRes.err) return assert.end(byteLengthRes.err);
     assert.equal(byteLengthRes.length, 1, 'only needs one byte');
 
-    var buffer = new Buffer(byteLengthRes.length);
+    var buffer = (Buffer.alloc || Buffer)(byteLengthRes.length);
     var writeRes = thrift.rw.writeInto(health, buffer, 0);
     if (writeRes.err) return assert.end(writeRes.err);
     assert.equal(writeRes.offset, 1, 'writes to end of buffer');
-    assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
+    assert.deepEqual(buffer, (Buffer.from || Buffer)([0x00]), 'writes stop byte only');
 
     assert.end();
 });
@@ -487,11 +487,11 @@ test('skips optional elided struct (all fields optional)', function t(assert) {
     if (byteLengthRes.err) return assert.end(byteLengthRes.err);
     assert.equal(byteLengthRes.length, 1, 'only needs one byte');
 
-    var buffer = new Buffer(byteLengthRes.length);
+    var buffer = (Buffer.alloc || Buffer)(byteLengthRes.length);
     var writeRes = thrift.rw.writeInto(null, buffer, 0);
     if (writeRes.err) return assert.end(writeRes.err);
     assert.equal(writeRes.offset, 1, 'writes to end of buffer');
-    assert.deepEqual(buffer, new Buffer([0x00]), 'writes stop byte only');
+    assert.deepEqual(buffer, (Buffer.from || Buffer)([0x00]), 'writes stop byte only');
 
     assert.end();
 });

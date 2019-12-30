@@ -89,7 +89,7 @@ test('can get type from thrift', function t(assert) {
 });
 
 test('can read struct from buffer', function t(assert) {
-    var struct = thrift.Struct.fromBuffer(new Buffer([
+    var struct = thrift.Struct.fromBuffer((Buffer.from || Buffer)([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
@@ -101,7 +101,7 @@ test('can read struct from buffer', function t(assert) {
 });
 
 test('can read struct result from buffer', function t(assert) {
-    var result = thrift.Struct.fromBufferResult(new Buffer([
+    var result = thrift.Struct.fromBufferResult((Buffer.from || Buffer)([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
@@ -114,7 +114,7 @@ test('can read struct result from buffer', function t(assert) {
 
 test('can write struct to buffer', function t(assert) {
     var buffer = thrift.Struct.toBuffer(new thrift.Struct({number: 10}));
-    assert.deepEqual(buffer, new Buffer([
+    assert.deepEqual(buffer, (Buffer.from || Buffer)([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
@@ -125,7 +125,7 @@ test('can write struct to buffer', function t(assert) {
 
 test('can write struct to buffer', function t(assert) {
     var result = thrift.Struct.toBufferResult(new thrift.Struct({number: 10}));
-    assert.deepEqual(result.value, new Buffer([
+    assert.deepEqual(result.value, (Buffer.from || Buffer)([
         0x08, // typeid:1 -- 8, i32
         0x00, 0x01, // id:2 -- 1, "number"
         0x00, 0x00, 0x00, 0x0a, // number:4 -- 10
