@@ -20,8 +20,7 @@
 
 'use strict';
 
-/* global Buffer */
-
+var Buffer = require('buffer').Buffer;
 var WriteResult = require('bufrw/base').WriteResult;
 var ReadResult = require('bufrw/base').ReadResult;
 var LengthResult = require('bufrw/base').LengthResult;

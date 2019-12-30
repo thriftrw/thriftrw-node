@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var formatError = require('bufrw/interface').formatError;
 var skip = require('../skip').skipField;

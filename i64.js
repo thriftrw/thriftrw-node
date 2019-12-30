@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 /* eslint no-self-compare: [0] */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var util = require('util');
 var bufrw = require('bufrw');
 var Long = require('long');

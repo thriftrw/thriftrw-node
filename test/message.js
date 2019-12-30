@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 /* eslint max-len:[0, 120] */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var path = require('path');
 var fs = require('fs');
