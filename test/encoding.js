@@ -25,10 +25,7 @@ var fs = require('fs');
 var withLoader = require('./loader');
 
 var allowFilesystemAccess = !process.browser;
-var idls;
-if (process.browser) {
-    idls = global.idls;
-}
+var idls = process.browser ? global.idls : null;
 
 withLoader(function (loadThrift, test) {
     test('parse a UTF-8 encoded comment', function t(assert) {

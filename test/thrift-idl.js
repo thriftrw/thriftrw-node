@@ -38,7 +38,7 @@ test('thrift IDL parser can parse thrift test files', function t(assert) {
             var filename = filenames[index];
             var fullFilename = path.join(dirname, filename);
             if (filename.indexOf(extension, filename.length - extension.length) > 0) {
-                idls[filename] = fs.readFileSync(fullFilename, 'ascii');
+                idls[filename] = fs.readFileSync(fullFilename, 'utf-8');
             }
         }
     }

@@ -49,7 +49,7 @@ function buildTestBundle() {
     for (var i = 0; i < files.length; i++) {
         var file = files[i];
         if (file.endsWith('.thrift')) {
-            idls[path.join('/', 'test', file)] = fs.readFileSync(path.join('..', 'test', file), 'ascii');
+            idls[path.join('/', 'test', file)] = fs.readFileSync(path.join('..', 'test', file), 'utf-8');
         }
     }
 
