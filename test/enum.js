@@ -18,11 +18,11 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 /* eslint camelcase:[0] */
 /* eslint no-new:[0] */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var fs = require('fs');
 var path = require('path');
@@ -51,7 +51,7 @@ test('round trip an enum', function t(assert) {
 test('first enum is 0 by default', function t(assert) {
     var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_0'};
     var buffer = MyStruct.toBuffer(inStruct);
-    var expected = new Buffer([
+    var expected = (Buffer.from || Buffer)([
         0x08, 0x00, // struct
         0x03, // field number 3
         0x00, 0x00, 0x00, 0x00, // value 0
@@ -64,7 +64,7 @@ test('first enum is 0 by default', function t(assert) {
 test('count resumes from previous enum', function t(assert) {
     var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_N1'};
     var buffer = MyStruct.toBuffer(inStruct);
-    var expected = new Buffer([
+    var expected = (Buffer.from || Buffer)([
         0x08,                   // typeid:1 -- 8, struct
         0x00, 0x03,             // field:2  -- 3
         0xff, 0xff, 0xff, 0xff, // value~4  -- -1
@@ -77,7 +77,7 @@ test('count resumes from previous enum', function t(assert) {
 test('duplicate name permitted', function t(assert) {
     var inStruct = {me2_2: null, me3_n2: null, me3_d1: 'ME3_D0'};
     var buffer = MyStruct.toBuffer(inStruct);
-    var expected = new Buffer([
+    var expected = (Buffer.from || Buffer)([
         0x08,                   // typeid:1 -- 0, struct
         0x00, 0x03,             // field~2  -- 3
         0x00, 0x00, 0x00, 0x00, // value~4  -- 0
@@ -133,7 +133,7 @@ test('can\'t encode unknown name', function t(assert) {
 });
 
 test('can\'t decode unknown number', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x08,                   // typeid:1  -- 8, struct
         0x00, 0x03,             // fieldid:2 -- 3
         0x00, 0x00, 0x00, 0x0b, // value:4   -- 11

@@ -18,9 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var formatError = require('bufrw/interface').formatError;
 var skip = require('../skip').skipField;
@@ -165,7 +165,7 @@ test('skip map of strings to i32s', createCase([
 function createCase(bytes) {
     return function t(assert) {
         var res = new ReadResult();
-        var result = skip(res, new Buffer(bytes), 0);
+        var result = skip(res, (Buffer.from || Buffer)(bytes), 0);
         if (result.err) {
             assert.comment(formatError(result.err), {color: true});
             return assert.end(result.err);
@@ -178,7 +178,7 @@ function createCase(bytes) {
 test('skip short buffer', function t(assert) {
     var bytes = [];
     var res = new ReadResult();
-    var result = skip(res, new Buffer(bytes), 0);
+    var result = skip(res, (Buffer.from || Buffer)(bytes), 0);
     assert.ok(result.err !== null);
     assert.end();
 });

@@ -41,7 +41,7 @@ var dateRW = thrift.getType('timestamp').rw;
 
 var bufferCases = [
     [
-        Buffer([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
+        (Buffer.from || Buffer)([0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08]),
         [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08],
         {
             readTest: {
@@ -107,11 +107,11 @@ var longCases = [
 ];
 
 test('I64LongRW negatives', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     longRW.poolWriteInto({
         reset: function (val, err) {}
     }, -1, buffer, 0);
-    assert.deepEquals(buffer, new Buffer('ffffffffffffffff', 'hex'), 'writen value is negative')
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('ffffffffffffffff', 'hex'), 'writen value is negative')
     assert.end();
 });
 
@@ -156,16 +156,16 @@ var dateCases = [
 test('I64DateRW', testRW.cases(dateRW, dateCases));
 
 test('coerce string', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto('0102030405060708', buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
-    assert.deepEquals(buffer, new Buffer('0102030405060708', 'hex'), 'written value');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('0102030405060708', 'hex'), 'written value');
     assert.end();
 });
 
 test('fail to coerce string of bad length', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto('01020304050607', buffer, 0);
     assert.equals(res.err.message,
         'invalid argument, expected a string of 16 hex characters, or other i64 representation', 'string length error');
@@ -173,7 +173,7 @@ test('fail to coerce string of bad length', function t(assert) {
 });
 
 test('fail to coerce string of bad hi value', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto('--------05060708', buffer, 0);
     assert.equals(
         res.err.message,
@@ -183,7 +183,7 @@ test('fail to coerce string of bad hi value', function t(assert) {
 });
 
 test('fail to coerce string of bad lo value', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto('01020304--------', buffer, 0);
     assert.equals(res.err.message,
         'invalid argument, expected a string of hex characters, or other i64 representation',
@@ -192,16 +192,16 @@ test('fail to coerce string of bad lo value', function t(assert) {
 });
 
 test('coerce {hi[gh], lo[w]} object to i32 on wire', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto({hi: 1, lo: 2}, buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
-    assert.deepEquals(buffer, new Buffer('0000000100000002', 'hex'), 'wrote hi[gh], lo[w] to buffer');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('0000000100000002', 'hex'), 'wrote hi[gh], lo[w] to buffer');
     assert.end();
 });
 
 test('fail to coerce object bad hi value', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto({hi: null, lo: 0}, buffer, 0);
     assert.equals(res.err.message,
         'invalid argument, expected {hi[gh], lo[w]} with high bits, or other i64 representation',
@@ -210,7 +210,7 @@ test('fail to coerce object bad hi value', function t(assert) {
 });
 
 test('fail to coerce object bad lo value', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto({hi: 0, lo: null}, buffer, 0);
     assert.equals(res.err.message,
         'invalid argument, expected {hi[gh], lo[w]} with low bits, or other i64 representation',
@@ -219,34 +219,34 @@ test('fail to coerce object bad lo value', function t(assert) {
 });
 
 test('coerce small number', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto(10, buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
-    assert.deepEquals(buffer, new Buffer('000000000000000a', 'hex'), 'written value');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('000000000000000a', 'hex'), 'written value');
     assert.end();
 });
 
 test('coerce large number', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto(Math.pow(2, 50), buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
-    assert.deepEquals(buffer, new Buffer('0004000000000000', 'hex'), 'written value');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('0004000000000000', 'hex'), 'written value');
     assert.end();
 });
 
 test('coerce array of bytes', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto([1, 2, 3, 4, 5, 6, 7, 8], buffer, 0);
     assert.ifError(res.err, 'write into buffer');
     assert.equals(res.offset, 8, 'offset after write');
-    assert.deepEquals(buffer, new Buffer('0102030405060708', 'hex'), 'written value');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)('0102030405060708', 'hex'), 'written value');
     assert.end();
 });
 
 test('fail to coerce array with bad length', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto([1, 2, 3, 4, 5, 6, 7, 8, 9], buffer, 0);
     assert.equals(res.err.message,
         'invalid argument, expected an array of 8 bytes, or other i64 representation',
@@ -255,42 +255,42 @@ test('fail to coerce array with bad length', function t(assert) {
 });
 
 test('fail to coerce', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     var res = bufferRW.writeInto(null, buffer, 0);
     assert.equals(res.err.message, 'invalid argument, expected i64 representation');
     assert.end();
 });
 
 test('coerce date string', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     buffer.fill(0xff);
     dateRW.writeInto('1970-01-01T00:00:00.000Z', buffer, 0);
-    assert.deepEquals(buffer, new Buffer([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces date string');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces date string');
     assert.end();
 });
 
 test('coerce number to date', function t(assert) {
-    var buffer = new Buffer(8);
+    var buffer = (Buffer.alloc || Buffer)(8);
     dateRW.writeInto(0, buffer, 0);
-    assert.deepEquals(buffer, new Buffer([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces number to date');
+    assert.deepEquals(buffer, (Buffer.from || Buffer)([0, 0, 0, 0, 0, 0, 0, 0]), 'coerces number to date');
     assert.end();
 });
 
 test('Accepts buffer as date', function t(assert) {
-    var outBuffer = new Buffer(8);
+    var outBuffer = (Buffer.alloc || Buffer)(8);
     outBuffer.fill(0xff);
-    var inbuffer = new Buffer([1, 2, 3, 4, 5, 6, 7, 8]);
+    var inbuffer = (Buffer.from || Buffer)([1, 2, 3, 4, 5, 6, 7, 8]);
     dateRW.writeInto(inbuffer, outBuffer, 0);
     assert.deepEquals(outBuffer, inbuffer, 'accepts date buffer');
     assert.end();
 });
 
 test('Accepts array as date', function t(assert) {
-    var outBuffer = new Buffer(8);
+    var outBuffer = (Buffer.alloc || Buffer)(8);
     outBuffer.fill(0xff);
     var inArray = [1, 2, 3, 4, 5, 6, 7, 8];
     dateRW.writeInto(inArray, outBuffer, 0);
-    assert.deepEquals(outBuffer, new Buffer(inArray), 'accepts date buffer');
+    assert.deepEquals(outBuffer, (Buffer.from || Buffer)(inArray), 'accepts date buffer');
     assert.end();
 });
 

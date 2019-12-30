@@ -18,10 +18,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
-
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var testRW = require('bufrw/test_rw');
 var fs = require('fs');
@@ -166,7 +165,7 @@ test('Struct with set rw', testRW.cases(thrift.Bucket.rw, [
 ]));
 
 test('Tolerance for lists on the wire', function t(assert) {
-    var buf = new Buffer([
+    var buf = (Buffer.from || Buffer)([
         0x0f,                   // type:1      -- 15, list
         0x00, 0x01,             // field:2     -- 1, asArray
         0x08,                   // type:1      -- 8, i32

@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 /* eslint max-len:[0, 120] */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var test = require('tape');
 var path = require('path');
 var fs = require('fs');
@@ -42,11 +42,11 @@ test('round-trip a non-strict message', function t(assert) {
     });
 
     var result = thrift.Service.foo.argumentsMessageRW.byteLength(message);
-    var buffer = new Buffer(result.length);
+    var buffer = (Buffer.alloc || Buffer)(result.length);
 
     var result = thrift.Service.foo.argumentsMessageRW.writeInto(message, buffer, 0);
 
-    var expectedBuffer = new Buffer([
+    var expectedBuffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length
         0x01,                   // type:1 = CALL
@@ -81,10 +81,10 @@ test('round-trip a non-strict message', function t(assert) {
     });
 
     var result = thrift.Service.foo.argumentsMessageRW.byteLength(message);
-    var buffer = new Buffer(result.length);
+    var buffer = (Buffer.alloc || Buffer)(result.length);
     var result = thrift.Service.foo.argumentsMessageRW.writeInto(message, buffer, 0);
 
-    var expectedBuffer = new Buffer([
+    var expectedBuffer = (Buffer.from || Buffer)([
         0x80,                   // strict
         0x01,                   // version = 1
         0x00,                   // shrug
@@ -121,7 +121,7 @@ test('round trip an exception (legacy)', function t(assert) {
         })
     });
 
-    var expectedBuffer = new Buffer([
+    var expectedBuffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length -- "foo"
         0x03,                   // type:3 = EXCEPTION
@@ -143,7 +143,7 @@ test('round trip an exception (legacy)', function t(assert) {
     var result = thrift.Service.foo.resultMessageRW.byteLength(message);
     assert.equal(result.length, expectedBuffer.length, 'measured correctly');
 
-    var buffer = new Buffer(result.length);
+    var buffer = (Buffer.alloc || Buffer)(result.length);
     buffer.fill(0xCC);
 
     var result = thrift.Service.foo.resultMessageRW.writeInto(message, buffer, 0);
@@ -160,7 +160,7 @@ test('round trip an exception (legacy)', function t(assert) {
 });
 
 test('read unexpected version error', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x80,                   // strict
         0x02,                   // version = 2 XXX BUT WHAT IS GOING ON WITH VERSION 2!?
         0x00,                   // shrug
@@ -186,7 +186,7 @@ test('read unexpected version error', function t(assert) {
 });
 
 test('read unexpected version error for undefined bits of strict', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x81,                   // strict XXX BUT WHAT IS GOING ON WITH THIS LOW BIT!?
         0x01,                   // version = 1
         0x00,                   // shrug
@@ -212,7 +212,7 @@ test('read unexpected version error for undefined bits of strict', function t(as
 });
 
 test('read unrecognized message type error (strict)', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x80,                   // strict
         0x01,                   // version = 1
         0x00,                   // shrug
@@ -240,7 +240,7 @@ test('read unrecognized message type error (strict)', function t(assert) {
 });
 
 test('read unrecognized message type error (legacy)', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length
         0xff,                   // type:1 = XXX WAT!?
@@ -265,7 +265,7 @@ test('read unrecognized message type error (legacy)', function t(assert) {
 });
 
 test('read invalid message body error', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length
         0x01,                   // type:1 = CALL
@@ -285,7 +285,7 @@ test('read invalid message body error', function t(assert) {
 });
 
 test('read exception', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length
         0x03,                   // type:3 = EXCEPTION
@@ -312,7 +312,7 @@ test('read exception', function t(assert) {
 });
 
 test('read invalid exception', function t(assert) {
-    var buffer = new Buffer([
+    var buffer = (Buffer.from || Buffer)([
         0x00, 0x00, 0x00, 0x03, // name.length:4
         0x66, 0x6f, 0x6f,       // name:name.length
         0x03,                   // type:3 = EXCEPTION
@@ -332,7 +332,7 @@ test('read invalid exception', function t(assert) {
 });
 
 test('write invalid message type (legacy)', function t(assert) {
-    var buffer = new Buffer(255);
+    var buffer = (Buffer.alloc || Buffer)(255);
     var message = {
         name: 'foo',
         type: 'BORK',
@@ -345,7 +345,7 @@ test('write invalid message type (legacy)', function t(assert) {
 });
 
 test('write invalid message type (strict)', function t(assert) {
-    var buffer = new Buffer(255);
+    var buffer = (Buffer.alloc || Buffer)(255);
     var message = {
         name: 'foo',
         type: 'BORK',
@@ -358,7 +358,7 @@ test('write invalid message type (strict)', function t(assert) {
 });
 
 test('measure byte length for invalid body', function t(assert) {
-    var buffer = new Buffer(255);
+    var buffer = (Buffer.alloc || Buffer)(255);
     var message = {
         name: 'foo',
         type: 'BORK',
@@ -376,7 +376,7 @@ test('measure byte length for invalid body', function t(assert) {
 });
 
 test('measure byte length for invalid exception', function t(assert) {
-    var buffer = new Buffer(255);
+    var buffer = (Buffer.alloc || Buffer)(255);
     var message = {
         name: 'foo',
         type: 'EXCEPTION',

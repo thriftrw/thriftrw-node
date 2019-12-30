@@ -72,9 +72,9 @@ var invalidArgumentTestCases = [
     'hello',
     [],
     {},
-    Buffer(1),
-    Buffer([0]),
-    Buffer('string')
+    (Buffer.alloc || Buffer)(1),
+    (Buffer.from || Buffer)([0]),
+    (Buffer.from || Buffer)('string')
 ].map(invalidArgumentTestCase('number'));
 
 var invalidShortBufferTestCases = [{

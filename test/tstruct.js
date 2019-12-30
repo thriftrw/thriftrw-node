@@ -38,7 +38,7 @@ test('TStructRW', testRW.cases(TStructRW, [
         0x00                    // type:1  -- stop
     ]],
 
-    [TStruct([TField(11, 1, Buffer('hello'))]), [
+    [TStruct([TField(11, 1, (Buffer.from || Buffer)('hello'))]), [
         0x0b,                   // type:1 -- string
         0x00, 0x01,             // id:2   -- 1
         0x00, 0x00, 0x00, 0x05, // len:4  -- 5
@@ -62,7 +62,7 @@ test('TStructRW', testRW.cases(TStructRW, [
 
     [TStruct([
         TField(12, 1, TStruct([TField(8, 1, 10)])),
-        TField(12, 2, TStruct([TField(11, 1, Buffer('hello'))]))
+        TField(12, 2, TStruct([TField(11, 1, (Buffer.from || Buffer)('hello'))]))
     ]), [
         0x0c,                   // type:1  -- struct
         0x00, 0x01,             // id:2    -- 1

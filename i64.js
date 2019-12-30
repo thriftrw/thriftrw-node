@@ -18,10 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-/* global Buffer */
 /* eslint no-self-compare: [0] */
 'use strict';
 
+var Buffer = require('buffer').Buffer;
 var util = require('util');
 var bufrw = require('bufrw');
 var Long = require('long');
@@ -182,7 +182,9 @@ function I64BufferRW() {}
 util.inherits(I64BufferRW, I64RW);
 
 I64BufferRW.prototype.poolReadFrom = function poolReadTInt64From(destResult, buffer, offset) {
-    var value = new Buffer(8);
+    // The following branches right only on legacy versions of Node.js
+    // istanbul ignore next
+    var value = (Buffer.alloc || Buffer)(8);
     buffer.copy(value, 0, offset, offset + 8);
     return destResult.reset(null, offset + 8, value);
 };
