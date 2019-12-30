@@ -27,7 +27,7 @@ var path = require('path');
 var fs = require('fs');
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 test('round-trip a non-strict message', function t(assert) {

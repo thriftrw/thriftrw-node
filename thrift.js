@@ -111,8 +111,6 @@ Thrift.prototype._init = function _init(options) {
     this.asts = options.asts || Object.create(null);
     // filename to Thrift instance
     this.memo = options.memo || Object.create(null);
-    // file encoding
-    this.encoding = options.encoding || 'ascii'
 
     // Grant file system access for resolving includes, as opposed to lifting
     // includes from provided options.idls alone.
@@ -125,7 +123,6 @@ Thrift.prototype._init = function _init(options) {
     this.strict = options.strict !== undefined ? options.strict : true;
     this.defaultValueDefinition = new Literal(options.defaultAsUndefined ? undefined : null);
     this.defaultAsUndefined = options.defaultAsUndefined;
-    this.encoding = options.encoding || 'utf-8';
 
     // [name] :Thrift* implementing {compile, link, &c}
     // Heterogenous Thrift model objects by name in a consolidated name-space
@@ -180,13 +177,13 @@ Thrift.prototype._asyncParse = function _asyncParse(filename, allowIncludeAlias,
         return model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
     }
 
-    model.fs.readFile(filename, this.encoding, function (err, source) {
+    model.fs.readFile(filename, 'utf-8', function (err, source) {
         if (err) {
             return cb(err);
         }
         model.idls[filename] = source;
         model._asyncParseIncludedModules(filename, allowIncludeAlias, cb);
-    }, this.encoding)
+    });
 }
 
 Thrift.prototype._asyncParseIncludedModules = function _asyncParseIncludedModules(filename, allowIncludeAlias, cb) {
@@ -223,7 +220,7 @@ Thrift.prototype._parse = function _parse(filename, allowIncludeAlias) {
         /* eslint-disable max-len */
         assert.ok(this.fs, filename + ': Thrift must be constructed with either a complete set of options.idls, options.asts, or options.fs access');
         /* eslint-enable max-len */
-        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), this.encoding);
+        this.idls[filename] = this.fs.readFileSync(path.resolve(filename), 'utf-8');
     }
 
     if (!this.asts[filename]) {
@@ -393,7 +390,6 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
     } else {
         model = new Thrift({
             entryPoint: filename,
-            encoding: this.encoding,
             parsed: this.parsed,
             idls: this.idls,
             asts: this.asts,

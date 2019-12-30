@@ -27,7 +27,7 @@ var fs = require('fs');
 var ThriftMap = require('../map').ThriftMap;
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'map.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'map.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 var strI16Map = thrift.models.Graph.fieldsByName.stringsToI16s.valueType;

@@ -36,7 +36,7 @@ if (process.browser) {
 }
 
 test('thrift parses from source', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'utf-8');
     thrift = new Thrift({source: source});
     assert.equal(
         thrift.getSources().entryPoint,
@@ -64,7 +64,7 @@ test('thrift parses from entryPoint', function t(assert) {
 });
 
 test('thrift parses from idls', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'utf-8');
     thrift = new Thrift({idls: {'service.thrift': source}, entryPoint: 'service.thrift'});
     assert.equal(
         thrift.getSources().entryPoint,
@@ -153,7 +153,7 @@ test('can get type error from thrift', function t(assert) {
 });
 
 test('reference error in thrift', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'reference-error.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'reference-error.thrift'), 'utf-8');
     try {
         thrift = new Thrift({source: source});
         assert.fail('thrift should not parse');
@@ -164,7 +164,7 @@ test('reference error in thrift', function t(assert) {
 });
 
 test('duplicate reference in thrift', function t(assert) {
-    var source = fs.readFileSync(path.join(__dirname, 'duplicate-error.thrift'), 'ascii');
+    var source = fs.readFileSync(path.join(__dirname, 'duplicate-error.thrift'), 'utf-8');
     try {
         thrift = new Thrift({source: source});
         assert.fail('thrift should not parse');
@@ -176,7 +176,7 @@ test('duplicate reference in thrift', function t(assert) {
 
 test('get endpoints single service', function t(assert) {
     if (process.browser) {
-        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'ascii')});
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift.thrift'), 'utf-8')});
     } else {
         thrift = new Thrift({entryPoint: path.join(__dirname, 'thrift.thrift'), allowFilesystemAccess: true});
     }
@@ -190,7 +190,7 @@ test('get endpoints single service', function t(assert) {
 
 test('get endpoints multi service', function t(assert) {
     if (process.browser) {
-        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'utf-8')});
     } else {
         thrift = new Thrift({
             entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
@@ -208,7 +208,7 @@ test('get endpoints multi service', function t(assert) {
 test('respects default as undefined', function t(assert) {
     if (process.browser) {
         thrift = new Thrift({
-            source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii'),
+            source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'utf-8'),
             defaultAsUndefined: true
         });
     } else {
@@ -232,7 +232,7 @@ test('respects default as undefined', function t(assert) {
 
 test('defaults to null default value', function t(assert) {
     if (process.browser) {
-        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'utf-8')});
     } else {
         thrift = new Thrift({
             entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
@@ -253,7 +253,7 @@ test('defaults to null default value', function t(assert) {
 
 test('get endpoints multi service target', function t(assert) {
     if (process.browser) {
-        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'utf-8')});
     } else {
         thrift = new Thrift({
             entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),
@@ -270,7 +270,7 @@ test('get endpoints multi service target', function t(assert) {
 
 test('get endpoints multi service bad target', function t(assert) {
     if (process.browser) {
-        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'ascii')});
+        thrift = new Thrift({source: fs.readFileSync(path.join(__dirname, 'thrift', 'MultiService.thrift'), 'utf-8')});
     } else {
         thrift = new Thrift({
             entryPoint: path.join(__dirname, 'thrift', 'MultiService.thrift'),

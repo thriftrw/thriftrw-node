@@ -58,4 +58,4 @@ require('./lcp');
 require('./idls');
 require('./asts');
 require('./message');
-require('./encoding')
+require('./utf8')

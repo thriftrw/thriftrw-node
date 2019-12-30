@@ -25,7 +25,7 @@ var test = require('tape');
 var Thrift = require('..').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'const.thrift'), 'utf-8');
 var thrift;
 
 test('consts parse', function t(assert) {

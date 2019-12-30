@@ -26,7 +26,7 @@ var testRW = require('bufrw/test_rw');
 var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'recursion.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 var Shark = thrift.Shark;
 

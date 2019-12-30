@@ -32,7 +32,7 @@ var TYPE = require('../TYPE');
 var Buffer = require('buffer').Buffer;
 
 var thrift = new thriftrw.Thrift({
-    source: fs.readFileSync(path.join(__dirname, 'i64.thrift'), 'ascii')
+    source: fs.readFileSync(path.join(__dirname, 'i64.thrift'), 'utf-8')
 });
 
 var bufferRW = thrift.getType('bufnum').rw;

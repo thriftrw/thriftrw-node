@@ -26,7 +26,7 @@ var Buffer = require('buffer').Buffer;
 var Thrift = require('../thrift').Thrift;
 var fs = require('fs');
 var path = require('path');
-var source = fs.readFileSync(path.join(__dirname, 'struct.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'struct.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 var Health = thrift.$Health;

@@ -26,7 +26,7 @@ var fs = require('fs');
 var path = require('path');
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'exception.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 var err = new thrift.BogusNameError({message: 'Bogus name: Voldemort', bogusName: 'Voldemort'});

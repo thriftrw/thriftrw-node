@@ -26,7 +26,7 @@ var fs = require('fs');
 var path = require('path');
 var Thrift = require('../thrift').Thrift;
 
-var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'ascii');
+var source = fs.readFileSync(path.join(__dirname, 'typedef.thrift'), 'utf-8');
 var thrift = new Thrift({source: source});
 
 test('follows references through typedefs', function t(assert) {
