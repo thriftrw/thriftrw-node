@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   This change brings ThriftRW Node.js into parity.
   This affects the asynchronous filesystem API used by Thrift.load.
   readFile must accept an encoding argument.
+### Fixed
+- The `allowIncludeAlias` option previously only applied to the main Thrift module.
+  It now applies to all transitively included modules.
+  However, using this feature is ill-advised since no other Thrift
+  implementation has provided this experimental feature and it would limit
+  inter-language compatibility.
 
 ## [3.11.3] - 2018-10-04
 ### Changed
