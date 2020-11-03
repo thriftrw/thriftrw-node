@@ -285,7 +285,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 allowIncludeAlias: true,
                 allowOptionalArguments: this.allowOptionalArguments,
                 noLink: true,
-                defaultAsUndefined: this.defaultAsUndefined
+                releaseSources: this.releaseSources,defaultAsUndefined: this.defaultAsUndefined
             });
         }
 
