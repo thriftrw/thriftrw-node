@@ -114,6 +114,7 @@ function Thrift(options) {
     this.surface = this;
 
     this.linked = false;
+    this.releaseSources = options.releaseSources;
     this.allowIncludeAlias = options.allowIncludeAlias || false;
     this.allowOptionalArguments = options.allowOptionalArguments || false;
 
@@ -361,8 +362,10 @@ Thrift.prototype.link = function link() {
     this.exception.link(this);
 
     // As part of the linking process, we also release aliased
-    // refs to idls, asts
-    this.releaseResources();
+    // refs to idls, asts, etc.
+    if (this.releaseSources) {
+        this.releaseResources();
+    }
 
     return this;
 };
