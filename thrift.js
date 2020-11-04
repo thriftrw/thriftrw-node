@@ -365,17 +365,13 @@ Thrift.prototype.link = function link() {
     // As part of the linking process, we also release aliased
     // refs to idls, asts, etc.
     if (this.releaseSources) {
-        this.releaseResources();
+        this.idls = null;
+        this.asts = null;
+        this.memo = null;
     }
 
     return this;
 };
-
-Thrift.prototype.releaseResources = function release() {
-    this.idls = null;
-    this.asts = null;
-    this.memo = null;
-}
 
 Thrift.prototype.resolve = function resolve(def) {
     // istanbul ignore else
