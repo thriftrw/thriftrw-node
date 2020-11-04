@@ -114,6 +114,7 @@ function Thrift(options) {
     this.surface = this;
 
     this.linked = false;
+    this.releaseSources = options.releaseSources || false;
     this.allowIncludeAlias = options.allowIncludeAlias || false;
     this.allowOptionalArguments = options.allowOptionalArguments || false;
 
@@ -284,6 +285,7 @@ Thrift.prototype.compileInclude = function compileInclude(def) {
                 allowIncludeAlias: true,
                 allowOptionalArguments: this.allowOptionalArguments,
                 noLink: true,
+                releaseSources: this.releaseSources,
                 defaultAsUndefined: this.defaultAsUndefined
             });
         }
@@ -359,6 +361,14 @@ Thrift.prototype.link = function link() {
     }
 
     this.exception.link(this);
+
+    // As part of the linking process, we also release aliased
+    // refs to idls, asts, etc.
+    if (this.releaseSources) {
+        this.idls = null;
+        this.asts = null;
+        this.memo = null;
+    }
 
     return this;
 };
